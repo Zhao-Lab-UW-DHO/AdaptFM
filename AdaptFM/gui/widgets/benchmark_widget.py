@@ -1,6 +1,6 @@
 from napari.qt.threading import thread_worker
 from qtpy.QtWidgets import QWidget, QVBoxLayout, QComboBox, QPushButton, QLabel, QFileDialog, QListWidget
-from gui_scripts.gui.widgets.metrics_widget import MetricRegistry
+from AdaptFM.gui.widgets.metrics_widget import MetricRegistry
 
 class BenchmarkWidget(QWidget):
     def __init__(self):
