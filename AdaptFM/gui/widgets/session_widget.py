@@ -3,7 +3,7 @@ from magicgui import magicgui
 from qtpy.QtWidgets import QFileDialog
 import os
 from glob import glob
-from gui_scripts.gui.napari_utils import update_or_create_image,  update_or_create_labels
+from AdaptFM.gui.napari_utils import update_or_create_image,  update_or_create_labels
 
 class SessionWidget:
     def __init__(self, viewer, session, vm, sm):
