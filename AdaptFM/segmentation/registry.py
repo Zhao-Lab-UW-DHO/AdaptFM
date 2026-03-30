@@ -1,6 +1,6 @@
 
 from typing import Dict
-from gui_scripts.segmentation.Seg_Alg import SegmentationAlgorithmSpec,NucLogGabor,FrequencySegmentation,OrganoidSegmentation,NucLogGaborGPU,Felzenszwalb3D,CannyEdge3D,Watershed3D,SauvolaThreshold3D,OtsuThreshold3D
+from AdaptFM.segmentation.Seg_Alg import SegmentationAlgorithmSpec,NucLogGabor,FrequencySegmentation,OrganoidSegmentation,NucLogGaborGPU,Felzenszwalb3D,CannyEdge3D,Watershed3D,SauvolaThreshold3D,OtsuThreshold3D
 
 
 class SegmentationRegistry:
