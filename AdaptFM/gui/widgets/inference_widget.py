@@ -1,4 +1,4 @@
-from gui_scripts.gui.widgets.model_widget import ModelWorkflowWidget
+from AdaptFM.gui.widgets.model_widget import ModelWorkflowWidget
 from qtpy.QtWidgets import QFileDialog, QPushButton,QInputDialog
 
 from pathlib import Path
