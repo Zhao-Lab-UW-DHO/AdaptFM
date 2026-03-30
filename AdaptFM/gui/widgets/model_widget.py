@@ -4,8 +4,8 @@ from qtpy.QtWidgets import (
     QPushButton, QFormLayout,QScrollArea
 )
 from pathlib import Path
-from gui_scripts.model.registry import MODEL_REGISTRY
-from gui_scripts.model.fmSpec import FoundationModelSpec
+from AdaptFM.model.registry import MODEL_REGISTRY
+from AdaptFM.model.fmSpec import FoundationModelSpec
 import traceback
 
 
