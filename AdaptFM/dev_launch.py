@@ -1,15 +1,15 @@
 import napari
-from gui_scripts.volume.volume_manager import VolumeManager 
-from gui_scripts.segmentation.manager import SegmentationManager 
-from gui_scripts.dataset.dataset_manager import DatasetManager
-from gui_scripts.gui.widgets.seg_widget import SegmentationWidget
-from gui_scripts.gui.widgets.save_widget import SaveWidget
-from gui_scripts.gui.widgets.session_widget import SessionWidget
-from gui_scripts.session.annotation_session import AnnotationSession
-from gui_scripts.gui.widgets.inference_widget import InferenceWidget
-from gui_scripts.gui.widgets.training_widget import TrainingWidget
-from gui_scripts.gui.widgets.benchmark_widget import BenchmarkWidget
-from gui_scripts.model.registry import MODEL_REGISTRY
+from AdaptFM.volume.volume_manager import VolumeManager 
+from AdaptFM.segmentation.manager import SegmentationManager 
+from AdaptFM.dataset.dataset_manager import DatasetManager
+from AdaptFM.gui.widgets.seg_widget import SegmentationWidget
+from AdaptFM.gui.widgets.save_widget import SaveWidget
+from AdaptFM.gui.widgets.session_widget import SessionWidget
+from AdaptFM.session.annotation_session import AnnotationSession
+from AdaptFM.gui.widgets.inference_widget import InferenceWidget
+from AdaptFM.gui.widgets.training_widget import TrainingWidget
+from AdaptFM.gui.widgets.benchmark_widget import BenchmarkWidget
+from AdaptFM.model.registry import MODEL_REGISTRY
 from qtpy.QtWidgets import QAction
 
 
