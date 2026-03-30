@@ -5,7 +5,7 @@ import random
 import tifffile as tiff
 import shutil
 from pathlib import Path
-from gui_scripts.dataset.dataset_utils import construct_nnUNet_folders, write_nnUNet_json
+from AdaptFM.dataset.dataset_utils import construct_nnUNet_folders, write_nnUNet_json
 
 class DatasetManager:
     def __init__(self, folder=None):
