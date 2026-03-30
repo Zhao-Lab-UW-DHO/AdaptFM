@@ -1,4 +1,4 @@
-from gui_scripts.model.model_spec import ModelSpec
+from AdaptFM.model.model_spec import ModelSpec
 import os
 import subprocess
 import json
