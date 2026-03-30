@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 import tifffile as tiff
 import json
-from gui_scripts.segmentation.fourier.nuc_seg import run_nuclear_segmentation
+from AdaptFM.segmentation.fourier.nuc_seg import run_nuclear_segmentation
 
 @dataclass
 class AutoSegParams:
