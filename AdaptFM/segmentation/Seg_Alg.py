@@ -1,7 +1,7 @@
-from gui_scripts.segmentation.fourier.nuc_seg import run_nuclear_segmentation
-from gui_scripts.segmentation.fourier.cell_seg import run_single_cell_segmentation
-from gui_scripts.segmentation.fourier.org_seg import run_organoid_segmentation
-from gui_scripts.segmentation.fourier.nuc_seg_gpu import run_nuclear_segmentation_gpu_chunked
+from AdaptFM.segmentation.fourier.nuc_seg import run_nuclear_segmentation
+from AdaptFM.segmentation.fourier.cell_seg import run_single_cell_segmentation
+from AdaptFM.segmentation.fourier.org_seg import run_organoid_segmentation
+from AdaptFM.segmentation.fourier.nuc_seg_gpu import run_nuclear_segmentation_gpu_chunked
 from abc import ABC
 
 class SegmentationAlgorithmSpec(ABC):
