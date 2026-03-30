@@ -1,7 +1,7 @@
 import json
 
-from gui_scripts.model.model_utils import extract_tunable_params,normalize_to_uint8
-from gui_scripts.model.model_spec import ModelSpec
+from AdaptFM.model.model_utils import extract_tunable_params,normalize_to_uint8
+from AdaptFM.model.model_spec import ModelSpec
 import subprocess, json
 import textwrap
 from pathlib import Path
