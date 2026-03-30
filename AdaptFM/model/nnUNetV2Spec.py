@@ -5,8 +5,8 @@ import json
 
 class NNUNetV2ModelSpec(ModelSpec):
     name = "nnUNetv2"
-    conda_env = "/Organoids/"
-    python_env = '/home/wisc/hbakhtiar/Organoids'
+    conda_env = ""
+    python_env = ''
 
 
     def default_params(self):
