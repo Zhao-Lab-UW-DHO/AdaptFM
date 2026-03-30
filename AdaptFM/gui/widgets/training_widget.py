@@ -1,5 +1,5 @@
-from gui_scripts.gui.napari_utils import expand_param_grid
-from gui_scripts.gui.widgets.model_widget import ModelWorkflowWidget
+from AdaptFM.gui.napari_utils import expand_param_grid
+from AdaptFM.gui.widgets.model_widget import ModelWorkflowWidget
 from qtpy.QtWidgets import QFileDialog
 from pathlib import Path
 
