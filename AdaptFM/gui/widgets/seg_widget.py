@@ -1,7 +1,7 @@
 from magicgui import magicgui
 from magicgui.widgets import Container, Label
 from napari import Viewer
-from gui_scripts.segmentation.registry import SEGMENTATION_REGISTRY
+from AdaptFM.segmentation.registry import SEGMENTATION_REGISTRY
 from magicgui import widgets, magicgui
 import dask.array as da
 
