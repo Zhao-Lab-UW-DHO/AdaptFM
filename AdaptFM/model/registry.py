@@ -1,6 +1,6 @@
-# gui_scripts/models/registry.py
-from gui_scripts.model.nnUNetV2Spec import NNUNetV2ModelSpec
-from gui_scripts.model.fmSpec import FoundationModelSpec, MicroSAMSpec,CellposeSAMSpec,
+# AdaptFM/models/registry.py
+from AdaptFM.model.nnUNetV2Spec import NNUNetV2ModelSpec
+from AdaptFM.model.fmSpec import FoundationModelSpec, MicroSAMSpec,CellposeSAMSpec,
 
 MODEL_REGISTRY = {
     "nnUNetv2": NNUNetV2ModelSpec(),
