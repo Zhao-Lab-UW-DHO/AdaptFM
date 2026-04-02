@@ -15,5 +15,7 @@ We recommend creating a separate conda environment for AdaptFM, and each associa
 Create a conda environment for AdaptFM using
 ```
 conda create --name AdaptFM python=3.13
+conda activate AdaptFM
 ```
+
 
