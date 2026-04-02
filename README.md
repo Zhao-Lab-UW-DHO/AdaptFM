@@ -4,7 +4,7 @@ An interactive framework for annotating, training, running inference, and benchm
 
 In AdaptFM you can:
 - Test and benchmark 3D segmentation models on your data. We currently support CellposeSAM, MicroSAM, nnUNetv2, SAM-Med-3D, and SSVT.
-- Create annotation using a number of segmentation algorithms, including SAM2 for click-based segmentation
+- Create 3D annotations using a number of segmentation algorithms, including SAM2 for click-based segmentation
 - Use those annotations to fine-tune/train models on your data
 - Add new models or annotation algorithms
 
