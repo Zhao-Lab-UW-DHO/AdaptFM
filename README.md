@@ -8,4 +8,5 @@ In AdaptFM you can:
 - Use those annotations to fine-tune/train models on your data
 - Add new models or annotation algorithms
 
+# Installation Instructions
 
