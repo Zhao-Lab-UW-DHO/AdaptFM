@@ -8,5 +8,12 @@ In AdaptFM you can:
 - Use those annotations to fine-tune/train models on your data
 - Add new models or annotation algorithms
 
-# Installation Instructions
+# Installation 
+
+We recommend creating a separate conda environment for AdaptFM, and each associated model
+
+Create a conda environment for AdaptFM using
+```
+conda create --name AdaptFM python=3.13
+```
 
