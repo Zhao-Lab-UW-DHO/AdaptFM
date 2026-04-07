@@ -9,7 +9,7 @@ All inference pipelines follow the same steps:
 4. "Select model checkpoint" --> you can optionally select the checkpoint for a trained model. This is not required for MicroSAM, CellposeSAM, or SAM-Med-3D. It is required for nnUNetv2.
 5. When you hit "Run" you will be prompted to select an output directory for your results, and a GPU to use.
 
-If you have already tested a model, you can benchmark it against a ground truth following the [steps here](Documentation/Benchmarking Models.md). 
+If you have already tested a model, you can benchmark it against a ground truth following the [steps here](./Benchmarking%20Models.md). 
 
 Demo video here:
 
