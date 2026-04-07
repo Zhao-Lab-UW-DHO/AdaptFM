@@ -8,6 +8,8 @@ In AdaptFM you can:
 - Use those annotations to fine-tune/train models on your data
 - Add new models or annotation algorithms
 
+![Segmentation Demo](asset/demo_cropped.gif)
+
 # Installation 
 
 We recommend creating a separate conda environment for AdaptFM, and each associated model
