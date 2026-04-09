@@ -11,6 +11,7 @@ All inference pipelines follow the same steps:
 
 If you have already tested a model, you can benchmark it against a ground truth following the [steps here](./Benchmarking-Models.md). 
 
-Demo video here:
+Demo:
 
+![Segmentation Demo](asset/Inference_GIF.gif)
 
