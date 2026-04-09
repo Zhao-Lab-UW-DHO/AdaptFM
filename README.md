@@ -42,8 +42,11 @@ pip install -e ".[sam3]"
 To avoid dependency conflicts, we recommend installing each model's package in its own conda environment. Visit the below links to properly install the standard models
 
 [nnUNet](https://github.com/MIC-DKFZ/nnUNet/tree/master)
+
 [MicroSAM](https://github.com/computational-cell-analytics/micro-sam)
+
 [CellposeSAM](https://github.com/mouseland/cellpose)
+
 [SAM-Med-3D](https://github.com/uni-medical/sam-med3d)
 
 Once you have created conda environments for each, navigate to AdaptFM > model > registry.py and add the path to the conda environment
@@ -51,7 +54,7 @@ Once you have created conda environments for each, navigate to AdaptFM > model >
 ```python
    "microSAM": MicroSAMSpec(
         name="microSAM",
-        conda_env="",
+        conda_env="/path/to/micro_sam/conda_environment", #replace with the path to your newly installed conda environment for microsam
         module_path="micro_sam.training",
         training_wrapper_path = "micro_sam.train_wrapper",
         inference_wrapper_path = "micro_sam.inference_wrapper"
