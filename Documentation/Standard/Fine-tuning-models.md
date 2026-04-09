@@ -10,5 +10,6 @@ Steps:
    - MicroSAM - train_sam
    - SSVT - train_SSVT
    - SAM-Med-3D - launch_training
-5. "Select dataset folder" --> folder with raw images and associated masks used for training.
-6. When you hit "Run" you will be prompted to select an output directory for your results, and a GPU to use.
+5. Adjust parameters as needed
+6. "Select dataset folder" --> folder with raw images and associated masks used for training.
+7. When you hit "Run" you will be prompted to select an output directory for your results, and a GPU to use.
