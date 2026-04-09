@@ -20,6 +20,8 @@ conda create --name AdaptFM python=3.13
 conda activate AdaptFM
 ```
 
+Install PyTorch for your CUDA version using the selector [here](https://pytorch.org/get-started/locally/). If you don't know your CUDA version, run nvidia-smi in the terminal it will be at the top of the printout. 
+
 Clone the repo and install required dependencies
 
 ```
