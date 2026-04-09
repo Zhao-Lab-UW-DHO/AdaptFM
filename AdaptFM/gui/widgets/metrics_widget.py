@@ -261,3 +261,79 @@ class BoundaryF1(Metric):
         return f1
 
 
+# ------------------------------
+# Counts Comparison
+# ------------------------------
+#   Assumes that true counts are in a csv file 
+#       - one column has filename that matches the name of the prediction
+#       - second column has the counts that you want to compare against
+#
+
+import pandas as pd
+import numpy as np
+import os
+import tifffile
+import matplotlib.pyplot as plt
+from skimage.measure import label
+
+@MetricRegistry.register
+class CountsComparison(Metric):
+    name = "Compare Counts"
+
+    def compute(self, gt_csv, model_preds):
+
+        gt_csv = pd.read_csv(gt_csv)
+
+        gt_counts = []
+        pred_counts = []
+        matched_files = []
+
+        for _, row in gt_csv.iterrows():
+            filename = row['File']
+            gt_count = row['Counts']
+
+            # find corresponding prediction file
+            pred_path = os.path.join(model_preds, filename)
+            if not os.path.exists(pred_path):
+                # try matching by stem in case extensions differ
+                stem = os.path.splitext(filename)[0]
+                candidates = [f for f in os.listdir(model_preds) 
+                              if os.path.splitext(f)[0] == stem]
+                if not candidates:
+                    print(f"Warning: no prediction found for {filename}, skipping")
+                    continue
+                pred_path = os.path.join(model_preds, candidates[0])
+
+            # count connected components excluding background (label 0)
+            pred_img = tifffile.imread(pred_path)
+            labeled = label(pred_img, connectivity=2)
+            pred_count = labeled.max()
+
+            gt_counts.append(gt_count)
+            pred_counts.append(pred_count)
+            matched_files.append(filename)
+
+        gt_counts = np.array(gt_counts, dtype=float)
+        pred_counts = np.array(pred_counts, dtype=float)
+
+        # slope through origin: slope = sum(x*y) / sum(x*x)
+        slope = np.sum(gt_counts * pred_counts) / np.sum(gt_counts ** 2)
+        pred_line = slope * gt_counts
+        r_value = np.corrcoef(gt_counts,pred_counts)[0, 1]
+
+        # scatter plot
+        fig, ax = plt.subplots(figsize=(6, 6))
+        ax.scatter(gt_counts, pred_counts, alpha=0.7, edgecolors='k', linewidths=0.5)
+
+        x_line = np.linspace(0, max(gt_counts) * 1.05, 100)
+        ax.plot(x_line, slope * x_line, 'r-', 
+                label=f'Slope={slope:.2f}, R={r_value:.3f}')
+
+        ax.set_xlabel('Ground Truth Counts')
+        ax.set_ylabel('Predicted Counts')
+        ax.set_title('Predicted vs Ground Truth Counts')
+        ax.legend()
+        plt.tight_layout()
+        plt.savefig(os.path.join(model_preds,'counts_correlation.png'))
+
+        return 
