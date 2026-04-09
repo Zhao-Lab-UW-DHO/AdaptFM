@@ -1,8 +1,8 @@
 
 from typing import Dict
-from AdaptFM.segmentation.Seg_Alg import SegmentationAlgorithmSpec,NucLogGabor,FrequencySegmentation,OrganoidSegmentation,NucLogGaborGPU,Felzenszwalb3D,CannyEdge3D,Watershed3D,SauvolaThreshold3D,OtsuThreshold3D
+from AdaptFM.segmentation.Seg_Alg import SegmentationAlgorithmSpec,NucLogGabor,FrequencySegmentation,OrganoidSegmentation,NucLogGaborGPU,Felzenszwalb3D,CannyEdge3D,Watershed3D,SauvolaThreshold3D,OtsuThreshold3D,SAM2ClickAndPropagate,SAM3TextAndPropagate
 
-
+ø
 class SegmentationRegistry:
     def __init__(self):
         self._algorithms: Dict[str, SegmentationAlgorithmSpec] = {}
@@ -31,6 +31,8 @@ SEGMENTATION_REGISTRY.register(CannyEdge3D())
 SEGMENTATION_REGISTRY.register(Watershed3D())
 SEGMENTATION_REGISTRY.register(SauvolaThreshold3D())
 SEGMENTATION_REGISTRY.register(OtsuThreshold3D())
+SEGMENTATION_REGISTRY.register(SAM2ClickAndPropagate()) 
+SEGMENTATION_REGISTRY.register(SAM3TextAndPropagate()) 
 
 
     
