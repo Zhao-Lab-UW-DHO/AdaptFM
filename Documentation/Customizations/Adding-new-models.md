@@ -86,3 +86,16 @@ There are two parts to defining training: Creating a new model specification cla
         ]
 
 ```
+
+- Navigate to AdaptFM > model > foundation_models - create a new folder for your model and add train_wrapper.py and inference_wrapper.py files (see AdaptFM > model > foundation_models > cellposeSAM > train_wrapper.py as example for what to include in these scripts)
+- Navigate to AdaptFM > model > registry.py and add your model to the new registry, specifying the path to the conda environment, and train_wrapper.py/inference_wrapper.py files
+
+```python
+    "CellposeSAM": CellposeSAMSpec(
+        name="CellposeSAM",
+        conda_env="/mnt/local/data3/conda_envs/cellpose",
+        module_path="cellpose.train",
+        training_wrapper_path ="AdaptFM.model.foundation_models.cellposeSAM.train_wrapper",
+        inference_wrapper_path = "AdaptFM.model.foundation_models.cellposeSAM.inference_wrapper"
+    ),
+```
