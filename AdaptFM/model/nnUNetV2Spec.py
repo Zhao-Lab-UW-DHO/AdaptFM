@@ -4,9 +4,11 @@ import subprocess
 import json
 
 class NNUNetV2ModelSpec(ModelSpec):
-    name = "nnUNetv2"
-    conda_env = ""
-    python_env = ''
+    
+    def __init__(self,conda_env):
+        super().__init__()
+        self.conda_env = conda_env
+        self.name = 'nnUNetV2'
 
 
     def default_params(self):
@@ -44,85 +46,83 @@ class NNUNetV2ModelSpec(ModelSpec):
         }
 
 
-    def prepare_dataset(self, dataset_manager, output_dir):
+    def prepare_dataset(self, dataset_manager, output_dir,params):
+       
         dataset_manager.export_for_framework(
             framework="nnunet",
-            out_folder=output_dir
+            out_folder=output_dir,
+            params=params
         )
         return output_dir
     
-    def preprocessing_command(self, dataset_dir, params):
+    def preprocessing_command(self, params):
         set_id = params["Set ID"]
 
         return [
-            "/home/wisc/hbakhtiar/Organoids/bin/nnUNetv2_plan_and_preprocess",
-            "-d", str(set_id),
-            "-pl", "nnUNetPlannerResEncL",
-        ]
-
-    def training_command(self, dataset_dir, params, run_dir):
-        return [
-            '/home/wisc/hbakhtiar/Organoids/bin/nnUNetv2_train',
-            params['Set ID'],
-            params['config'],
-            params['fold'],
-            '-p', 'nnUNetResEncUNetLPlans',
-            '-tr', 'nnUNetTrainerCELoss',
-            '--npz'
-        ]
-
-    def inference_command(self, params, images_dir, output_dir,checkpoint):
-    
-         return [
-            '/home/wisc/hbakhtiar/Organoids/bin/nnUNetv2_train',
-            '-i',images_dir,
-            '-o',output_dir,
-            '-d',params['Set ID'],
-            '-c',params["config"],
-            '-f',params['fold'],
-            '-p','nnUNetResEncUNetLPlans',
-            '-tr', 'nnUNetTrainerCELoss',
-            '-chk',checkpoint.basename
+            "nnUNetv2_plan_and_preprocess",
+            "-d", str(set_id), 
+            "-pl", "nnUNetPlannerResEncL", # use default plans
         ]
     
-    def run_preprocessing(self, dataset_dir, params, run_dir):
-        run_dir.mkdir(parents=True, exist_ok=True)
 
-        cmd = self._wrap_with_python_env(
-            self.preprocessing_command(dataset_dir, params)
+    def run_preprocessing(self, dataset_dir, params, output_dir):
+        
+        output_dir.mkdir(parents=True, exist_ok=True)
+        gpu = params['gpu']
+
+        cmd = self._wrap_with_conda(
+            self.preprocessing_command( params)
         )
 
         env = os.environ.copy()
-        env['nnUNet_raw'] = '/mnt/local/data3/Organoids/Data/nnUNet_testing_results/dataset/nnUNet_raw'
-        env['nnUNet_preprocessed'] = '/mnt/local/data3/Organoids/Data/nnUNet_testing_results/dataset/nnUNet_preprocessed'
-        env['nnUNet_results'] = '/mnt/local/data3/Organoids/Data/nnUNet_testing_results/dataset/nnUNet_results'
-        gpu = params.pop("gpu", None)
+        env['nnUNet_raw'] = os.path.join(dataset_dir,'nnUNet_raw')
+        env['nnUNet_preprocessed'] = os.path.join(dataset_dir,'nnUNet_preprocessed')
+        env['nnUNet_results'] =os.path.join(dataset_dir,'nnUNet_results')
         env['CUDA_VISIBLE_DEVICES'] = str(gpu)
 
-        subprocess.run(
+        process= subprocess.Popen(
             cmd,
-            check=True,
-            env=env,
+            stdout=open(output_dir / "stdout.log", "w"),
+            stderr=open(output_dir / "stderr.log", "w"),
+            start_new_session=True,
+            env=env
         )
+
+        return process
+
+
+    def training_command(self, params):
+        return [
+            'nnUNetv2_train',
+            params['Set ID'],
+            params['config'],
+            params['fold'],
+            '-p', 'nnUNetResEncUNetLPlans', 
+            '-tr', 'nnUNetTrainer',
+            '--npz'
+        ]
 
 
      # -------- Execution --------
     def run_training(self, dataset_info, params, run_dir):
         run_dir.mkdir(parents=True, exist_ok=True)
 
+        gpu = params['gpu']
+        env = os.environ.copy()
+        env['nnUNet_raw'] = os.path.join(dataset_info,'nnUNet_raw')
+        env['nnUNet_preprocessed'] = os.path.join(dataset_info,'nnUNet_preprocessed')
+        env['nnUNet_results'] =os.path.join(dataset_info,'nnUNet_results')
+        env['CUDA_VISIBLE_DEVICES'] = str(gpu)
+
         with open(run_dir / "params.json", "w") as f:
             json.dump(params, f, indent=4)
 
-        cmd = self._wrap_with_python_env(
-            self.training_command(dataset_info, params, run_dir)
-        )
+        training_commnad = self.training_command(params)
 
-        env = os.environ.copy()
-        env['nnUNet_raw'] = '/mnt/local/data3/Organoids/Data/nnUNet_testing_results/dataset/nnUNet_raw'
-        env['nnUNet_preprocessed'] = '/mnt/local/data3/Organoids/Data/nnUNet_testing_results/dataset/nnUNet_preprocessed'
-        env['nnUNet_results'] = '/mnt/local/data3/Organoids/Data/nnUNet_testing_results/dataset/nnUNet_results'
-        gpu = params.pop("gpu", None)
-        env['CUDA_VISIBLE_DEVICES'] = str(gpu)
+        cmd = self._wrap_with_conda(
+            training_commnad
+        )
+        env['TORCHDYNAMO_DISABLE'] = '1'
 
         subprocess.Popen(
             cmd,
@@ -135,18 +135,20 @@ class NNUNetV2ModelSpec(ModelSpec):
         
     def run_inference(self,dataset_dir,checkpoint,output_dir,params):
 
-        gpu = params.pop("gpu", None)
+        gpu = params['gpu']
         env = os.environ.copy()
 
-        env['nnUNet_raw'] = '/mnt/local/data3/Organoids/Data/nnUNet_testing_results/dataset/nnUNet_raw'
-        env['nnUNet_preprocessed'] = '/mnt/local/data3/Organoids/Data/nnUNet_testing_results/dataset/nnUNet_preprocessed'
-        env['nnUNet_results'] = '/mnt/local/data3/Organoids/Data/nnUNet_testing_results/dataset/nnUNet_results'
+        env['nnUNet_raw'] = os.path.join(dataset_dir,'nnUNet_raw')
+        env['nnUNet_preprocessed'] = os.path.join(dataset_dir,'nnUNet_preprocessed')
+        env['nnUNet_results'] =os.path.join(dataset_dir,'nnUNet_results')
+
         if gpu is not None:
             env["CUDA_VISIBLE_DEVICES"] = str(gpu)      
 
-        inference_cmd = self.inference_command(dataset_dir=dataset_dir,
-                                               checkpoint=checkpoint,
-                                               output_dir=output_dir) 
+        inference_cmd = self.inference_command(params = params,
+                                               output_dir=output_dir,
+                                               checkpoint = checkpoint,
+                                               env=env) 
         
         
         cmd = self._wrap_with_conda(inference_cmd)
@@ -158,3 +160,21 @@ class NNUNetV2ModelSpec(ModelSpec):
             start_new_session=True,
             env=env
         )
+
+
+    def inference_command(self, params, output_dir,checkpoint, env):
+        
+        imagesTs = os.path.join(env['nnUNet_raw'],f'Dataset{params['Set ID']}_{params['Set Name']}','imagesTs')
+        ckpt_name = os.path.basename(checkpoint)
+
+        return [
+            'nnUNetv2_predict',
+            '-i',imagesTs,
+            '-o',output_dir,
+            '-d',params['Set ID'],
+            '-c',params['config'],
+            '-f',params['fold'],
+            '-p','nnUNetResEncUNetLPlans', # use as default plans
+            '-tr', 'nnUNetTrainerCELoss', # default trainer
+            '-chk',ckpt_name # use the best checkpoint by default 
+        ]
