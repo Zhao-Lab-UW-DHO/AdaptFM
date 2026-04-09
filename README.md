@@ -12,9 +12,7 @@ In AdaptFM you can:
 
 ![Segmentation Demo](asset/demo_cropped.gif) ![SAM2 Demo](asset/SAM2_GIF.gif)
 
-# Installation 
-
-We recommend creating a separate conda environment for AdaptFM, and each associated model
+# Installation and Setup
 
 Create a conda environment for AdaptFM using
 ```
@@ -22,4 +20,40 @@ conda create --name AdaptFM python=3.13
 conda activate AdaptFM
 ```
 
+Clone the repo and install required dependencies
 
+```
+pip install --upgrade pip
+git clone https://github.com/Zhao-Lab-UW-DHO/AdaptFM.git
+cd AdaptFM
+pip install -e.
+python -c "import AdaptFM; print('AdaptFM installed successfully')"
+```
+
+[SAM2](https://github.com/facebookresearch/sam2) and [SAM3](https://github.com/facebookresearch/sam3) have specific system requirements. Consequently, the are left as optional dependencies
+
+```
+pip install -e ".[sam2]"
+pip install -e ".[sam3]"
+```
+
+## Using External Models with AdaptFM
+
+To avoid dependency conflicts, we recommend installing each model's package in its own conda environment. Visit the below links to properly install the standard models
+
+[nnUNet](https://github.com/MIC-DKFZ/nnUNet/tree/master)
+[MicroSAM](https://github.com/computational-cell-analytics/micro-sam)
+[CellposeSAM](https://github.com/mouseland/cellpose)
+[SAM-Med-3D](https://github.com/uni-medical/sam-med3d)
+
+Once you have created conda environments for each, navigate to AdaptFM > model > registry.py and add the path to the conda environment
+
+```python
+   "microSAM": MicroSAMSpec(
+        name="microSAM",
+        conda_env="",
+        module_path="micro_sam.training",
+        training_wrapper_path = "micro_sam.train_wrapper",
+        inference_wrapper_path = "micro_sam.inference_wrapper"
+    ),
+```
