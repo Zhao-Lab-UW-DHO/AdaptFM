@@ -30,6 +30,11 @@ class BenchmarkWidget(QWidget):
         self.models_list = QListWidget()
         self.layout.addWidget(self.models_list)
 
+                # Remove selected model button
+        self.remove_model_button = QPushButton("Remove Selected Model")
+        self.remove_model_button.clicked.connect(self.remove_model)
+        self.layout.addWidget(self.remove_model_button)
+
         # Compute button
         self.compute_button = QPushButton("Compute Metric")
         self.compute_button.clicked.connect(self.compute_metrics)
@@ -45,6 +50,12 @@ class BenchmarkWidget(QWidget):
             self.models_dirs.append(model_dir)
             self.models_list.addItem(model_dir)
 
+    def remove_model(self):
+            selected = self.models_list.currentRow()
+            if selected >= 0:
+                self.models_list.takeItem(selected)
+                self.models_dirs.pop(selected)
+
     def compute_metrics(self):
         metric_name = self.metric_dropdown.currentText()
         metric = MetricRegistry.create(metric_name)
@@ -54,5 +65,5 @@ class BenchmarkWidget(QWidget):
             return
 
         # just pass paths to the metric
-        result = metric.compute(self.gt_dir, self.models_dirs)
+        metric.compute(self.gt_dir, self.models_dirs)
         
