@@ -1,6 +1,8 @@
 from AdaptFM.gui.napari_utils import expand_param_grid
 from AdaptFM.gui.widgets.model_widget import ModelWorkflowWidget
 from qtpy.QtWidgets import QFileDialog
+from qtpy.QtWidgets import QInputDialog
+
 from pathlib import Path
 
 class TrainingWidget(ModelWorkflowWidget):
@@ -11,29 +13,47 @@ class TrainingWidget(ModelWorkflowWidget):
             raise RuntimeError("Model and dataset must be selected")
 
         params = self.collect_params()
-        expanded_params = list(expand_param_grid(params))
 
-        run_dir = Path(QFileDialog.getExistingDirectory(
+        output_dir = Path(QFileDialog.getExistingDirectory(
             None, "Select output directory"
         ))
+        
+        gpu, _ = QInputDialog.getInt(
+            None,
+            "Select GPU",
+            "GPU index:",
+            value=0,
+            min=0,
+            max=16,   # adjust if you want
+            step=1,
+        )
+
+        params["gpu"] = gpu
 
         prepared_dataset = self.model.prepare_dataset(
             self.dataset_manager,
-            run_dir / "dataset"
+            output_dir,
+            params=params
         )
 
-        if self.model.name =='nnUNetv2':
 
-            self.model.run_preprocessing(
+        if self.model.name =='nnUNetV2':
+
+
+            preprocess_proc = self.model.run_preprocessing(
                 dataset_dir=prepared_dataset,
                 params=params,
-                run_dir=run_dir / "preprocessing"
+                output_dir=output_dir
                 )
+            
+        # Block until preprocessing is done
+            return_code = preprocess_proc.wait()
+            
+            if return_code != 0:
+                raise RuntimeError(f"Preprocessing failed with return code {return_code}")
 
-         
-        for p in expanded_params:
-            self.model.run_training(
-                dataset_info=prepared_dataset,
-                params=p,
-                run_dir=run_dir
-            )
+        self.model.run_training(
+            dataset_info=prepared_dataset,
+            params=params,
+            run_dir=output_dir
+        )
