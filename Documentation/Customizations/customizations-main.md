@@ -8,4 +8,4 @@ Adding Custom Annotation Algorithms
 
 Adding Custom Models
 
-Adding Custom Benchmarks
+[Adding Custom Benchmarks](Custom-benchmarks.md)
