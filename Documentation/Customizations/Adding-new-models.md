@@ -93,7 +93,7 @@ There are two parts to defining training: Creating a new model specification cla
 ```python
     "CellposeSAM": CellposeSAMSpec(
         name="CellposeSAM",
-        conda_env="/mnt/local/data3/conda_envs/cellpose",
+        conda_env="/path/to/conda_envs/cellpose",
         module_path="cellpose.train",
         training_wrapper_path ="AdaptFM.model.foundation_models.cellposeSAM.train_wrapper",
         inference_wrapper_path = "AdaptFM.model.foundation_models.cellposeSAM.inference_wrapper"
