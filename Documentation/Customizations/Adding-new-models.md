@@ -67,3 +67,5 @@ There are two parts to defining training: Creating a new model specification cla
             "train_dir": training_dir,
             "test_dir": testing_dir,
         }
+```
+
