@@ -12,7 +12,7 @@ In AdaptFM you can:
 
 ![Segmentation Demo](asset/demo_cropped.gif) ![SAM2 Demo](asset/SAM2_GIF.gif)
 
-# Installation and Setup
+# Installation
 
 Create a conda environment for AdaptFM using
 ```
