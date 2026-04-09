@@ -8,6 +8,7 @@ class InferenceWidget(ModelWorkflowWidget):
 
     def __init__(self, dataset_manager):
         self.checkpoint_path = None
+        self.skip_tag = None
         super().__init__(dataset_manager)
 
         self._build_checkpoint_selector()
@@ -27,12 +28,12 @@ class InferenceWidget(ModelWorkflowWidget):
 
     def _run(self):
         if not all([self.model, self.dataset_dir]):
-            raise RuntimeError("Missing model or dataset")
+            raise RuntimeError("Missing dataset")
 
         params = self.collect_params()
         output_dir = Path(QFileDialog.getExistingDirectory(
             None, "Select output directory",
-            '/mnt/local/data3/demo_files/training_output'))
+            '/mnt/local/data3/Organoids/Data/broad_data_testing'))
         
                 # 2. Prompt for GPU
         gpu, _ = QInputDialog.getInt(
