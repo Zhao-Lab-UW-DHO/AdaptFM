@@ -4,7 +4,7 @@ AdaptFM is highly customizable. If you do not have programming experience and wo
 
 If you have programming experience and would like to add your own model or benchmark. Follow the instructions below for each module
 
-Adding Custom Annotation Algorithms
+[Adding Custom Annotation Algorithms](Adding-Annotation-algorithms.md)
 
 Adding Custom Models
 
