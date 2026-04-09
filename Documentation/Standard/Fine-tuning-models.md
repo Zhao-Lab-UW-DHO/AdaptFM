@@ -13,3 +13,5 @@ Steps:
 5. Adjust parameters as needed
 6. "Select dataset folder" --> folder with raw images and associated masks used for training.
 7. When you hit "Run" you will be prompted to select an output directory for your results, and a GPU to use.
+
+
