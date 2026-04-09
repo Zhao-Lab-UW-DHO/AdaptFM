@@ -15,7 +15,7 @@ There are two parts to defining training: Creating a new model specification cla
 1. Creating a new model specification class
 
 - Navigate to AdaptFM > model > fmSpec.py and create a new class that inherits from FoundationModelSpec
-- Define a prepare_dataset method that preprocesses your data. Do any normalization required by your model here. Example from CellposeSAMSpec
+- Define a prepare_dataset method that preprocesses your data. Do any normalization required by your model here. It should return a dictionary with specific parameters you intend to use for training. Example from CellposeSAMSpec
 
 ```python
     def prepare_dataset(self, dataset_manager, output_dir,params):
@@ -68,5 +68,21 @@ There are two parts to defining training: Creating a new model specification cla
             "test_dir": testing_dir,
         }
 ```
-asdfasdfasdf
 
+- Now create a training command that specifies anything returned by your prepare_dataset dictionary. Example:
+
+```python
+    def training_command(self, dataset_info, params, run_dir):
+        """
+        CellposeSAM training is Python API–based, not CLI-based.
+        So we call a small wrapper script inside the env.
+        """
+        return [
+            "python",
+            "-m", f"{self.training_wrapper_path}",
+            "--train_dir", str(dataset_info["train_dir"]),
+            "--test_dir", str(dataset_info["test_dir"]),
+            "--params", json.dumps(params),
+        ]
+
+```
