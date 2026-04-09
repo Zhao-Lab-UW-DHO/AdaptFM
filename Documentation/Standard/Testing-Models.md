@@ -1,6 +1,6 @@
 # Using AdaptFM to Test Models
 
-AdaptFM supports GUI-based inference for various models. First, make sure you have [installed the tool](../../README.md/#Installation)
+AdaptFM supports GUI-based inference for various models. First, make sure you have [installed the tool](../../README.md/#Installation and Setup)
 
 All inference pipelines follow the same steps:
 1. Select the "Models" --> "Inference" at the top of Napari
