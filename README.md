@@ -9,7 +9,7 @@ In AdaptFM you can:
 - Add new models or annotation algorithms
 
 [Installation](#Installation)
-[Get Started](Documentation/Standard)
+\n [Get Started](Documentation/Standard)
 
 ![Segmentation Demo](asset/demo_cropped.gif) ![SAM2 Demo](asset/SAM2_GIF.gif)
 
