@@ -1,9 +1,7 @@
 # gui_scripts/models/base.py
 from abc import ABC, abstractmethod
 from pathlib import Path
-import subprocess
-import json
-import os
+
 
 class ModelSpec(ABC):
     name: str
@@ -58,16 +56,5 @@ class ModelSpec(ABC):
             *cmd
         ]
     
-    def _wrap_with_python_env(self, cmd: list[str]) -> list[str]:
-        python = Path(self.python_env) / "bin" / "python"
-        return [str(python), *cmd]
     
-    def execution_params(self):
-        return {
-            "gpu": {
-                "type": int,
-                "default": 0,
-                "min": 0,
-                "label": "GPU index",
-            }
-        }
+
