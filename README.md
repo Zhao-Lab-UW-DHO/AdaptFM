@@ -12,6 +12,8 @@ In AdaptFM you can:
 
 [Get Started](Documentation/Standard)
 
+[Customizing (Advanced Users)](Documentation/Customization)
+
 ![Segmentation Demo](asset/demo_cropped.gif) ![SAM2 Demo](asset/SAM2_GIF.gif)
 
 # Installation 
