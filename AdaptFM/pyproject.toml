@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "AdaptFM"
+version = "0.1.0"
+description = "An Interactive Framework for Empirical Evaluation and Fine-Tuning of Foundation & Deep Learning Models in 3D Biological Imaging"
+readme = "README.md"
+requires-python = ">=3.13"
+
+
+dependencies = ["napari",
+                "tifffile",
+                "dask[array]",
+                "SimpleITK",
+                "qtpy",
+                "magicgui",
+                "torch",
+                "Pillow",
+                "scipy",
+                "scikit-image",
+                "kneed",
+                "joblib",
+                "pandas",
+                "matplotlib"]
+
+[project.optional-dependencies]
+sam2 = [
+    "sam-2 @ git+https://github.com/facebookresearch/sam2.git",
+]
+sam3 = [
+    # Replace with the correct SAM3 source when available
+    "sam-3 @ git+https://github.com/facebookresearch/sam3.git",
+]
+all = [
+    "your-project-name[sam2,sam3]",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
