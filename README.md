@@ -8,11 +8,7 @@ In AdaptFM you can:
 - Use those annotations to fine-tune/train models on your data
 - Add new models or annotation algorithms
 
-[Installation](#Installation)
-
-[Get Started](Documentation/Standard)
-
-[Customizing (Advanced Users)](Documentation/Customizations)
+[Installation](#Installation) | [Get Started](Documentation/Standard) | [Customizing (Advanced Users)](Documentation/Customizations)
 
 ![Segmentation Demo](asset/demo_cropped.gif) ![SAM2 Demo](asset/SAM2_GIF.gif)
 
