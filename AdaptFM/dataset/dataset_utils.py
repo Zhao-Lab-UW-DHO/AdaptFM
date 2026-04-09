@@ -6,6 +6,8 @@ def construct_nnUNet_folders(base_dir, setID=1, setName="Organoids"):
     dataset_root = os.path.join(
         base_dir, f"nnUNet_raw/Dataset{setID:03}_{setName}"
     )
+    os.makedirs(os.path.join(base_dir,'nnUNet_preprocessed'),exist_ok=True)
+    os.makedirs(os.path.join(base_dir,'nnUNet_results'),exist_ok=True)
 
     paths = {
         "dataset_root": dataset_root,
@@ -28,7 +30,7 @@ def construct_nnUNet_folders(base_dir, setID=1, setName="Organoids"):
 # the .json file for nnunet needs to know the max number of channels that an image can have.                         
 # for now we assume that all images (training and prediction) all have the same number of channels
 
-def get_channel_dict(directory,setName,channel=None):
+def get_channel_dict(directory,setName,channel=0):
     # Pattern to match the filename convention
     pattern = fr'{setName}_\d{{3}}_000(\d+)\.tiff'
 
@@ -85,7 +87,7 @@ def count_unique_cases(directory,setName):
 #
 #
 
-def write_nnUNet_json(base_dir,setName,setID,file_ending='.tiff',channel=None):
+def write_nnUNet_json(base_dir,setName,setID,file_ending='.tiff',channel=0):
 
     formatted_setID = f'{int(setID):03d}'
     nnUNet_directory = os.path.join(base_dir,f'nnUNet_raw/Dataset{formatted_setID}_{setName}')
