@@ -13,5 +13,5 @@ If you have already tested a model, you can benchmark it against a ground truth 
 
 Demo:
 
-![Segmentation Demo](asset/Inference_GIF.gif)
+![Inference Demo](../../asset/Inference_GIF.gif)
 
