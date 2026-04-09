@@ -6,6 +6,6 @@ If you have programming experience and would like to add your own model or bench
 
 [Adding Custom Annotation Algorithms](Adding-Annotation-algorithms.md)
 
-Adding Custom Models
+[Adding Custom Models](Adding-new-models.md)
 
 [Adding Custom Benchmarks](Custom-benchmarks.md)
