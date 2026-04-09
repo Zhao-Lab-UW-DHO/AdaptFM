@@ -6,4 +6,4 @@ Steps for creating annotations are:
 1. Select the algorithm you would like to use
 2. Enter the parameters for segmentation
 3. For SAM2 and SAM3, you must initialize the encoder before trying click or text-based segmentation
-4. Select the 'save dir' directory for saving the images, and a name for the file. The "save dir" is the folder you should pick when [fine-tuning(./Fine-tuning-models.md)] your models. 
+4. Select the 'save dir' directory for saving the images, and a name for the file. The "save dir" is the folder you should pick when [fine-tuning(./Fine-tuning-Models.md)] your models. 
