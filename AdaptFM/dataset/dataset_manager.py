@@ -1,6 +1,5 @@
 import glob
 import os
-import json
 import random
 import tifffile as tiff
 import shutil
@@ -21,7 +20,6 @@ class DatasetManager:
 
             base = os.path.splitext(img_path)[0]
             mask_path = base + "_seg.tiff"
-            meta_path = base + "_meta.json"
 
 
             if not (os.path.exists(mask_path)):
@@ -43,18 +41,22 @@ class DatasetManager:
 
             yield img, mask
 
-    def export_for_framework(self, framework="nnunet", out_folder=None):
+    def export_for_framework(self, framework="nnunet", out_folder=None,params=None):
         # copy files to nnunet folder structure or return lists of paths
         
         os.makedirs(out_folder,exist_ok=True)
-
+        print(params)
         if framework =='nnunet':
-            return self._export_nnunet(out_folder)
+            return self._export_nnunet(out_folder,params=params)
         else:
             return self._export_simple_pairs(out_folder,framework)
         
     
-    def _export_nnunet(self,out_folder,setID=1,setName='Organoids',file_ending='.tiff',channel=None):
+    def _export_nnunet(self,out_folder,file_ending='.tiff',channel=0,params=None):
+
+        print(params)
+        setID = params['Set ID']
+        setName = params['Set Name']
 
         paths = construct_nnUNet_folders(
             out_folder, setID=setID, setName=setName
