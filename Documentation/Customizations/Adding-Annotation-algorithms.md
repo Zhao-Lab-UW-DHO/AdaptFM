@@ -7,6 +7,7 @@ In addition to the existing annotation algorithms, AdaptFM also allows users to 
 3. Provide your class a 'name'. Define a 'tunable_params' method that creates a dictionary of any adjustable parameters, their type, and defaults.
 4. Define a 'run' method that takes 'volume' and 'params' parameters. The method should contain the annotation algorithm itself.
 5. Once complete, navigate to AdaptFM > segmentation > registry.py. Import your newly created class and register it with SEGMENTATION_REGISTRY
+6. The algorithm should now appear in the 'segmentation algorithm' widget.
 
 Example:
 
