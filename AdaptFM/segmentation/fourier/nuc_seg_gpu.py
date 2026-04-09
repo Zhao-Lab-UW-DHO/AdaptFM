@@ -6,9 +6,7 @@ from kneed import KneeLocator
 import os
 import tifffile as tiff
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+device = torch.device(f'cuda' if torch.cuda.is_available() else 'cpu')
 
 # GPU-accelerated 3D power spectrum
 def get_3d_power_spectrum(image):
