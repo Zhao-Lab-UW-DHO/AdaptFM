@@ -11,7 +11,7 @@ Steps:
    - SSVT - train_SSVT
    - SAM-Med-3D - launch_training
 5. Adjust parameters as needed
-6. "Select dataset folder" --> folder with raw images and associated masks used for training.
+6. "Select dataset folder" --> folder with raw images and associated masks used for training. This is the 'save dir' you used when [creating annotations](./Annotations.md)
 7. When you hit "Run" you will be prompted to select an output directory for your results, and a GPU to use.
 
 ![Training Demo](../../asset/training-gif.gif)
