@@ -8,7 +8,7 @@ To avoid version conflicts, AdaptFM requires each model's repo be compiled in a 
 
 Follow the instructions on the model's page for installing it. 
 
-### Defining Training
+### Defining a new model
 
 There are two parts to defining training: Creating a new model specification class and writing a wrapper. 
 
