@@ -62,7 +62,6 @@ class SegmentationManager:
 
             vol_path = os.path.join(save_dir, f"{filename_base}.tiff")
             seg_path = os.path.join(save_dir, f"{filename_base}_seg.tiff")
-            meta_path = os.path.join(save_dir, f"{filename_base}_meta.json")
 
             # --- get data ---
             volume = self.vm.get_eager()
@@ -73,15 +72,6 @@ class SegmentationManager:
             tiff.imwrite(seg_path, segmentation.astype(segmentation.dtype))
 
             # --- save metadata ---
-            metadata = {
-                "volume_path": vol_path,
-                "segmentation_path": seg_path,
-                "params": self.params.__dict__,
-                "history": self.history,
-                "save_time": datetime.now().isoformat()
-            }
 
-            with open(meta_path, 'w') as f:
-                json.dump(metadata, f, indent=4)
 
-            return vol_path, seg_path, meta_path
+            return vol_path, seg_path
