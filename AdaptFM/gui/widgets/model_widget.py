@@ -6,7 +6,6 @@ from qtpy.QtWidgets import (
 from pathlib import Path
 from AdaptFM.model.registry import MODEL_REGISTRY
 from AdaptFM.model.fmSpec import FoundationModelSpec
-import traceback
 
 
 class ModelWorkflowWidget:
@@ -62,6 +61,9 @@ class ModelWorkflowWidget:
     def _build_tag_input(self):
         if hasattr(self, "tag_widget"):
             return
+        
+        if hasattr(self,'skip_tag'):
+            return
 
         @magicgui(call_button="Load parameters",
                 tag={"label": self.TAG_LABEL})
@@ -70,6 +72,8 @@ class ModelWorkflowWidget:
 
         self.tag_widget = load_tag
         self.tag_widget.visible = True
+        self.tag_widget.show()
+
 
     def _build_dataset_selector(self):
         btn = QPushButton("Select dataset folder")
@@ -100,9 +104,6 @@ class ModelWorkflowWidget:
 
         schema = self.model.tunable_params(tag=tag)
         
-        schema.update(self.model.execution_params())
-
-
         for name, spec in schema.items():
             w = self._make_param_widget(name, spec)
             self.param_widgets[name] = w
@@ -128,7 +129,7 @@ class ModelWorkflowWidget:
 
 
     def _select_dataset_folder(self):
-        folder = QFileDialog.getExistingDirectory(None, "Select dataset folder",'/mnt/local/data3/demo_files/sample_images')
+        folder = QFileDialog.getExistingDirectory(None, "Select dataset folder",'/mnt/local/data3/Organoids/Data/broad_data_testing')
         if folder:
             self.dataset_manager.load_from_folder(folder)
             self.dataset_dir = Path(folder)
