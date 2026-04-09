@@ -1,6 +1,6 @@
 # Adding New Models to AdaptFM
 
-Users can add new models for inference or training. There are four main steps outlined below.
+Users can add new models for inference or training. There are two main steps outlined below.
 
 ### Creating a New Conda Environment
 
