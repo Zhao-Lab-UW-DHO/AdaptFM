@@ -12,7 +12,7 @@ In AdaptFM you can:
 
 [Get Started](Documentation/Standard)
 
-[Customizing (Advanced Users)](Documentation/Customization)
+[Customizing (Advanced Users)](Documentation/Customizations)
 
 ![Segmentation Demo](asset/demo_cropped.gif) ![SAM2 Demo](asset/SAM2_GIF.gif)
 
