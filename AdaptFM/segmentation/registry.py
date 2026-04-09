@@ -2,7 +2,7 @@
 from typing import Dict
 from AdaptFM.segmentation.Seg_Alg import SegmentationAlgorithmSpec,NucLogGabor,FrequencySegmentation,OrganoidSegmentation,NucLogGaborGPU,Felzenszwalb3D,CannyEdge3D,Watershed3D,SauvolaThreshold3D,OtsuThreshold3D,SAM2ClickAndPropagate,SAM3TextAndPropagate
 
-ø
+
 class SegmentationRegistry:
     def __init__(self):
         self._algorithms: Dict[str, SegmentationAlgorithmSpec] = {}
