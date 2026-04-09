@@ -10,7 +10,7 @@ Follow the instructions on the model's page for installing it.
 
 ### Defining a new model
 
-There are two parts to defining training: Creating a new model specification class and writing a wrapper. 
+There are two parts to defining training: Creating a new model specification class and writing an API. 
 
 1. Creating a new model specification class
 
