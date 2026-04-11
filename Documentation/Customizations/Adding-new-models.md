@@ -4,7 +4,7 @@ Users can add new models for inference or training. There are two main steps out
 
 ### Creating a New Conda Environment
 
-To avoid version conflicts, AdaptFM requires each model's repo be compiled in a separate conda environment. 
+To avoid version conflicts, AdaptFM requires each model's repo be installed in a separate conda environment. 
 
 Follow the instructions on the model's page for installing it. 
 
