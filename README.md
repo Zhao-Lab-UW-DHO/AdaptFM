@@ -62,3 +62,7 @@ Once you have created conda environments for each, navigate to AdaptFM > model >
         inference_wrapper_path = "micro_sam.inference_wrapper"
     ),
 ```
+
+## Using SSVT
+
+SSVT is a model pretrained on roughly 180,000 organoid images. It is publicly avaialble for download on [hugging face](https://huggingface.co/hbakhtiar/SSVT_Organoids/tree/main). 
