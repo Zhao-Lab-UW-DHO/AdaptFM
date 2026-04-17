@@ -2,7 +2,6 @@ import argparse
 from cellpose import models 
 import os
 import tifffile as tiff
-import SimpleITK as sitk
 
 def main():
     parser = argparse.ArgumentParser()
