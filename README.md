@@ -38,6 +38,12 @@ python -c "import AdaptFM; print('AdaptFM installed successfully')"
 pip install -e ".[sam2]"
 pip install -e ".[sam3]"
 ```
+Once installed you can launch AdaptFM from the terminal using
+
+```
+python -m AdaptFM.dev_launch
+```
+
 
 ## Using External Models with AdaptFM
 
