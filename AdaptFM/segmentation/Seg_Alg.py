@@ -792,10 +792,10 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
         All subsequent add_prompt / add_text_prompt calls share this session.
         """
 
-        os.environ['SAM3_REPO_ROOT']='/home/wisc/hbakhtiar/projects/sam3/sam3'  # path to this repo
+        os.environ['SAM3_REPO_ROOT']=SAM_REGISTRY["SAM3"]["Repo Root"]  # path to this repo
 
         os.environ['PYTHONPATH']="${SAM3_REPO_ROOT}:${PYTHONPATH}"
-        os.environ['SAM3_CHECKPOINT_DIR']= '/home/wisc/hbakhtiar/projects/sam3/checkpoints'
+        os.environ['SAM3_CHECKPOINT_DIR']= SAM_REGISTRY["SAM3"]["Checkpoint Path"]
         params = params or {}
         model_size = params.get("model_size", "large")
 
