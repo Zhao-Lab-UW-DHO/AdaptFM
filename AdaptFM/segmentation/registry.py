@@ -1,6 +1,6 @@
 
 from typing import Dict
-from AdaptFM.segmentation.Seg_Alg import SegmentationAlgorithmSpec,NucLogGabor,FrequencySegmentation,OrganoidSegmentation,NucLogGaborGPU,Felzenszwalb3D,CannyEdge3D,Watershed3D,SauvolaThreshold3D,OtsuThreshold3D,SAM2ClickAndPropagate,SAM3TextAndPropagate
+from AdaptFM.segmentation.Seg_Alg import SegmentationAlgorithmSpec,NucLogGabor,FrequencySegmentation,OrganoidSegmentation,NucLogGaborGPU,Felzenszwalb3D,CannyEdge3D,SauvolaThreshold3D,OtsuThreshold3D,SAM2ClickAndPropagate,SAM3TextAndPropagate
 
 
 class SegmentationRegistry:
@@ -28,7 +28,6 @@ SEGMENTATION_REGISTRY.register(OrganoidSegmentation())
 SEGMENTATION_REGISTRY.register(NucLogGaborGPU())
 SEGMENTATION_REGISTRY.register(Felzenszwalb3D())
 SEGMENTATION_REGISTRY.register(CannyEdge3D())
-SEGMENTATION_REGISTRY.register(Watershed3D())
 SEGMENTATION_REGISTRY.register(SauvolaThreshold3D())
 SEGMENTATION_REGISTRY.register(OtsuThreshold3D())
 SEGMENTATION_REGISTRY.register(SAM2ClickAndPropagate()) 
