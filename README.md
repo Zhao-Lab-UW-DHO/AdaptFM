@@ -66,3 +66,5 @@ Once you have created conda environments for each, navigate to AdaptFM > model >
 ## Using SSVT
 
 SSVT is a model pretrained on roughly 180,000 organoid images. It is publicly avaialble for download on [hugging face](https://huggingface.co/hbakhtiar/SSVT_Organoids/tree/main). 
+
+Once downloaded you can follow our [training instructions](Documentation/Standard/) to build a model for a specific downstream segmentation task. 
