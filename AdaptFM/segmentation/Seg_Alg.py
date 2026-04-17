@@ -155,31 +155,6 @@ class SauvolaThreshold3D(SegmentationAlgorithmSpec):
         return mask.astype(int)
     
 
-class Watershed3D(SegmentationAlgorithmSpec):
-    name = "Watershed3D"
-
-    def tunable_params(self):
-        return {
-            "min_distance": {"type": "int", "default": 5, "min": 1, "max": 50},
-            "remove_small_objects": {"type": "int", "default": 50, "min": 0, "max": 10000},
-        }
-
-    def run(self, volume, params):
-        import numpy as np
-        from scipy import ndimage as ndi
-        from skimage.feature import peak_local_max
-        from skimage.segmentation import watershed
-        from skimage.morphology import remove_small_objects
-
-        distance = ndi.distance_transform_edt(volume)
-        local_maxi = peak_local_max(distance, min_distance=params["min_distance"], labels=volume)
-        markers = np.zeros_like(volume, dtype=int)
-        for i, coord in enumerate(local_maxi, 1):
-            markers[tuple(coord)] = i
-
-        labels = watershed(-distance, markers, mask=volume)
-        labels = remove_small_objects(labels, min_size=params["remove_small_objects"])
-        return labels.astype(int)
     
 class CannyEdge3D(SegmentationAlgorithmSpec):
     name = "CannyEdge3D"
