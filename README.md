@@ -32,7 +32,7 @@ pip install -e .
 python -c "import AdaptFM; print('AdaptFM installed successfully')"
 ```
 
-[SAM2](https://github.com/facebookresearch/sam2) and [SAM3](https://github.com/facebookresearch/sam3) have specific system requirements. Consequently, the are left as optional dependencies
+[SAM2](https://github.com/facebookresearch/sam2) and [SAM3](https://github.com/facebookresearch/sam3) have specific system requirements. Consequently, the are left as optional dependencies. If using them, be sure to install their associated checkpoints.  
 
 ```
 pip install -e ".[sam2]"
