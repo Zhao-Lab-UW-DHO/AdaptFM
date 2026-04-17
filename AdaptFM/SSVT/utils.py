@@ -6,10 +6,7 @@
 # - Single-channel intensity images (C=1)
 # - All augmentations are applied BEFORE masking
 #
-# This pipeline is designed to be:
-# - spacing-aware
-# - physically grounded (crop by microns, not voxels)
-# - easily extensible (contrastive views, extra targets later)
+
 
 from pathlib import Path
 from typing import Tuple, List
