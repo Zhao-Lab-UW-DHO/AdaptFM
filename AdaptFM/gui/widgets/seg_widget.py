@@ -389,7 +389,10 @@ class SegmentationWidget:
         self.param_container.native.repaint()
 
         try:
+
             self.current_algo.propagate(direction=direction, params=params)
+            self.current_algo.reset_inference_state()
+
             self._sam2_refresh_labels()
             self._sam2_status.value = "Status: propagation done"
         except Exception as e:
@@ -416,3 +419,5 @@ class SegmentationWidget:
                 layout.removeWidget(w.native)
                 w.native.deleteLater()
             self._sam2_extra_widgets = []
+
+
