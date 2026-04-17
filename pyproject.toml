@@ -23,7 +23,8 @@ dependencies = ["napari",
                 "kneed",
                 "joblib",
                 "pandas",
-                "matplotlib"]
+                "matplotlib",
+                "zarr"]
 
 [project.optional-dependencies]
 sam2 = [
