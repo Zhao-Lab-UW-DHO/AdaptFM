@@ -557,6 +557,9 @@ class SAM2ClickAndPropagate(SegmentationAlgorithmSpec):
             video_path=str(self._frames_dir)
         )
 
+    def reset_inference_state(self) -> None:
+        self._inf_state= self._predictor.init_state(video_path = str(self._frames_dir))
+
     @property
     def is_initialized(self) -> bool:
         return self._initialized
