@@ -39,4 +39,11 @@ MODEL_REGISTRY = {
         training_wrapper_path="AdaptFM.model.foundation_models.SSVT.train_wrapper",
         inference_wrapper_path="AdaptFM.model.foundation_models.SSVT.inference_wrapper"
     ),
+
+    "SAM2": {"Checkpoint Path" : '/path/to/SAM2/checkpoints/',
+            "Repo Root": 'path/to/SAM2/repo/'},
+
+    "SAM3": {"Checkpoint Path" : '/path/to/SAM2/checkpoints/',
+        "Repo Root": 'path/to/SAM2/repo/'}
+    
 }
