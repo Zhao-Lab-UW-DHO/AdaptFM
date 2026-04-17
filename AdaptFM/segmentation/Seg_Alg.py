@@ -2,6 +2,7 @@ from AdaptFM.segmentation.fourier.nuc_seg import run_nuclear_segmentation
 from AdaptFM.segmentation.fourier.cell_seg import run_single_cell_segmentation
 from AdaptFM.segmentation.fourier.org_seg import run_organoid_segmentation
 from AdaptFM.segmentation.fourier.nuc_seg_gpu import run_nuclear_segmentation_gpu_chunked
+from AdaptFM.model.registry import SAM_REGISTRY
 from abc import ABC
 
 class SegmentationAlgorithmSpec(ABC):
@@ -338,10 +339,10 @@ class SAM2ClickAndPropagate(SegmentationAlgorithmSpec):
             volume: 3-D array  (Z, Y, X),  uint8 or float (auto-normalised).
             params: dict from tunable_params(); falls back to defaults if None.
         """
-        os.environ['SAM2_REPO_ROOT']='/mnt/local/data3/gui_scripts/AdaptFM/segmentation/sam2/sam2'  # path to this repo
+        os.environ['SAM2_REPO_ROOT']=SAM_REGISTRY['SAM2']["Repo Root"] # path to this repo
 
         os.environ['PYTHONPATH']="${SAM2_REPO_ROOT}:${PYTHONPATH}"
-        os.environ['SAM2_CHECKPOINT_DIR']= '/mnt/local/data3/gui_scripts/AdaptFM/segmentation/sam2/checkpoints'
+        os.environ['SAM2_CHECKPOINT_DIR']= SAM_REGISTRY["SAM2"]["Checkpoint Path"]
         params = params or {}
         model_size = params.get("model_size", "tiny")
         gpu = str(params.get('GPU'))
