@@ -49,7 +49,7 @@ python -m AdaptFM.dev_launch
 
 **To avoid dependency conflicts, we recommend installing each model's package in its own conda environment.** Visit the below links to properly install the standard models. You only need to install model's you want to test. 
 
-[nnUNet](https://github.com/MIC-DKFZ/nnUNet/tree/master)
+[nnUNet](https://github.com/MIC-DKFZ/nnUNet/tree/master) - Note that nnUNet is currently experiencing [a bug](https://github.com/MIC-DKFZ/nnUNet/issues/3009) that will prevent users from training.  
 
 [MicroSAM](https://github.com/computational-cell-analytics/micro-sam)
 
