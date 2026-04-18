@@ -47,7 +47,9 @@ python -m AdaptFM.dev_launch
 
 ## Using External Models with AdaptFM
 
-**To avoid dependency conflicts, we recommend installing each model's package in its own conda environment.** Visit the below links to properly install the standard models. You only need to install model's you want to test. 
+**To avoid dependency conflicts, we recommend installing each model's package in its own conda environment.** Visit the below links to properly install the standard models. 
+
+**You only need to install model you want to test.** 
 
 [nnUNet](https://github.com/MIC-DKFZ/nnUNet/tree/master) - Note that nnUNet is currently experiencing [a bug](https://github.com/MIC-DKFZ/nnUNet/issues/3009) that will prevent users from training.  
 
