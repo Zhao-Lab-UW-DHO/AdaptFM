@@ -61,3 +61,46 @@ def ensure_sam2_checkpoints():
             download_file(url, dest)
 
     return ckpt_dir
+
+
+def get_sam3_checkpoint_dir():
+    path = get_checkpoint_root() / "sam3"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def sam3_missing_message(expected_path):
+
+    return f"""
+SAM3 checkpoint not found.
+
+SAM3 requires manual download from Hugging Face.
+
+Steps:
+
+1. Request access to the SAM3 model on Hugging Face
+
+2. Download the checkpoint
+
+3. Place it here:
+
+    {expected_path}
+
+Or set a custom directory:
+
+    export ADAPTFM_CHECKPOINT_DIR=/path/to/models
+
+Then rerun your code.
+"""
+
+
+def ensure_sam3_checkpoint():
+
+    ckpt_dir = get_sam3_checkpoint_dir()
+
+    pt_files = list(ckpt_dir.glob("*.pt"))
+    
+    if not pt_files:
+        raise RuntimeError(sam3_missing_message(ckpt_dir))
+
+    return expected
