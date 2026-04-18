@@ -799,7 +799,7 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
         os.environ['SAM3_REPO_ROOT']=Path(sam3.__file__).resolve().parent  # path to this repo
 
         os.environ['PYTHONPATH']="${SAM3_REPO_ROOT}:${PYTHONPATH}"
-        os.environ['SAM3_CHECKPOINT_DIR']= ensure_sam3_checkpoints()
+        os.environ['SAM3_CHECKPOINT_DIR']= ensure_sam3_checkpoint()
         params = params or {}
         model_size = params.get("model_size", "large")
 
