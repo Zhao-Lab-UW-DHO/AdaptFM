@@ -2,7 +2,7 @@ from AdaptFM.segmentation.fourier.nuc_seg import run_nuclear_segmentation
 from AdaptFM.segmentation.fourier.cell_seg import run_single_cell_segmentation
 from AdaptFM.segmentation.fourier.org_seg import run_organoid_segmentation
 from AdaptFM.segmentation.fourier.nuc_seg_gpu import run_nuclear_segmentation_gpu_chunked
-from AdaptFM.segmentation.checkpoint_utils import ensure_sam2_checkpoints,check_sam2_installed
+from AdaptFM.segmentation.checkpoint_utils import ensure_sam2_checkpoints,check_sam2_installed, check_sam3_installed,ensure_sam3_checkpoints
 from abc import ABC
 
 class SegmentationAlgorithmSpec(ABC):
@@ -794,11 +794,12 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
         Write slices to disk, load the SAM3 video predictor, open a session.
         All subsequent add_prompt / add_text_prompt calls share this session.
         """
-
-        #os.environ['SAM3_REPO_ROOT']=SAM_REGISTRY["SAM3"]["Repo Root"]  # path to this repo
+        check_sam3_installed() #verify installation
+        
+        os.environ['SAM3_REPO_ROOT']=Path(sam3.__file__).resolve().parent  # path to this repo
 
         os.environ['PYTHONPATH']="${SAM3_REPO_ROOT}:${PYTHONPATH}"
-        #os.environ['SAM3_CHECKPOINT_DIR']= SAM_REGISTRY["SAM3"]["Checkpoint Path"]
+        os.environ['SAM3_CHECKPOINT_DIR']= ensure_sam3_checkpoints()
         params = params or {}
         model_size = params.get("model_size", "large")
 
