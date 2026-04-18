@@ -95,7 +95,7 @@ pip install uv
 uv pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0
 uv pip install torchio opencv-python-headless matplotlib prefetch_generator monai edt surface-distance medim
 git clone "https://github.com/uni-medical/SAM-Med3D.git"
-cd SAM-Med3D
+cd SAM-Med3D/segment_anything
 pip install -e .
 ```
 
