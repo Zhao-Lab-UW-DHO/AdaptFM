@@ -99,8 +99,6 @@ uv pip install opencv-python-headless matplotlib \
 
 git clone https://github.com/uni-medical/SAM-Med3D.git
 cd SAM-Med3D
-
-pip install -e .
 ```
 
 Once you have created conda environments for each, navigate to AdaptFM > model > registry.py and add the path to the conda environment
