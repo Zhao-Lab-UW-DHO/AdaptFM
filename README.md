@@ -89,8 +89,8 @@ Again, install the proper pytorch version in your cellpose_adapt environment wit
 [SAM-Med-3D](https://github.com/uni-medical/sam-med3d) - once you have created the conda environment and checkpoint, use the below command to install the repo
 
 ```
-conda create --name sammed3d python=3.10 
-conda activate sammed3d
+conda create --name sammed3d_adapt python=3.10 
+conda activate sammed3d_adapt
 pip install uv
 uv pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0
 uv pip install torchio opencv-python-headless matplotlib prefetch_generator monai edt surface-distance medim
