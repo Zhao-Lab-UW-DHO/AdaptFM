@@ -32,8 +32,8 @@ sam2 = []   # submodule handles it, this just signals intent
 sam3 = []
 
 [project.scripts]
-adaptfm-install-sam2 = "adaptfm.utils.install:install_sam2"
-adaptfm-install-sam3 = "adaptfm.utils.install:install_sam3"
+adaptfm-install-sam2 = "AdaptFM.model.model_utils.install:install_sam2"
+adaptfm-install-sam3 = "AdaptFM.model.model_utils.install:install_sam3"
 
 [tool.setuptools.packages.find]
 where = ["."]
