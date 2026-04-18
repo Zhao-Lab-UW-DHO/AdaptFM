@@ -37,27 +37,33 @@ from pathlib import Path
 import subprocess
 import sys
 
-REPO_ROOT = Path(__file__).parent.parent  # AdaptFM repo root
+REPO_ROOT = Path(__file__).parent.parent.parent  # AdaptFM repo root
+
+from pathlib import Path
+import subprocess
+import sys
+
+REPO_ROOT = Path(__file__).parent.parent
 
 
 def install_sam2():
-    sam2_dir = REPO_ROOT / "segmentation" / "sam2" / "repo"
-    sam2_rel_path = "segmentation/sam2/repo"  # IMPORTANT: relative git submodule path
+    sam2_dir = REPO_ROOT / "segmentation" / "sam2"
 
-    # Ensure we are inside a git repo
-    if not (REPO_ROOT / ".git").exists():
-        raise RuntimeError(f"{REPO_ROOT} is not a git repository root")
-
-    # Check whether SAM2 is already installed
-    if not (sam2_dir / "setup.py").exists() and not (sam2_dir / "pyproject.toml").exists():
-        print("Initializing SAM2 submodule...")
+    # Step 1 — clone if missing
+    if not sam2_dir.exists():
+        print("Cloning SAM2 repository...")
 
         subprocess.run(
-            ["git", "submodule", "update", "--init", "--recursive", sam2_rel_path],
-            cwd=REPO_ROOT,
+            [
+                "git",
+                "clone",
+                "https://github.com/facebookresearch/sam2.git",
+                str(sam2_dir),
+            ],
             check=True,
         )
 
+    # Step 2 — install in editable mode
     print("Installing SAM2...")
 
     subprocess.run(
@@ -65,17 +71,57 @@ def install_sam2():
         check=True,
     )
 
-    print("Downloading checkpoints...")
-
+    # Step 3 — optional checkpoints
     ckpt_dir = sam2_dir / "checkpoints"
+    ckpt_script = ckpt_dir / "download_ckpts.sh"
+
+    if ckpt_script.exists():
+        print("Downloading checkpoints...")
+        subprocess.run(
+            ["bash", str(ckpt_script)],
+            cwd=ckpt_dir,
+            check=True,
+        )
+
+    print(f"Done. SAM2 installed at: {sam2_dir}")
+
+
+
+def install_sam3():
+    sam2_dir = REPO_ROOT / "segmentation" / "sam3"
+
+    # Step 1 — clone if missing
+    if not sam2_dir.exists():
+        print("Cloning SAM3 repository...")
+
+        subprocess.run(
+            [
+                "git",
+                "clone",
+                "https://github.com/facebookresearch/sam3.git",
+                str(sam2_dir),
+            ],
+            check=True,
+        )
+
+    # Step 2 — install in editable mode
+    print("Installing SAM3...")
+
     subprocess.run(
-        ["bash", "download_ckpts.sh"],
-        cwd=ckpt_dir,
+        [sys.executable, "-m", "pip", "install", "-e", str(sam2_dir)],
         check=True,
     )
 
-    print(f"Done. SAM2 repo at: {sam2_dir}")
+    # Step 3 — optional checkpoints
+    ckpt_dir = sam2_dir / "checkpoints"
+    ckpt_script = ckpt_dir / "download_ckpts.sh"
 
+    if ckpt_script.exists():
+        print("Downloading checkpoints...")
+        subprocess.run(
+            ["bash", str(ckpt_script)],
+            cwd=ckpt_dir,
+            check=True,
+        )
 
-
-
+    print(f"Done. SAM3 installed at: {sam2_dir}")
