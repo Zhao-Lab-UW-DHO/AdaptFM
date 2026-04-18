@@ -116,37 +116,3 @@ def install_sam3():
     print(f"Done. SAM3 installed at: {sam2_dir}")
 
 
-import subprocess
-import sys
-from pathlib import Path
-
-REPO_ROOT = Path(__file__).parent.parent
-
-
-def install_sammed3d():
-    sammed3d_dir = REPO_ROOT / "segmentation" / "sammed3d"
-
-    # Step 1 — clone if missing
-    if not sammed3d_dir.exists():
-        print("Cloning SAM-Med-3D repository...")
-
-        subprocess.run(
-            [
-                "git",
-                "clone",
-                "https://github.com/uni-medical/SAM-Med3D.git",
-                str(sammed3d_dir),
-            ],
-            check=True,
-        )
-
-    # Step 2 — install in editable mode
-    print("Installing SAM-Med-3D (editable mode)...")
-
-    subprocess.run(
-        [sys.executable, "-m", "pip", "install", "-e", str(sammed3d_dir)],
-        check=True,
-    )
-
-
-    print(f"Done. SAM-Med-3D installed at: {sammed3d_dir}")
