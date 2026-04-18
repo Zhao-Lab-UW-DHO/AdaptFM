@@ -34,12 +34,12 @@ python -c "import AdaptFM; print('AdaptFM installed successfully')"
 
 [SAM2](https://github.com/facebookresearch/sam2) and [SAM3](https://github.com/facebookresearch/sam3) have specific system requirements. Consequently, the are left as optional dependencies. 
 
-**If using SAM3 you must request access through hugging face. These cannot be auto-downloaded**
+```
+adaptfm-install-sam2
+adaptfm-install-sam3
+```
+**If using SAM3 you must request access through hugging face. These cannot be auto-downloaded**. Once you have downloaded checkpoints, make a folder called 'checkpoints' in AdaptFM > segmentation > sam3 and add the checkpoint files there.  
 
-```
-pip install -e ".[sam2]"
-pip install -e ".[sam3]"
-```
 Once installed you can launch AdaptFM from the terminal using
 
 ```
