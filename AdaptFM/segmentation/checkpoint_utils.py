@@ -16,7 +16,18 @@ SAM2_CHECKPOINTS = {
         "https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_large.pt",
 }
 
+def check_sam2_installed():
 
+    try:
+        import sam2
+
+    except ImportError:
+
+        raise RuntimeError(
+            "SAM2 is not installed.\n"
+            "Install with:\n"
+            "pip install AdaptFM[sam2]"
+        )
 
 def get_checkpoint_dir():
     base = Path(
