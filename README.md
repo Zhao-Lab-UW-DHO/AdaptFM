@@ -28,7 +28,7 @@ Clone the repo and install required dependencies
 pip install --upgrade pip
 git clone https://github.com/Zhao-Lab-UW-DHO/AdaptFM.git
 cd AdaptFM
-pip install -e .
+pip install --no-user -e .
 python -c "import AdaptFM; print('AdaptFM installed successfully')"
 ```
 
