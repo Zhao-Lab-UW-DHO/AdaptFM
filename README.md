@@ -80,7 +80,7 @@ conda create -c conda-forge -n micro-sam_adapt python=3.10 micro_sam
 [CellposeSAM](https://github.com/mouseland/cellpose)
 
 ```
-conda create --name cellpose_adapt python=3.1
+conda create --name cellpose_adapt python=3.10
 conda activate cellpose_adapt
 python -m pip install cellpose
 ```
