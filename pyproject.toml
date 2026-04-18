@@ -28,15 +28,12 @@ dependencies = ["napari",
                 "zarr"]
 
 [project.optional-dependencies]
-sam2 = [
-    "sam-2 @ git+https://github.com/facebookresearch/sam2.git",
-]
-sam3 = [
-    "sam3 @ git+https://github.com/facebookresearch/sam3.git",
-]
-all = [
-    "AdaptFM[sam2,sam3]",
-]
+sam2 = []   # submodule handles it, this just signals intent
+sam3 = []
+
+[project.scripts]
+adaptfm-install-sam2 = "adaptfm.utils.install:install_sam2"
+adaptfm-install-sam3 = "adaptfm.utils.install:install_sam3"
 
 [tool.setuptools.packages.find]
 where = ["."]
