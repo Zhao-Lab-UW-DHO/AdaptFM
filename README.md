@@ -57,7 +57,7 @@ python -m AdaptFM.dev_launch
 
 [nnUNet](https://github.com/MIC-DKFZ/nnUNet/tree/master) - Note that nnUNet is currently experiencing [a bug](https://github.com/MIC-DKFZ/nnUNet/issues/3009) that will prevent users from training.  
 
-[MicroSAM](https://github.com/computational-cell-analytics/micro-sam)
+[MicroSAM](https://github.com/computational-cell-analytics/micro-sam) - make sure to install with the correct python version they recommend. Python3.13 may run into issues
 
 [CellposeSAM](https://github.com/mouseland/cellpose)
 
