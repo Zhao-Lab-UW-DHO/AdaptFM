@@ -93,7 +93,11 @@ Again, install the proper pytorch version in your cellpose_adapt environment wit
 ```
 conda create --name sammed3d_adapt python=3.10 -y
 conda activate sammed3d_adapt
+```
 
+**Install the proper pytorch version with https://pytorch.org/get-started/locally/ before proceeding to the next step**
+
+```
 pip install uv
 
 uv pip install opencv-python-headless matplotlib \
@@ -124,7 +128,6 @@ EOF
 echo "Done. Re-activate the environment with: conda activate sammed3d_adapt"
 echo "Imports will now work from any directory."
 ```
-Again, install the proper pytorch version in your sammed3d_adapt environment with https://pytorch.org/get-started/locally/
 
 Once you have created conda environments for each, navigate to AdaptFM > model > registry.py and add the path to the conda environment
 
