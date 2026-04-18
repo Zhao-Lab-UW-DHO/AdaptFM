@@ -51,15 +51,40 @@ python -m AdaptFM.dev_launch
 
 ## Using External Models with AdaptFM
 
-**To avoid dependency conflicts, we recommend installing each model's package in its own conda environment.** Below are installations that we found worked. If you run into installation issues, visit the below links for more detailed instructions. 
+**To avoid dependency conflicts, we recommend installing each model's package in its own conda environment.**
+
+Below are installations that we found worked. If you run into installation issues, visit the below links for more detailed instructions. 
 
 **You only need to install model you want to test.** 
 
 [nnUNet](https://github.com/MIC-DKFZ/nnUNet/tree/master) - Note that nnUNet is currently experiencing [a bug](https://github.com/MIC-DKFZ/nnUNet/issues/3009) that will prevent users from training.  
 
-[MicroSAM](https://github.com/computational-cell-analytics/micro-sam) - make sure to install with the correct python version they recommend. Python3.13 may run into issues
+```
+conda create --name nnUNet_adapt python=3.10
+conda activate nnUNet_adapt
+```
+
+Install the proper pytorch verison https://pytorch.org/get-started/locally/ in your new environment. Then install nnunetv2 with
+
+```
+pip install nnunetv2
+```
+
+
+[MicroSAM](https://github.com/computational-cell-analytics/micro-sam) 
+
+```
+conda create -c conda-forge -n micro-sam_adapt python=3.10 micro_sam
+```
 
 [CellposeSAM](https://github.com/mouseland/cellpose)
+
+```
+conda create --name cellpose_adapt python=3.1
+conda activate cellpose_adapt
+python -m pip install cellpose
+```
+Again, install the proper pytorch version in your cellpose_adapt environment with https://pytorch.org/get-started/locally/
 
 [SAM-Med-3D](https://github.com/uni-medical/sam-med3d) - once you have created the conda environment and checkpoint, use the below command to install the repo
 
