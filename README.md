@@ -64,7 +64,11 @@ python -m AdaptFM.dev_launch
 [SAM-Med-3D](https://github.com/uni-medical/sam-med3d) - once you have created the conda environment and checkpoint, use the below command to install the repo
 
 ```
-conda activate sammmed3d #or whatever you named the conda environment
+conda create --name sammed3d python=3.10 
+conda activate sammed3d
+pip install uv
+uv pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0
+uv pip install torchio opencv-python-headless matplotlib prefetch_generator monai edt surface-distance medim
 git clone "https://github.com/uni-medical/SAM-Med3D.git"
 cd SAM-Med3D
 pip install -e .
