@@ -1,5 +1,6 @@
 import urllib.request
 from pathlib import Path
+import os
 
 SAM2_CHECKPOINTS = {
     "sam2_hiera_tiny.pt":
@@ -14,6 +15,20 @@ SAM2_CHECKPOINTS = {
     "sam2_hiera_large.pt":
         "https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_large.pt",
 }
+
+
+
+def get_checkpoint_dir():
+    base = Path(
+        os.environ.get(
+            "ADAPTFM_CHECKPOINT_DIR",
+            Path.home() / ".cache" / "adaptfm"
+        )
+    )
+
+    base.mkdir(parents=True, exist_ok=True)
+
+    return base
 
 def download_file(url, dest):
     print(f"Downloading {dest.name}...")
