@@ -342,7 +342,7 @@ class SAM2ClickAndPropagate(SegmentationAlgorithmSpec):
         check_sam2_installed() #verify installation first
         import sam2
         
-        os.environ['SAM2_REPO_ROOT']=Path(sam2.__file__).resolve().parent # path to this repo
+        os.environ['SAM2_REPO_ROOT']=str(Path(sam2.__file__).resolve().parent) # path to this repo
 
         os.environ['PYTHONPATH']="${SAM2_REPO_ROOT}:${PYTHONPATH}"
         os.environ['SAM2_CHECKPOINT_DIR']= ensure_sam2_checkpoints() #note that if this is their first time using, SAM2 checkpoints are downloaded
@@ -796,7 +796,7 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
         """
         check_sam3_installed() #verify installation
         import sam3
-        os.environ['SAM3_REPO_ROOT']=Path(sam3.__file__).resolve().parent  # path to this repo
+        os.environ['SAM3_REPO_ROOT']=str(Path(sam3.__file__).resolve().parent)  # path to this repo
 
         os.environ['PYTHONPATH']="${SAM3_REPO_ROOT}:${PYTHONPATH}"
         os.environ['SAM3_CHECKPOINT_DIR']= ensure_sam3_checkpoint()
