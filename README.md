@@ -55,7 +55,7 @@ python -m AdaptFM.dev_launch
 
 Below are installations that we found worked. If you run into installation issues, visit the below links for more detailed instructions. 
 
-**You only need to install model you want to test.** 
+**You only need to install model you want to use.** AdaptFM will work if you don't install the below models
 
 [nnUNet](https://github.com/MIC-DKFZ/nnUNet/tree/master) - Note that nnUNet is currently experiencing [a bug](https://github.com/MIC-DKFZ/nnUNet/issues/3009) that will prevent users from training.  
 
