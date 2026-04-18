@@ -32,7 +32,7 @@ pip install -e .
 python -c "import AdaptFM; print('AdaptFM installed successfully')"
 ```
 
-[SAM2](https://github.com/facebookresearch/sam2) and [SAM3](https://github.com/facebookresearch/sam3) have specific system requirements. Consequently, you can optionally install them using the below commands. AdaptFM will still work if you do not install these tools.
+[SAM2](https://github.com/facebookresearch/sam2) and [SAM3](https://github.com/facebookresearch/sam3) have specific system requirements. Consequently, you can optionally install them using the below commands. AdaptFM will still work if you do not install these tools. If you install SAM3 below and do not have a supported CUDA version you will not be able to use AdaptFM
 
 ```
 adaptfm-install-sam2
