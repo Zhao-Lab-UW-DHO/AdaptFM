@@ -2,7 +2,7 @@ from AdaptFM.segmentation.fourier.nuc_seg import run_nuclear_segmentation
 from AdaptFM.segmentation.fourier.cell_seg import run_single_cell_segmentation
 from AdaptFM.segmentation.fourier.org_seg import run_organoid_segmentation
 from AdaptFM.segmentation.fourier.nuc_seg_gpu import run_nuclear_segmentation_gpu_chunked
-from AdaptFM.segmentation.checkpoint_utils import ensure_sam2_checkpoints,check_sam2_installed, check_sam3_installed,ensure_sam3_checkpoints
+from AdaptFM.segmentation.checkpoint_utils import ensure_sam2_checkpoints,check_sam2_installed, check_sam3_installed,ensure_sam3_checkpoint
 from abc import ABC
 
 class SegmentationAlgorithmSpec(ABC):
