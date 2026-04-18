@@ -112,4 +112,5 @@ def install_sam3():
         check=True,
     )
 
+
     print(f"Done. SAM3 installed at: {sam2_dir}")
