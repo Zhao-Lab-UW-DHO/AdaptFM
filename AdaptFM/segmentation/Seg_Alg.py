@@ -566,10 +566,10 @@ class SAM2ClickAndPropagate(SegmentationAlgorithmSpec):
             ) from e
 
         cfg_map = {
-            "tiny":      ("sam2.1_hiera_t.yaml",   "sam2.1_hiera_tiny.pt"),
-            "small":     ("sam2_hiera_s.yaml",   "sam2.1_hiera_small.pt"),
-            "base_plus": ("sam2_hiera_b+.yaml",  "sam2.1_hiera_base_plus.pt"),
-            "large":     ("sam2_hiera_l.yaml",   "sam2.1_hiera_large.pt"),
+            "tiny":      ("sam2.1_hiera_t.yaml",   "sam2_hiera_tiny.pt"),
+            "small":     ("sam2_hiera_s.yaml",   "sam2_hiera_small.pt"),
+            "base_plus": ("sam2_hiera_b+.yaml",  "sam2_hiera_base_plus.pt"),
+            "large":     ("sam2_hiera_l.yaml",   "sam2_hiera_large.pt"),
         }
         if model_size not in cfg_map:
             raise ValueError(f"Unknown model_size '{model_size}'. "
@@ -578,7 +578,7 @@ class SAM2ClickAndPropagate(SegmentationAlgorithmSpec):
         cfg_file, ckpt_file = cfg_map[model_size]
 
         # Resolve checkpoint — honour env var, otherwise expect it next to this file
-        ckpt_dir  = Path(os.environ.get("SAM2_CHECKPOINT_DIR", Path(__file__).parent / "checkpoints"))
+        ckpt_dir  = Path(os.environ.get("SAM2_CHECKPOINT_DIR"))
         ckpt_path = ckpt_dir / ckpt_file
 
         if not ckpt_path.exists():
