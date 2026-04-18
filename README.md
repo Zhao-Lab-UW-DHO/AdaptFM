@@ -88,7 +88,7 @@ python -m pip install cellpose
 ```
 Again, install the proper pytorch version in your cellpose_adapt environment with https://pytorch.org/get-started/locally/
 
-[SAM-Med-3D](https://github.com/uni-medical/sam-med3d) - once you have created the conda environment and checkpoint, use the below command to install the repo
+[SAM-Med-3D](https://github.com/uni-medical/sam-med3d) - once you have created the conda environment and checkpoint, use the below command to install the repo. Visit their website to download the model checkpoint.
 
 ```
 conda create --name sammed3d_adapt python=3.10 -y
