@@ -55,7 +55,9 @@ python -m AdaptFM.dev_launch
 
 Below are installations that we found worked. If you run into installation issues, visit the below links for more detailed instructions. 
 
-**You only need to install model you want to use.** AdaptFM will work if you don't install the below models
+**You only need to install model you want to use.** AdaptFM will work if you don't install the below models.
+
+Note that for nnunetv2, cellpose, and sammed3d you will need to install the proper pytorch version for that environment. MicroSAM installs it on its own
 
 [nnUNet](https://github.com/MIC-DKFZ/nnUNet/tree/master) - Note that nnUNet is currently experiencing [a bug](https://github.com/MIC-DKFZ/nnUNet/issues/3009) that will prevent users from training.  
 
