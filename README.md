@@ -125,6 +125,14 @@ export ADAPTFM_ROOT=/path/to/AdaptFM
 export PYTHONPATH=$SAMMED3D_ROOT:$ADAPTFM_ROOT:$PYTHONPATH
 EOF
 
+mkdir -p $CONDA_PREFIX/etc/conda/deactivate.d
+cat << 'EOF' > $CONDA_PREFIX/etc/conda/deactivate.d/sam_paths.sh
+unset SAMMED3D_ROOT
+unset ADAPTFM_ROOT
+# Remove AdaptFM and SAM paths from PYTHONPATH
+export PYTHONPATH=$(echo $PYTHONPATH | tr ':' '\n' | grep -v "AdaptFM\|SAM-Med3D" | tr '\n' ':' | sed 's/:$//')
+EOF
+
 echo "Done. Re-activate the environment with: conda activate sammed3d_adapt"
 echo "Imports will now work from any directory."
 ```
