@@ -61,7 +61,14 @@ python -m AdaptFM.dev_launch
 
 [CellposeSAM](https://github.com/mouseland/cellpose)
 
-[SAM-Med-3D](https://github.com/uni-medical/sam-med3d)
+[SAM-Med-3D](https://github.com/uni-medical/sam-med3d) - once you have created the conda environment and checkpoint, use the below command to install the repo
+
+```
+conda activate sammmed3d #or whatever you named the conda environment
+git clone "https://github.com/uni-medical/SAM-Med3D.git"
+cd SAM-Med3D
+pip install -e .
+```
 
 Once you have created conda environments for each, navigate to AdaptFM > model > registry.py and add the path to the conda environment
 
