@@ -88,7 +88,7 @@ python -m pip install cellpose
 ```
 Again, install the proper pytorch version in your cellpose_adapt environment with https://pytorch.org/get-started/locally/
 
-[SAM-Med-3D](https://github.com/uni-medical/sam-med3d) - once you have created the conda environment and checkpoint, use the below command to install the repo. Visit their website to download the model checkpoint.
+[SAM-Med-3D](https://github.com/uni-medical/sam-med3d) - once you have created the conda environment and checkpoint, use the below command to install the repo. Visit their website to download the model checkpoint. It is not an installable package so requires an extra step. 
 
 ```
 conda create --name sammed3d_adapt python=3.10 -y
@@ -100,7 +100,29 @@ uv pip install opencv-python-headless matplotlib \
     prefetch_generator monai edt surface-distance medim numpy
 
 git clone https://github.com/uni-medical/SAM-Med3D.git
-cd SAM-Med3D
+```
+
+Run the below code block, specifying SAMMED3D_ROOT and ADAPTFM_ROOT with the proper paths.
+
+```
+# === Persistent environment setup for SAM-Med3D + AdaptFM ===
+
+conda activate sammed3d_adapt
+
+# create conda activation directory (runs every time env is activated)
+mkdir -p $CONDA_PREFIX/etc/conda/activate.d
+
+# write activation script that auto-sets import paths
+cat << 'EOF' > $CONDA_PREFIX/etc/conda/activate.d/sam_paths.sh
+export SAMMED3D_ROOT=/path/to/SAM-Med3D
+export ADAPTFM_ROOT=/path/to/AdaptFM
+
+# IMPORTANT: prepend both repos to Python import path
+export PYTHONPATH=$SAMMED3D_ROOT:$ADAPTFM_ROOT:$PYTHONPATH
+EOF
+
+echo "Done. Re-activate the environment with: conda activate sammed3d_adapt"
+echo "Imports will now work from any directory."
 ```
 Again, install the proper pytorch version in your sammed3d_adapt environment with https://pytorch.org/get-started/locally/
 
