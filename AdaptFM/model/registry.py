@@ -42,8 +42,3 @@ MODEL_REGISTRY = {
     
 }
 
-SAM_REGISTRY={   "SAM2": {"Checkpoint Path" : '/path/to/SAM2/checkpoints/',
-            "Repo Root": 'path/to/SAM2/repo/'},
-
-    "SAM3": {"Checkpoint Path" : '/path/to/SAM3/checkpoints/',
-        "Repo Root": 'path/to/SAM3/repo/'}}
