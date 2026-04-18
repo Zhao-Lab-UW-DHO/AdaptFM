@@ -112,16 +112,4 @@ def install_sam3():
         check=True,
     )
 
-    # Step 3 — optional checkpoints
-    ckpt_dir = sam2_dir / "checkpoints"
-    ckpt_script = ckpt_dir / "download_ckpts.sh"
-
-    if ckpt_script.exists():
-        print("Downloading checkpoints...")
-        subprocess.run(
-            ["bash", str(ckpt_script)],
-            cwd=ckpt_dir,
-            check=True,
-        )
-
     print(f"Done. SAM3 installed at: {sam2_dir}")
