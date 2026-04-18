@@ -51,7 +51,7 @@ python -m AdaptFM.dev_launch
 
 ## Using External Models with AdaptFM
 
-**To avoid dependency conflicts, we recommend installing each model's package in its own conda environment.** Visit the below links to properly install the standard models. 
+**To avoid dependency conflicts, we recommend installing each model's package in its own conda environment.** Below are installations that we found worked. If you run into installation issues, visit the below links for more detailed instructions. 
 
 **You only need to install model you want to test.** 
 
