@@ -2,7 +2,7 @@ from AdaptFM.segmentation.fourier.nuc_seg import run_nuclear_segmentation
 from AdaptFM.segmentation.fourier.cell_seg import run_single_cell_segmentation
 from AdaptFM.segmentation.fourier.org_seg import run_organoid_segmentation
 from AdaptFM.segmentation.fourier.nuc_seg_gpu import run_nuclear_segmentation_gpu_chunked
-from AdaptFM.segmentation.checkpoint_utils import ensure_sam2_checkpoints,check_sam2_installed, check_sam3_installed,ensure_sam3_checkpoint
+from AdaptFM.segmentation.checkpoint_utils import check_sam2_installed, check_sam3_installed,ensure_sam3_checkpoint
 from abc import ABC
 
 class SegmentationAlgorithmSpec(ABC):
@@ -342,10 +342,12 @@ class SAM2ClickAndPropagate(SegmentationAlgorithmSpec):
         check_sam2_installed() #verify installation first
         import sam2
         
-        os.environ['SAM2_REPO_ROOT']=str(Path(sam2.__file__).resolve().parent) # path to this repo
+        REPO_ROOT = Path(__file__).resolve().parents[1]  # AdaptFM/AdaptFM
+        ckpt_dir = REPO_ROOT / "segmentation" / "sam2" / "checkpoints"
 
-        os.environ['PYTHONPATH']="${SAM2_REPO_ROOT}:${PYTHONPATH}"
-        os.environ['SAM2_CHECKPOINT_DIR']= ensure_sam2_checkpoints() #note that if this is their first time using, SAM2 checkpoints are downloaded
+        os.environ["SAM2_REPO_ROOT"] = "/mnt/local/data5/hbakhtiar/testing/AdaptFM/AdaptFM/segmentation/sam2/sam2/"
+        os.environ["SAM2_CHECKPOINT_DIR"] = str(ckpt_dir)
+#note that if this is their first time using, SAM2 checkpoints are downloaded
         params = params or {}
         model_size = params.get("model_size", "tiny")
         gpu = str(params.get('GPU'))
@@ -566,10 +568,10 @@ class SAM2ClickAndPropagate(SegmentationAlgorithmSpec):
             ) from e
 
         cfg_map = {
-            "tiny":      ("sam2.1_hiera_t.yaml",   "sam2_hiera_tiny.pt"),
-            "small":     ("sam2_hiera_s.yaml",   "sam2_hiera_small.pt"),
-            "base_plus": ("sam2_hiera_b+.yaml",  "sam2_hiera_base_plus.pt"),
-            "large":     ("sam2_hiera_l.yaml",   "sam2_hiera_large.pt"),
+            "tiny":      ("sam2.1_hiera_t.yaml",   "sam2.1_hiera_tiny.pt"),
+            "small":     ("sam2.1_hiera_s.yaml",   "sam2.1_hiera_small.pt"),
+            "base_plus": ("sam2.1_hiera_b+.yaml",  "sam2.1_hiera_base_plus.pt"),
+            "large":     ("sam2.1_hiera_l.yaml",   "sam2.1_hiera_large.pt"),
         }
         if model_size not in cfg_map:
             raise ValueError(f"Unknown model_size '{model_size}'. "
@@ -590,6 +592,7 @@ class SAM2ClickAndPropagate(SegmentationAlgorithmSpec):
 
         device = f"cuda:{gpu}" if torch.cuda.is_available() else "cpu"
 
+        cfg_file = os.path.join("configs/sam2.1",cfg_file)
 
         self._predictor  = build_sam2_video_predictor(cfg_file, str(ckpt_path), device=device)
         self._model_size = model_size
