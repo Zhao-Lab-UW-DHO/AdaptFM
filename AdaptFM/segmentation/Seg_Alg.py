@@ -2,7 +2,7 @@ from AdaptFM.segmentation.fourier.nuc_seg import run_nuclear_segmentation
 from AdaptFM.segmentation.fourier.cell_seg import run_single_cell_segmentation
 from AdaptFM.segmentation.fourier.org_seg import run_organoid_segmentation
 from AdaptFM.segmentation.fourier.nuc_seg_gpu import run_nuclear_segmentation_gpu_chunked
-from AdaptFM.segmentation.checkpoint_utils import check_sam2_installed, check_sam3_installed,ensure_sam3_checkpoint
+from AdaptFM.segmentation.checkpoint_utils import check_sam2_installed 
 from abc import ABC
 
 class SegmentationAlgorithmSpec(ABC):
@@ -345,7 +345,8 @@ class SAM2ClickAndPropagate(SegmentationAlgorithmSpec):
         REPO_ROOT = Path(__file__).resolve().parents[1]  # AdaptFM/AdaptFM
         ckpt_dir = REPO_ROOT / "segmentation" / "sam2" / "checkpoints"
 
-        os.environ["SAM2_REPO_ROOT"] = "/mnt/local/data5/hbakhtiar/testing/AdaptFM/AdaptFM/segmentation/sam2/sam2/"
+        os.environ["SAM2_REPO_ROOT"] = os.path.join(REPO_ROOT,'segmentation/sam2/sam2')
+
         os.environ["SAM2_CHECKPOINT_DIR"] = str(ckpt_dir)
 #note that if this is their first time using, SAM2 checkpoints are downloaded
         params = params or {}
@@ -750,6 +751,9 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
                 "options": ["center", "first", "last"],
                 "description": "Seed slice used in batch run() mode",
             },
+            
+            "GPU": {'type': "int", 'default':0,'min':0,'max':100},
+
         }
 
     def run(self, volume: np.ndarray, params: dict) -> np.ndarray:
@@ -797,14 +801,17 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
         Write slices to disk, load the SAM3 video predictor, open a session.
         All subsequent add_prompt / add_text_prompt calls share this session.
         """
-        check_sam3_installed() #verify installation
         import sam3
-        os.environ['SAM3_REPO_ROOT']=str(Path(sam3.__file__).resolve().parent)  # path to this repo
+        REPO_ROOT = Path(__file__).resolve().parents[1]
+        ckpt_dir = REPO_ROOT / 'segmentations'/'sam3'/'checkpoints'
+
+        os.environ['SAM3_REPO_ROOT']=os.path.join(REPO_ROOT,'segmentation/sam3/sam3') # path to this repo
 
         os.environ['PYTHONPATH']="${SAM3_REPO_ROOT}:${PYTHONPATH}"
-        os.environ['SAM3_CHECKPOINT_DIR']= ensure_sam3_checkpoint()
+        os.environ['SAM3_CHECKPOINT_DIR']= str(ckpt_dir)
         params = params or {}
         model_size = params.get("model_size", "large")
+        self.gpu = params.get('GPU')
 
         self._volume   = volume
         self._n_slices = volume.shape[0]
@@ -1190,15 +1197,11 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
         ckpt_dir  = Path(os.environ.get("SAM3_CHECKPOINT_DIR", Path(__file__).parent / "checkpoints"))
         # SAM3 loads checkpoints via HuggingFace by default; pass the dir so it
         # can find a locally cached copy, or leave empty to trigger HF download.
-        device = "cuda" if torch.cuda.is_available() else "cpu"
         ckpt_path = ckpt_dir / 'sam3.pt'
-        config = ckpt_dir/ 'config.json'
 
         self._predictor  = build_sam3_video_predictor(
-            #config=config,
            checkpoint_path=ckpt_path,
-            #device=device,
-            gpus_to_use=[0]
+            gpus_to_use=[self.gpu]
         )
         self._model_size = model_size
 
