@@ -29,6 +29,20 @@ def check_sam2_installed():
             "pip install AdaptFM[sam2]"
         )
 
+def check_sam3_installed():
+
+    try:
+        import sam3
+
+    except ImportError:
+
+        raise RuntimeError(
+            "SAM3 is not installed.\n"
+            "Install with:\n"
+            "pip install AdaptFM[sam3]"
+        )
+
+
 def get_checkpoint_dir():
     base = Path(
         os.environ.get(
