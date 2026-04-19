@@ -486,8 +486,8 @@ class Sammed3DSpec(FoundationModelSpec):
 
     #this model does not require a prepare dataset
 
-    def prepare_dataset(self, dataset_manager, output_dir):
-        return
+    def prepare_dataset(self, dataset_manager, output_dir,params):
+        return {"dataset_dir": dataset_manager.folder}
     
 
     def training_command(self, dataset_info, params, run_dir):
@@ -499,6 +499,9 @@ class Sammed3DSpec(FoundationModelSpec):
             "python",
             "-m", f"{self.training_wrapper_path}",
             "--params", json.dumps(params),
+            "--output_path",run_dir,
+            '--dataset_dir':dataset_info['dataset_dir']
+
         ]
 
      # -------- Execution --------
