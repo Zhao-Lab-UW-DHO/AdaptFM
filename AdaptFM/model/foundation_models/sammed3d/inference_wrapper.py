@@ -430,7 +430,7 @@ def main():
     for image in images:
         imageID = re.findall(r'(\d+)_image', image)[0]
         img_path   = osp.join(raw_images_path, image)
-        gt_path    = osp.join(labels_path, f'{imageID}_label.nii.gz')
+        gt_path    = osp.join(labels_path, f'{imageID}_image.nii.gz')
         out_path = osp.join(output_path, f'{imageID}_image.nii.gz')
 
         if not osp.exists(gt_path):
