@@ -93,11 +93,7 @@ Again, install the proper pytorch version in your cellpose_adapt environment wit
 ```
 conda create --name sammed3d_adapt python=3.10 -y
 conda activate sammed3d_adapt
-```
 
-**Install the proper pytorch version with https://pytorch.org/get-started/locally/ before proceeding to the next step**
-
-```
 pip install uv
 
 uv pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0
