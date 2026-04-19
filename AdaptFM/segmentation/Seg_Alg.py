@@ -803,7 +803,7 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
         """
         import sam3
         REPO_ROOT = Path(__file__).resolve().parents[1]
-        ckpt_dir = REPO_ROOT / 'segmentations'/'sam3'/'checkpoints'
+        ckpt_dir = REPO_ROOT / 'segmentation'/'sam3'/'checkpoints'
 
         os.environ['SAM3_REPO_ROOT']=os.path.join(REPO_ROOT,'segmentation/sam3/sam3') # path to this repo
 
