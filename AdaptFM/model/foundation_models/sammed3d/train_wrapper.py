@@ -22,10 +22,10 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data.distributed import DistributedSampler
 from tqdm import tqdm
 
-from sammed3d.segment_anything.build_sam3D import sam_model_registry3D
-from sammed3d.utils.click_method import get_next_click3D_torch_2,get_next_click3D_multiclass
-from sammed3d.utils.data_loader import Dataset_Union_ALL, Union_Dataloader
-from sammed3d.utils.data_paths import img_datas
+from segment_anything.build_sam3D import sam_model_registry3D
+from utils.click_method import get_next_click3D_torch_2
+from utils.data_loader import Dataset_Union_ALL, Union_Dataloader
+from utils.data_paths import img_datas
 
 
 join = os.path.join
@@ -48,8 +48,7 @@ def initialize_globals(args):
     LOG_OUT_DIR = join(args.work_dir, args.task_name)
     os.makedirs(LOG_OUT_DIR, exist_ok=True)
 
-    click_methods = {"random": get_next_click3D_torch_2,
-                     'multiclass': get_next_click3D_multiclass}
+    click_methods = {"random": get_next_click3D_torch_2}
 
     MODEL_SAVE_PATH = join(args.work_dir, args.task_name)
     os.makedirs(MODEL_SAVE_PATH, exist_ok=True)
