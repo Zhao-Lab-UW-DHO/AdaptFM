@@ -27,7 +27,7 @@ MODEL_REGISTRY = {
     "SAMMed3D": Sammed3DSpec(
         name="SAM-Med3D",
         conda_env="/path/to/conda_envs/sammed3d",
-        module_path="AdaptFM.model.foundation_models.sammed3d.train_wrapper",
+        module_path="AdaptFM.model.foundation_models.sammed3d.training_tag",
         training_wrapper_path="AdaptFM.model.foundation_models.sammed3d.train_wrapper",
         inference_wrapper_path="AdaptFM.model.foundation_models.sammed3d.inference_wrapper"
     ),
