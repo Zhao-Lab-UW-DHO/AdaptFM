@@ -79,7 +79,7 @@ pip install nnunetv2
 conda create -c conda-forge -n micro-sam_adapt python=3.10 micro_sam
 ```
 
-[CellposeSAM](https://github.com/mouseland/cellpose)
+[CellposeSAM](https://github.com/mouseland/cellpose) - CellposeSAM defaults to Cuda 13. We recommend uninstalling torch and torchvision and installing with your proper version.
 
 ```
 conda create --name cellpose_adapt python=3.10
