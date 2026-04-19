@@ -85,6 +85,7 @@ conda create -c conda-forge -n micro-sam_adapt python=3.10 micro_sam
 conda create --name cellpose_adapt python=3.10
 conda activate cellpose_adapt
 python -m pip install cellpose
+pip uninstall torch torchvision
 ```
 Again, install the proper pytorch version in your cellpose_adapt environment with https://pytorch.org/get-started/locally/
 
