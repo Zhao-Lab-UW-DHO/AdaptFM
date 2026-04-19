@@ -10,6 +10,8 @@ class DatasetManager:
     def __init__(self, folder=None):
         self.samples = []  # list of dicts as above
         if folder:
+            self.folder = folder
+
             self.load_from_folder(folder)
 
     def load_from_folder(self, folder):
