@@ -112,6 +112,11 @@ def install_sam3():
         check=True,
     )
 
+    subprocess.run(
+        [sys.executable, "-m", "pip", "install", "einops"],
+        check=True,
+    )
+
 
     print(f"Done. SAM3 installed at: {sam2_dir}")
 
