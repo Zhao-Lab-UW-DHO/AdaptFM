@@ -25,7 +25,6 @@ from tqdm import tqdm
 from segment_anything.build_sam3D import sam_model_registry3D
 from utils.click_method import get_next_click3D_torch_2
 from utils.data_loader import Dataset_Union_ALL, Union_Dataloader
-from utils.data_paths import img_datas
 
 
 join = os.path.join
@@ -59,36 +58,6 @@ def initialize_globals(args):
     if device.type == "cuda":
         torch.cuda.manual_seed_all(2023)
 
-def launch_training(
-    task_name: str = "union_train",
-    click_type: str = "random",
-    multi_click: bool = False,
-    model_type: str = "vit_b_ori",
-    checkpoint: str = "ckpt/sam_med3d.pth",
-    device: str = "cuda",
-    work_dir: str = "work_dir",
-
-    # train
-    num_workers: int = 24,
-    gpu_ids: list[int] = [0, 1],
-    multi_gpu: bool = False,
-    resume: bool = False,
-    allow_partial_weight: bool = False,
-
-    # lr_scheduler
-    lr_scheduler: str = "multisteplr",
-    step_size: list[int] = [120, 180],
-    gamma: float = 0.1,
-    num_epochs: int = 200,
-    img_size: int = 128,
-    batch_size: int = 12,
-    accumulation_steps: int = 20,
-    lr: float = 8e-4,
-    weight_decay: float = 0.1,
-    port: int = 12361,
-):
-    return
-  
 
 def main(args):
     initialize_globals(args)
@@ -579,7 +548,37 @@ def setup(rank, world_size,args):
 def cleanup():
     dist.destroy_process_group()
 
+#dummy function with parameters and their defaults
 
+def launch_training(
+    task_name: str = "union_train",
+    click_type: str = "random",
+    multi_click: bool = False,
+    model_type: str = "vit_b_ori",
+    checkpoint: str = "ckpt/sam_med3d.pth",
+    device: str = "cuda",
+    work_dir: str = "work_dir",
+
+    # train
+    num_workers: int = 24,
+    gpu_ids: list[int] = [0, 1],
+    multi_gpu: bool = False,
+    resume: bool = False,
+    allow_partial_weight: bool = False,
+
+    # lr_scheduler
+    lr_scheduler: str = "multisteplr",
+    step_size: list[int] = [120, 180],
+    gamma: float = 0.1,
+    num_epochs: int = 200,
+    img_size: int = 128,
+    batch_size: int = 12,
+    accumulation_steps: int = 20,
+    lr: float = 8e-4,
+    weight_decay: float = 0.1,
+    port: int = 12361,
+):
+    return
 
 if __name__ == '__main__':
 
@@ -587,6 +586,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--params')
+    parser.add_argument('--dataset_dir')
+    parser.add_argument('--output_path')
     args = parser.parse_args()
 
     params = json.loads(args.params)
@@ -636,4 +637,19 @@ if __name__ == '__main__':
     if hasattr(args, "gpu_ids") and args.gpu_ids:
         os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(str(i) for i in args.gpu_ids)
 
+
+    original_images_path = os.path.join(args.dataset_dir,'imagesTr')
+    labels_path = os.path.join(args.dataset_dir,'labelsTr')
+    print(original_images_path)
+
+    original_images = [os.path.join(original_images_path,file) for file in os.listdir(original_images_path)]
+    labeled_images  =[os.path.join(labels_path,file) for file in os.listdir(labels_path)]
+    img_datas = original_images + labeled_images
+    img_datas = [args.dataset_dir]
+    
+    print(img_datas)
+
+
     main(args)
+
+
