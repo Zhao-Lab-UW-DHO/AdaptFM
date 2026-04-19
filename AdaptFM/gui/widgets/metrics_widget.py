@@ -3,7 +3,80 @@ import tifffile as tiff
 import numpy as np
 from pathlib import Path
 from qtpy.QtWidgets import QFileDialog
+import matplotlib.pyplot as plt
+import os
+from skimage.measure import label, regionprops
 
+import matplotlib.pyplot as plt
+
+def plot_dice_boxplot(results,gt_dir,name):
+    """
+    results: dict {model_name: [dice_scores]}
+    """
+
+    model_names = [Path(k).name for k in results.keys()]
+    dice_values = list(results.values())
+
+    plt.figure(figsize=(10, 6))
+
+    plt.boxplot(
+        dice_values,
+        tick_labels=model_names,
+        showmeans=True
+    )
+
+    plt.ylabel(f"{name}")
+    plt.xlabel("Model")
+    plt.title(f"{name} Distribution per Model")
+
+    plt.xticks(rotation=45, ha="right")
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(gt_dir,f"{name}_boxplot.png"), dpi=300)
+
+
+
+def object_iou_matrix_fast(gt_mask, pred_mask):
+    """
+    Fast computation of IoU matrix between all GT and predicted objects.
+    """
+    gt_labels = label(gt_mask)
+    pred_labels = label(pred_mask)
+
+    num_gt = gt_labels.max()
+    num_pred = pred_labels.max()
+
+    # Flatten masks for histogram counting
+    gt_flat = gt_labels.ravel()
+    pred_flat = pred_labels.ravel()
+
+    # Combine GT and predicted labels into a single index
+    # Shift pred labels to make unique pair indices
+    combined = gt_flat * (num_pred + 1) + pred_flat
+    counts = np.bincount(combined)
+
+    # Map back to 2D IoU matrix
+    iou_matrix = np.zeros((num_gt, num_pred), dtype=float)
+    
+    # Compute intersection for each pair
+    for idx, count in enumerate(counts):
+        if count == 0:
+            continue
+        gt_id = idx // (num_pred + 1)
+        pred_id = idx % (num_pred + 1)
+        if gt_id == 0 or pred_id == 0:
+            continue  # background
+        iou_matrix[gt_id-1, pred_id-1] = count
+
+    # Compute union
+    gt_area = np.bincount(gt_flat, minlength=num_gt+1)[1:]  # skip background
+    pred_area = np.bincount(pred_flat, minlength=num_pred+1)[1:]
+    union_matrix = gt_area[:, None] + pred_area[None, :] - iou_matrix
+    iou_matrix = iou_matrix / np.maximum(union_matrix, 1e-12)
+
+    return iou_matrix, gt_labels, pred_labels
+
+    
 class Metric(ABC):
     name: str = "BaseMetric"
 
@@ -44,11 +117,11 @@ class DiceScore(Metric):
         results = {}
 
         # get all ground truth files
-        gt_files = sorted(gt_dir.glob("*"))  # assumes all images in folder
+        gt_files = sorted(gt_dir.glob("*tiff"))  # assumes all images in folder
 
         for model_dir in models_dirs:
             model_dir = Path(model_dir)
-            model_files = sorted(model_dir.glob("*"))
+            model_files = sorted(model_dir.glob("*tiff"))
 
             per_image_dice = []
 
@@ -64,12 +137,13 @@ class DiceScore(Metric):
             # store results for this model
             results[str(model_dir)] = per_image_dice
 
+        plot_dice_boxplot(results,gt_dir,self.name)
+
         return results
     
 
 from scipy.optimize import linear_sum_assignment
 from skimage.io import imread
-from skimage.measure import label, regionprops
 import numpy as np
 from pathlib import Path
 
@@ -85,12 +159,12 @@ class MeanObjectF1(Metric):
         Compute object-level F1 score per image using greedy matching
         """
         gt_dir = Path(gt_dir)
-        gt_files = sorted(gt_dir.glob("*"))
+        gt_files = sorted(gt_dir.glob("*tiff"))
         results = {}
 
         for model_dir in models_dirs:
             model_dir = Path(model_dir)
-            model_files = sorted(model_dir.glob("*"))
+            model_files = sorted(model_dir.glob("*tiff"))
 
             per_image_f1 = []
 
@@ -102,43 +176,49 @@ class MeanObjectF1(Metric):
                 per_image_f1.append(f1)
 
             results[str(model_dir)] = per_image_f1
+        
+        plot_dice_boxplot(results,gt_dir,self.name)
 
         return results
 
     @staticmethod
-    def _greedy_object_f1(gt_mask, pred_mask):
-        gt_labels = np.unique(gt_mask)[1:]  # ignore background
-        pred_labels = np.unique(pred_mask)[1:]
+    def _greedy_object_f1(gt_mask, pred_mask, iou_thresh=0.5):
 
-        if len(gt_labels) == 0 and len(pred_labels) == 0:
+        iou_matrix, _, _ = object_iou_matrix_fast(
+            gt_mask,
+            pred_mask
+        )
+
+        num_gt, num_pred = iou_matrix.shape
+
+        if num_gt == 0 and num_pred == 0:
             return 1.0
-        if len(gt_labels) == 0 or len(pred_labels) == 0:
+        if num_gt == 0 or num_pred == 0:
             return 0.0
 
         matched = 0
-        pred_used = set()
-        for gt_id in gt_labels:
-            gt_obj = gt_mask == gt_id
-            best_iou = 0
-            best_pred = None
-            for pred_id in pred_labels:
-                if pred_id in pred_used:
-                    continue
-                pred_obj = pred_mask == pred_id
-                intersection = np.logical_and(gt_obj, pred_obj).sum()
-                union = np.logical_or(gt_obj, pred_obj).sum()
-                iou = intersection / union if union > 0 else 0
-                if iou > best_iou:
-                    best_iou = iou
-                    best_pred = pred_id
-            if best_iou >= 0.5:  # IoU threshold
-                matched += 1
-                pred_used.add(best_pred)
+        pred_used = np.zeros(num_pred, dtype=bool)
 
-        precision = matched / len(pred_labels) if pred_labels.size > 0 else 0
-        recall = matched / len(gt_labels) if gt_labels.size > 0 else 0
-        f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
-        return f1
+        for gt_idx in range(num_gt):
+
+            row = iou_matrix[gt_idx].copy()
+
+            row[pred_used] = -1
+
+            best_pred = np.argmax(row)
+            best_iou = row[best_pred]
+
+            if best_iou >= iou_thresh:
+                matched += 1
+                pred_used[best_pred] = True
+
+        precision = matched / num_pred
+        recall = matched / num_gt
+
+        if precision + recall > 0:
+            return 2 * precision * recall / (precision + recall)
+
+        return 0.0
 
 
 # ------------------------------
@@ -150,12 +230,12 @@ class PanopticF1(Metric):
 
     def compute(self, gt_dir, models_dirs):
         gt_dir = Path(gt_dir)
-        gt_files = sorted(gt_dir.glob("*"))
+        gt_files = sorted(gt_dir.glob("*tiff"))
         results = {}
 
         for model_dir in models_dirs:
             model_dir = Path(model_dir)
-            model_files = sorted(model_dir.glob("*"))
+            model_files = sorted(model_dir.glob("*tiff"))
 
             per_image_pf1 = []
 
@@ -166,52 +246,59 @@ class PanopticF1(Metric):
                 per_image_pf1.append(pf1)
 
             results[str(model_dir)] = per_image_pf1
+        
+        plot_dice_boxplot(results,gt_dir,self.name)
 
         return results
 
     @staticmethod
-    def _panoptic_f1(gt_mask, pred_mask):
+    def _panoptic_f1(gt_mask, pred_mask, iou_thresh=0.5):
         """
-        Compute panoptic F1 score using greedy matching (IoU>0.5)
+        Fast Panoptic F1 using IoU matrix + greedy matching.
         """
-        gt_labels = np.unique(gt_mask)[1:]
-        pred_labels = np.unique(pred_mask)[1:]
 
-        if len(gt_labels) == 0 and len(pred_labels) == 0:
+        # Compute IoU matrix (fast histogram method)
+        iou_matrix, _, _ = object_iou_matrix_fast(
+            gt_mask,
+            pred_mask
+        )
+
+        num_gt, num_pred = iou_matrix.shape
+
+        if num_gt == 0 and num_pred == 0:
             return 1.0
-        if len(gt_labels) == 0 or len(pred_labels) == 0:
+        if num_gt == 0 or num_pred == 0:
             return 0.0
 
         tp = 0
-        fp = len(pred_labels)
-        fn = len(gt_labels)
+        fp = num_pred
+        fn = num_gt
 
-        pred_used = set()
-        for gt_id in gt_labels:
-            gt_obj = gt_mask == gt_id
-            best_iou = 0
-            best_pred = None
-            for pred_id in pred_labels:
-                if pred_id in pred_used:
-                    continue
-                pred_obj = pred_mask == pred_id
-                intersection = np.logical_and(gt_obj, pred_obj).sum()
-                union = np.logical_or(gt_obj, pred_obj).sum()
-                iou = intersection / union if union > 0 else 0
-                if iou > best_iou:
-                    best_iou = iou
-                    best_pred = pred_id
-            if best_iou >= 0.5:
+        pred_used = np.zeros(num_pred, dtype=bool)
+
+        for gt_idx in range(num_gt):
+
+            row = iou_matrix[gt_idx].copy()
+
+            # mask used predictions
+            row[pred_used] = -1
+
+            best_pred = np.argmax(row)
+            best_iou = row[best_pred]
+
+            if best_iou >= iou_thresh:
                 tp += 1
-                pred_used.add(best_pred)
+                pred_used[best_pred] = True
                 fp -= 1
                 fn -= 1
 
         precision = tp / (tp + fp) if (tp + fp) > 0 else 0
         recall = tp / (tp + fn) if (tp + fn) > 0 else 0
-        f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
-        return f1
 
+        if precision + recall > 0:
+            return 2 * precision * recall / (precision + recall)
+
+        return 0.0
 
 # ------------------------------
 # Boundary F1
@@ -224,12 +311,12 @@ class BoundaryF1(Metric):
 
     def compute(self, gt_dir, models_dirs):
         gt_dir = Path(gt_dir)
-        gt_files = sorted(gt_dir.glob("*"))
+        gt_files = sorted(gt_dir.glob("*tiff"))
         results = {}
 
         for model_dir in models_dirs:
             model_dir = Path(model_dir)
-            model_files = sorted(model_dir.glob("*"))
+            model_files = sorted(model_dir.glob("*tiff"))
 
             per_image_bf1 = []
 
@@ -240,6 +327,7 @@ class BoundaryF1(Metric):
                 per_image_bf1.append(bf1)
 
             results[str(model_dir)] = per_image_bf1
+        plot_dice_boxplot(results,gt_dir,self.name)
 
         return results
 
