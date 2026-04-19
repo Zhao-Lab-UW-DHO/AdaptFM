@@ -129,7 +129,7 @@ class ModelWorkflowWidget:
 
 
     def _select_dataset_folder(self):
-        folder = QFileDialog.getExistingDirectory(None, "Select dataset folder",'/mnt/local/data3/Organoids/Data/broad_data_testing')
+        folder = QFileDialog.getExistingDirectory(None, "Select dataset folder")
         if folder:
             self.dataset_manager.load_from_folder(folder)
             self.dataset_dir = Path(folder)
