@@ -438,3 +438,6 @@ def main():
             continue
 
         validate_paired_img_gt(model, img_path, gt_path, out_path, num_clicks=5)
+
+if __name__ == "__main__":
+    main()
