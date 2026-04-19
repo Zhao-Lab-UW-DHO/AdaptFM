@@ -40,7 +40,7 @@ python -c "import AdaptFM; print('AdaptFM installed successfully')"
 adaptfm-install-sam2
 adaptfm-install-sam3
 ```
-**If using SAM3 you must request access to their checkpoints through [hugging face](https://huggingface.co/facebook/sam3.1). These cannot be auto-downloaded**. Once you have downloaded checkpoints, make a folder called 'checkpoints' in AdaptFM > segmentation > sam3 and add the checkpoint files there.  
+**If using SAM3 you must request access to their checkpoints through [hugging face](https://huggingface.co/facebook/sam3.1) (download [here](https://huggingface.co/facebook/sam3.1/resolve/main/sam3.1_multiplex.pt?download=true)). These cannot be auto-downloaded**. Once you have downloaded checkpoints, make a folder called 'checkpoints' in AdaptFM > segmentation > sam3 and add the checkpoint files there.  
 
 Once installed you can launch AdaptFM from the terminal using
 
