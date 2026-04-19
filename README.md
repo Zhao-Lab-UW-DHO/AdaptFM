@@ -101,7 +101,7 @@ conda activate sammed3d_adapt
 pip install uv
 
 uv pip install opencv-python-headless matplotlib \
-    prefetch_generator monai edt surface-distance medim numpy
+    prefetch_generator monai edt surface-distance medim numpy SimpleITK
 
 git clone https://github.com/uni-medical/SAM-Med3D.git
 ```
