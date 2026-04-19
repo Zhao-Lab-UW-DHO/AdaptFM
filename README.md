@@ -115,8 +115,8 @@ mkdir -p $CONDA_PREFIX/etc/conda/activate.d
 
 # write activation script that auto-sets import paths
 cat << 'EOF' > $CONDA_PREFIX/etc/conda/activate.d/sam_paths.sh
-export SAMMED3D_ROOT=/path/to/SAM-Med3D
-export ADAPTFM_ROOT=/path/to/AdaptFM
+export SAMMED3D_ROOT=/path/to/SAM-Med3D ###CHANGE HERE
+export ADAPTFM_ROOT=/path/to/AdaptFM ###CHANGE HERE
 
 # IMPORTANT: prepend both repos to Python import path
 export PYTHONPATH=$SAMMED3D_ROOT:$ADAPTFM_ROOT:$PYTHONPATH
