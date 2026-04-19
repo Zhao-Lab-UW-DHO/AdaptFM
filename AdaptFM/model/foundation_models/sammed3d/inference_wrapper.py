@@ -423,7 +423,7 @@ def main():
     checkpoint = args.checkpoint
 
     model = medim.create_model("SAM-Med3D", pretrained=True, checkpoint_path=checkpoint)
-    images = [f for f in os.listdir(test_dir) if f.endswith('.nii.gz')]
+    images = [f for f in os.listdir(raw_images_path) if f.endswith('.nii.gz')]
 
 
 
