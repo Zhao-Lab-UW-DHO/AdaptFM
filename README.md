@@ -100,6 +100,7 @@ conda activate sammed3d_adapt
 ```
 pip install uv
 
+uv pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0
 uv pip install opencv-python-headless matplotlib \
     prefetch_generator monai edt surface-distance medim numpy SimpleITK
 
