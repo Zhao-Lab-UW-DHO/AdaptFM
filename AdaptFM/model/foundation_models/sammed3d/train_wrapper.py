@@ -640,14 +640,12 @@ if __name__ == '__main__':
 
     original_images_path = os.path.join(args.dataset_dir,'imagesTr')
     labels_path = os.path.join(args.dataset_dir,'labelsTr')
-    print(original_images_path)
 
     original_images = [os.path.join(original_images_path,file) for file in os.listdir(original_images_path)]
     labeled_images  =[os.path.join(labels_path,file) for file in os.listdir(labels_path)]
     img_datas = original_images + labeled_images
     img_datas = [args.dataset_dir]
     
-    print(img_datas)
 
 
     main(args)
