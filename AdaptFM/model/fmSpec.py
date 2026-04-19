@@ -204,7 +204,6 @@ class MicroSAMSpec(FoundationModelSpec):
         
         
         cmd = self._wrap_with_conda(inference_cmd)
-
         subprocess.Popen(
             cmd,
             stdout=open(output_dir / "stdout.log", "w"),
@@ -500,7 +499,7 @@ class Sammed3DSpec(FoundationModelSpec):
             "-m", f"{self.training_wrapper_path}",
             "--params", json.dumps(params),
             "--output_path",run_dir,
-            '--dataset_dir':dataset_info['dataset_dir']
+            '--dataset_dir', dataset_info['dataset_dir']
 
         ]
 
