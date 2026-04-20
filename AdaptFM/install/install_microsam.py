@@ -7,7 +7,8 @@ Usage (after `pip install -e .`):
 
 import subprocess
 import sys
-
+from AdaptFM.model.registry import _conda_prefix
+from pathlib import Path
 
 ENV_NAME = "micro-sam_adapt"
 PYTHON_VERSION = "3.10"
@@ -52,6 +53,11 @@ def main() -> None:
         "micro_sam",
         "-y",
     ])
+
+    prefix = _conda_prefix(ENV_NAME)
+    config_path = Path.home() / ".adaptfm" / f"{ENV_NAME}.prefix"
+    config_path.write_text(prefix + "\n")
+    print(f"  Wrote env prefix to {config_path}")
 
     print(f"\n✓ micro-sam environment '{ENV_NAME}' created successfully.")
     print(f"  Activate with:  conda activate {ENV_NAME}\n")
