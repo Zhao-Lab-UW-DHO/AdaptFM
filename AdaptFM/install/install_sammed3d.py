@@ -16,6 +16,7 @@ import subprocess
 import sys
 import shlex
 from pathlib import Path
+from AdaptFM.model.registry import _conda_prefix
 
 
 ENV_NAME = "sammed3d_adapt"
@@ -65,16 +66,7 @@ def _conda_run(env: str, cmd: list[str], check: bool = True) -> subprocess.Compl
     return _run(full_cmd, check=check)
 
 
-def _conda_prefix(env: str) -> Path:
-    """Return the filesystem prefix of a conda environment."""
-    result = subprocess.run(
-        ["conda", "run", "-n", env, "python", "-c",
-         "import sys; print(sys.prefix)"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    return Path(result.stdout.strip())
+
 
 
 def _write_conda_hooks(env: str, sammed3d_root: Path, adaptfm_root: Path) -> None:
@@ -180,6 +172,11 @@ def main() -> None:
         f"python={PYTHON_VERSION}",
         "-y",
     ])
+    
+    prefix = _conda_prefix(ENV_NAME)
+    config_path = Path.home() / ".adaptfm" / f"{ENV_NAME}.prefix"
+    config_path.write_text(prefix + "\n")
+    print(f"  Wrote env prefix to {config_path}")
 
     # Install uv inside the environment, then use it to install torch + extras
     print("\n--- Installing uv ---")
