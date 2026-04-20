@@ -9,12 +9,14 @@ from AdaptFM.dataset.dataset_utils import construct_nnUNet_folders, write_nnUNet
 class DatasetManager:
     def __init__(self, folder=None):
         self.samples = []  # list of dicts as above
+        self.folder = []
         if folder:
             self.folder = folder
 
             self.load_from_folder(folder)
 
     def load_from_folder(self, folder):
+        self.folder = folder
         image_paths = sorted(glob.glob(os.path.join(folder, "*.tif*")))
         for img_path in image_paths:
             if img_path.endswith("_seg.tiff"):
