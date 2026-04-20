@@ -88,10 +88,10 @@ def install_sam2():
 
 
 def install_sam3():
-    sam2_dir = REPO_ROOT / "segmentation" / "sam3"
+    sam3_dir = REPO_ROOT / "segmentation" / "sam3"
 
     # Step 1 — clone if missing
-    if not sam2_dir.exists():
+    if not sam3_dir.exists():
         print("Cloning SAM3 repository...")
 
         subprocess.run(
@@ -99,7 +99,7 @@ def install_sam3():
                 "git",
                 "clone",
                 "https://github.com/facebookresearch/sam3.git",
-                str(sam2_dir),
+                str(sam3_dir),
             ],
             check=True,
         )
@@ -108,7 +108,7 @@ def install_sam3():
     print("Installing SAM3...")
 
     subprocess.run(
-        [sys.executable, "-m", "pip", "install", "-e", str(sam2_dir)],
+        [sys.executable, "-m", "pip", "install", "-e", str(sam3_dir)],
         check=True,
     )
 
@@ -123,6 +123,6 @@ def install_sam3():
     )
 
 
-    print(f"Done. SAM3 installed at: {sam2_dir}")
+    print(f"Done. SAM3 installed at: {sam3_dir}")
 
 
