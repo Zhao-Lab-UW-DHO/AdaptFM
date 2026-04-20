@@ -5,6 +5,7 @@ import subprocess
 import json
 import multiprocessing
 import sys
+from pathlib import Path
 from AdaptFM.gui.widgets.metrics_widget import MetricRegistry
 
 class BenchmarkWidget(QWidget):
@@ -61,8 +62,22 @@ class BenchmarkWidget(QWidget):
         self.layout.addWidget(self.nproc_spinbox)
 
     def select_ground_truth(self):
-        self.gt_dir = QFileDialog.getExistingDirectory(None, "Select ground truth")
-        print(f"Selected GT: {self.gt_dir}")
+        from qtpy.QtWidgets import QMessageBox
+        msg = QMessageBox()
+        msg.setWindowTitle("Select type")
+        msg.setText("Are you selecting a folder or a single file?")
+        folder_btn = msg.addButton("Folder", QMessageBox.ButtonRole.AcceptRole)
+        file_btn = msg.addButton("File", QMessageBox.ButtonRole.AcceptRole)
+        msg.exec()
+
+        if msg.clickedButton() == folder_btn:
+            path = QFileDialog.getExistingDirectory(None, "Select folder")
+        else:
+            path, _ = QFileDialog.getOpenFileName(None, "Select file")
+
+        if path:
+            self.gt_dir = path
+            self.gt_button.setText(Path(path).name)
 
     def add_model(self):
         model_dir = QFileDialog.getExistingDirectory(None, "Select model predictions")
@@ -107,5 +122,6 @@ class BenchmarkWidget(QWidget):
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL
         )
+
 
 
