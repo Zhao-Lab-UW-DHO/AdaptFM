@@ -12,6 +12,7 @@ import subprocess
 import sys
 from pathlib import Path
 import shlex
+from AdaptFM.model.registry import _conda_prefix
 
 
 ENV_NAME = "nnUNet_adapt"
@@ -78,6 +79,11 @@ def main() -> None:
         f"python={PYTHON_VERSION}",
         "-y",
     ])
+
+    prefix = _conda_prefix(ENV_NAME)
+    config_path = Path.home() / ".adaptfm" / f"{ENV_NAME}.prefix"
+    config_path.write_text(prefix + "\n")
+    print(f"  Wrote env prefix to {config_path}")
 
     # Install PyTorch (user-specified build)
     print("\n--- Installing PyTorch ---")
