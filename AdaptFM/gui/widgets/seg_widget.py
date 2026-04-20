@@ -289,7 +289,7 @@ class SegmentationWidget:
         if self._sam2_labels_layer is not None and self._sam2_labels_layer in self.viewer.layers:
             self.viewer.layers.remove(self._sam2_labels_layer)
 
-        self._sam2_labels_layer = self.viewer.add_labels(blank, name="SAM2 labels")
+        self._sam2_labels_layer = self.viewer.add_labels(blank, name="auto_seg")
         self._sam2_status.value = (
             f"Status: ready — {self.current_algo.n_slices} slices encoded. "
             "Left-click = add prompt, right-click = background"
