@@ -416,8 +416,8 @@ def main():
 
     test_dir = args.test_dir
 
-    raw_images_path = osp.join(test_dir,'originals')
-    labels_path = osp.join(test_dir,'labels')
+    raw_images_path = osp.join(test_dir,'imagesTr')
+    labels_path = osp.join(test_dir,'labelsTr')
 
     output_path = args.output_path
     checkpoint = args.checkpoint
