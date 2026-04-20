@@ -32,7 +32,7 @@ sam3 = []
 
 [project.scripts]
 
-adaptfm-set-pytorch    = "adaptfm.install.set_pytorch:main"
+adaptfm-set-pytorch    = "AdaptFM.install.set_pytorch:main"
 
 adaptfm-install-sam2 = "AdaptFM.model.model_utils:install_sam2"
 adaptfm-install-sam3 = "AdaptFM.model.model_utils:install_sam3"
