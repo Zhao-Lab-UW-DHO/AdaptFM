@@ -56,7 +56,7 @@ def main():
 
     if params['model_type']== "<class 'inspect._empty'>":
         print('no model_type provided, defaulting to vit_b_lm')
-        params['model_type']=='vit_b_lm'
+        params['model_type']='vit_b_lm'
 
     train_sam(
         name=str(params["name"]),
