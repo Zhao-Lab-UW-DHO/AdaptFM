@@ -70,7 +70,7 @@ def _conda_run(env: str, cmd: list[str], check: bool = True) -> subprocess.Compl
 
 
 def _write_conda_hooks(env: str, sammed3d_root: Path, adaptfm_root: Path) -> None:
-    prefix = _conda_prefix(env)
+    prefix = Path(_conda_prefix(env))
 
     activate_dir = prefix / "etc" / "conda" / "activate.d"
     deactivate_dir = prefix / "etc" / "conda" / "deactivate.d"
