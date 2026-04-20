@@ -15,7 +15,7 @@ import subprocess
 import sys
 from pathlib import Path
 import shlex
-
+from AdaptFM.model.registry import _conda_prefix
 
 ENV_NAME = "cellpose_adapt"
 PYTHON_VERSION = "3.10"
@@ -43,6 +43,8 @@ def _read_pytorch_cmd() -> list[str]:
         print(f"ERROR: {PYTORCH_CMD_FILE} is empty. Run `adaptfm-set-pytorch` again.")
         sys.exit(1)
     return shlex.split(raw)
+
+
 
 
 def main() -> None:
@@ -81,6 +83,11 @@ def main() -> None:
         f"python={PYTHON_VERSION}",
         "-y",
     ])
+
+    prefix = _conda_prefix(ENV_NAME)
+    config_path = Path.home() / ".adaptfm" / f"{ENV_NAME}.prefix"
+    config_path.write_text(prefix + "\n")
+    print(f"  Wrote env prefix to {config_path}")   
 
     # Install cellpose (this drags in a default torch/torchvision)
     print("\n--- Installing cellpose ---")
