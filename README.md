@@ -86,7 +86,7 @@ snapshot_download(
     repo_id='hbakhtiar/AdaptFM_Testing',
     repo_type='dataset',
     allow_patterns='BBBC024/*', #Replace with desired folder
-    local_dir='/mnt/local/data5/hbakhtiar/'
+    local_dir='' #add where you want the download to go
 )
 "
 ```
