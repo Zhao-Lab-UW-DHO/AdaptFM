@@ -41,7 +41,7 @@ def main() -> None:
         print(f"Current command: {existing}")
         overwrite = input("Overwrite? [y/N]: ").strip().lower()
         if overwrite != "y":
-            print("Keeping existing command.")
+            print(f"Keeping existing command. Run conda run -n {ADAPTFM_ENV} {existing} to reinstall torch")
             sys.exit(0)
         print()
 
