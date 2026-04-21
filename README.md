@@ -98,6 +98,21 @@ snapshot_download(
 
 ### Using SSVT
 
-SSVT is a model pretrained on roughly 180,000 organoid images. It is publicly avaialble for download on [hugging face](https://huggingface.co/hbakhtiar/SSVT_Organoids/tree/main). SSVT is supported directly within AdaptFM.
+SSVT is a model pretrained on roughly 180,000 organoid images. It is publicly avaialble for download on [hugging face](https://huggingface.co/hbakhtiar/SSVT_Organoids/tree/main). SSVT is supported directly within AdaptFM. You can copy and paste the below code block to download the model
+
+```bash
+conda activate AdaptFM
+pip install huggingface_hub
+
+python -c "
+from huggingface_hub import snapshot_download
+snapshot_download(
+    repo_id='hbakhtiar/SSVT_Organoids',
+    repo_type='model',
+    allow_patterns='SSVT.pth',  # Replace with real filename
+    local_dir=''  # Add destination folder
+)
+"
+```
 
 Once downloaded you can follow our [fine-tuning instructions](Documentation/Standard/Fine-tuning-models.md) to build a model for a specific downstream segmentation task. 
