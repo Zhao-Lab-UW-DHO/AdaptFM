@@ -23,7 +23,7 @@ AdaptFM Documentation
 
 .. toctree::
    :maxdepth: 2
-   :caption: Customization Instructions for AdaptFM:
+   :caption: Customizations to AdaptFM:
 
    Customizations/customizations-main
    Customizations/Adding-Annotation-algorithms
