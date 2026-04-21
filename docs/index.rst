@@ -5,12 +5,14 @@
 
 AdaptFM Documentation
 =====================
+.. include:: ../README.md
 
 .. toctree::
    :maxdepth: 2
    :caption: Getting Started:
 
    Testing_AdaptFM
+   Customizing_AdaptFM
 
 .. toctree::
    :maxdepth: 2
@@ -25,7 +27,6 @@ AdaptFM Documentation
    :maxdepth: 2
    :caption: Customizations to AdaptFM:
 
-   Customizations/customizations-main
    Customizations/Adding-Annotation-algorithms
    Customizations/Adding-new-models
    Customizations/Custom-benchmarks
