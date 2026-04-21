@@ -14,7 +14,7 @@ AdaptFM Documentation
 
 .. toctree::
    :maxdepth: 2
-   :caption: Standard:
+   :caption: Standard Usage Instructions:
 
    Standard/Annotations
    Standard/Benchmarking-Models
@@ -23,7 +23,7 @@ AdaptFM Documentation
 
 .. toctree::
    :maxdepth: 2
-   :caption: Customizations:
+   :caption: Customization Instructions for AdaptFM:
 
    Customizations/customizations-main
    Customizations/Adding-Annotation-algorithms
