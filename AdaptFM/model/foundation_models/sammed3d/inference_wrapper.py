@@ -427,14 +427,16 @@ def main():
 
 
 
+
     for image in images:
-        imageID = re.findall(r'(\d+)_image', image)[0]
-        img_path   = osp.join(raw_images_path, image)
-        gt_path    = osp.join(labels_path, f'{imageID}_image.nii.gz')
-        out_path = osp.join(output_path, f'{imageID}_image.nii.gz')
+        img_path = osp.join(raw_images_path,image)
+        gt_path = osp.join(labels_path,image)
+        out_path = osp.join(output_path,image)
+        
+
 
         if not osp.exists(gt_path):
-            print(f"GT not found for {imageID}, skipping.")
+            print(f"GT not found for {image}, skipping.")
             continue
 
         validate_paired_img_gt(model, img_path, gt_path, out_path, num_clicks=5)
