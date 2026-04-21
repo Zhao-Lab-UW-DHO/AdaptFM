@@ -4,6 +4,7 @@ from qtpy.QtWidgets import (
     QPushButton, QFormLayout,QScrollArea
 )
 from pathlib import Path
+from qtpy.QtCore import Qt
 from AdaptFM.model.registry import MODEL_REGISTRY
 from AdaptFM.model.fmSpec import FoundationModelSpec
 
@@ -41,6 +42,12 @@ class ModelWorkflowWidget:
         self.layout.addWidget(scroll)
 
         self._build_run_button()
+
+
+        self.widget.setWindowFlags(
+            self.widget.windowFlags() | Qt.WindowStaysOnTopHint | Qt.Window
+        )
+
 
     def _build_model_selector(self):
         @magicgui(model={"choices": list(MODEL_REGISTRY.keys())},
