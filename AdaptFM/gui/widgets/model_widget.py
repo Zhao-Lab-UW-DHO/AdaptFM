@@ -89,6 +89,8 @@ class ModelWorkflowWidget:
     def _on_model_selected(self, model_name):
         self.model = MODEL_REGISTRY[model_name]
         self._clear_params()
+        self._clear_tag_widget()  # <-- add this
+
         self._on_model_changed()
 
         if isinstance(self.model, FoundationModelSpec):
@@ -142,6 +144,12 @@ class ModelWorkflowWidget:
             self.params_form.removeRow(0)
         self.param_widgets.clear()
 
+    def _clear_tag_widget(self):
+        if hasattr(self, "tag_widget"):
+            self.layout.removeWidget(self.tag_widget.native)
+            self.tag_widget.native.deleteLater()
+            del self.tag_widget
+
     # ---------- OVERRIDES ----------
 
     def _run(self):
@@ -151,3 +159,4 @@ class ModelWorkflowWidget:
     def _on_model_changed(self):
         """Hook for subclasses to reset state when the model changes."""
         pass
+
