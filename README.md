@@ -65,8 +65,8 @@ Note that nnUNet is currently experiencing [a bug](https://github.com/MIC-DKFZ/n
 ```
 adaptfm-install-sammed3d
 ```
-    - The installation of SAM-Med3D will prompt you for the location of the AdaptFM and SAM-Med3D folders
-    - You will also need to download the [model checkpoint](https://github.com/uni-medical/sam-med3d#-checkpoint)
+The installation of SAM-Med3D will prompt you for the location of the AdaptFM and SAM-Med3D folders
+You will also need to download the [model checkpoint](https://github.com/uni-medical/sam-med3d#-checkpoint)
  
 ### Testing AdaptFM
 
