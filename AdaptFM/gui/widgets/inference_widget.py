@@ -54,3 +54,6 @@ class InferenceWidget(ModelWorkflowWidget):
             output_dir=output_dir,
             params=params,
         )
+    def _on_model_changed(self):
+        print('_on model changed running')
+        self.checkpoint_path = None
