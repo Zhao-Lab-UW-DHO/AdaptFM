@@ -8,7 +8,7 @@ In AdaptFM you can:
 - Use those annotations to fine-tune/train models on your data
 - Add new models or annotation algorithms
 
-[Installation](#main-installation) | [Get Started](docs/Standard) | [Customizing (Advanced Users)](docs/Customizations/customizations-main.md)
+[Installation](#main-installation) | [Get Started](docs/Standard) | [Customizing (Advanced Users)](docs/Customizations/customizations-main.md) | [Try the Demo](docs/Testing_AdaptFM.md)
 
 ![Segmentation Demo](asset/demo_cropped.gif) ![SAM2 Demo](asset/SAM2_GIF.gif)
 
@@ -40,9 +40,9 @@ adaptfm-install-sam3
 
 ### <a id="launching"></a>Launch after install 
 > [!WARNING]
-> AdaptFM **must** be launched from inside the main AdaptFM folder (the one containing the `README.md` file).
+> AdaptFM **must** be launched from inside the main AdaptFM folder (the folder containing the `LICENSE` file).
 
-with the AdaptFM conda environment activated use 
+With the AdaptFM conda environment activated use 
 ```shell
 python -m AdaptFM.dev_launch
 ``` 
@@ -50,7 +50,7 @@ to run AdaptFM.
 
 ### <a id="external-model-install"></a> Using Supported External Models with AdaptFM
 
-AdaptFM supports a variety of external models. These are optional; you only need to install the models you plan to use. AdaptFM provides a series of automatic install commands to create the conda environments with the necessary pacakges and expected environment names to run your choice of external model:
+AdaptFM supports a variety of external models. These are optional; you only need to install the models you plan to use. AdaptFM provides a series of automatic install commands to create the conda environments with the necessary packages and expected environment names to run your choice of external model:
 
 [MicroSAM](https://github.com/computational-cell-analytics/micro-sam) 
 ```
@@ -75,11 +75,11 @@ You will also need to download the [model checkpoint](https://github.com/uni-med
  
 ### Testing AdaptFM
 
-We have provided some test data for AdaptFM on [hugging face](https://huggingface.co/datasets/hbakhtiar/AdaptFM_Testing/tree/main). Descriptions of each dataset are in the hugging face 'ReadME' file. You can download datasets by using the below codeblock. Update'local_dir' to the location you want to download the data (write the folder location in quotes). 
+We have provided some test data for AdaptFM on [hugging face](https://huggingface.co/datasets/hbakhtiar/AdaptFM_Testing/tree/main). Descriptions of each dataset are in the hugging face 'README' file. You can download datasets by using the below code-block. Update 'local_dir' to the location you want to download the data (write the folder location in quotes). 
 
 Use 'allow_patterns' to specify the dataset you want to download. The folder name should have /* at the end to download all contents in the folder. The folder name should be in quotes as below.  
 
-You can download the entire dataset at once by removing the 'allow_patterns' line completely. **However note that the repo is over 100GB so ensure you have enough space before downloading**
+You can download the entire dataset at once by removing the 'allow_patterns' line completely. **However, note that the repo is over 100GB so ensure you have enough space before downloading**
 
 ```
 conda activate AdaptFM
@@ -98,7 +98,7 @@ snapshot_download(
 
 ### Using SSVT
 
-SSVT is a model pretrained on roughly 180,000 organoid images. It is publicly avaialble for download on [hugging face](https://huggingface.co/hbakhtiar/SSVT_Organoids/tree/main). SSVT is supported directly within AdaptFM. You can copy and paste the below code block to download the model
+SSVT is a model pretrained on roughly 180,000 organoid images. The checkpoint is publicly available for download on [hugging face](https://huggingface.co/hbakhtiar/SSVT_Organoids/tree/main). SSVT is supported directly within AdaptFM. You can copy and paste the below code block to download the model
 
 ```bash
 conda activate AdaptFM
@@ -115,4 +115,4 @@ snapshot_download(
 "
 ```
 
-Once downloaded you can follow our [fine-tuning instructions](Documentation/Standard/Fine-tuning-models.md) to build a model for a specific downstream segmentation task. 
+Once downloaded you can follow our [fine-tuning instructions](docs/Standard/Fine-tuning-models.md) to build a model for a specific downstream segmentation task. 

@@ -10,8 +10,6 @@ In addition to the existing segmentation benchmarks, AdaptFM also allows users t
 Example:
 
 ```python
-
-
 @MetricRegistry.register
 class DiceScore(Metric):
     name = "Dice Score"
@@ -46,3 +44,4 @@ class DiceScore(Metric):
             results[str(model_dir)] = per_image_dice
 
         return results
+```
