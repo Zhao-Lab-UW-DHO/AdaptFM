@@ -7,6 +7,7 @@ import multiprocessing
 import sys
 from pathlib import Path
 from AdaptFM.gui.widgets.metrics_widget import MetricRegistry
+from qtpy.QtCore import Qt
 
 class BenchmarkWidget(QWidget):
     def __init__(self):
@@ -60,6 +61,10 @@ class BenchmarkWidget(QWidget):
         )
 
         self.layout.addWidget(self.nproc_spinbox)
+        
+        self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
+
+
 
     def select_ground_truth(self):
         from qtpy.QtWidgets import QMessageBox
