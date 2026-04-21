@@ -75,7 +75,7 @@ You will also need to download the [model checkpoint](https://github.com/uni-med
  
 ### Testing AdaptFM
 
-We have provided some test data for AdaptFM on [hugging face](https://huggingface.co/datasets/hbakhtiar/AdaptFM_Testing/tree/main). Descriptions of each dataset are in the hugging face 'ReadME' file. You can download datasets by using the below codeblock, change 'allow_patterns' to the dataset you want to download. Note the entire repo is over 100GB so ensure you have enough space before downloading. 
+We have provided some test data for AdaptFM on [hugging face](https://huggingface.co/datasets/hbakhtiar/AdaptFM_Testing/tree/main). Descriptions of each dataset are in the hugging face 'ReadME' file. You can download datasets by using the below codeblock, change 'allow_patterns' to the dataset you want to download, and 'local_dir' to the location you want to download the data. Note the entire repo is over 100GB so ensure you have enough space before downloading. 
 
 ```
 pip install huggingface_hub
