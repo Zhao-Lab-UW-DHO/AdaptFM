@@ -52,7 +52,6 @@ class ModelWorkflowWidget:
         self.layout.addWidget(select_model.native)
 
         select_model.model.changed.connect(self._on_model_selected)
-
         default_name = select_model.model.value
         if default_name is not None:
             self._on_model_selected(default_name)
@@ -90,6 +89,7 @@ class ModelWorkflowWidget:
     def _on_model_selected(self, model_name):
         self.model = MODEL_REGISTRY[model_name]
         self._clear_params()
+        self._on_model_changed()
 
         if isinstance(self.model, FoundationModelSpec):
             # needs a tag first
@@ -147,3 +147,7 @@ class ModelWorkflowWidget:
     def _run(self):
         """Implemented by subclasses"""
         raise NotImplementedError
+    
+    def _on_model_changed(self):
+        """Hook for subclasses to reset state when the model changes."""
+        pass
