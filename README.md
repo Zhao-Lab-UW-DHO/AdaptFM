@@ -47,12 +47,31 @@ to run AdaptFM.
 
 AdaptFM supports a variety of external models. These are optional; you only need to install the models you plan to use. AdaptFM provides a series of automatic install commands to create the conda environments with the necessary pacakges and expected environment names to run your choice of external model:
 
-- `adaptfm-install-microsam` for [MicroSAM](https://github.com/computational-cell-analytics/micro-sam) 
+- ```adaptfm-install-microsam``` for [MicroSAM](https://github.com/computational-cell-analytics/micro-sam) 
 - `adaptfm-install-cellposesam` for [CellposeSAM](https://github.com/mouseland/cellpose)
 - `adaptfm-install-nnunet` for [nnUNet](https://github.com/MIC-DKFZ/nnUNet/tree/master)
     - Note that nnUNet is currently experiencing [a bug](https://github.com/MIC-DKFZ/nnUNet/issues/3009) that will prevent users from training.  
 - `adaptfm-install-sammed3d` for [SAM-Med3D](https://github.com/uni-medical/sam-med3d)
     - The installation of SAM-Med3D will prompt you for the location of the AdaptFM and SAM-Med3D folders
+    - You will also need to download the [model checkpoint](https://github.com/uni-medical/sam-med3d#-checkpoint)
+ 
+### Testing AdaptFM
+
+We have provided some test data for AdaptFM on [hugging face](https://huggingface.co/datasets/hbakhtiar/AdaptFM_Testing/tree/main). Descriptions of each dataset are in the hugging face 'ReadME' file. You can download datasets by using the below codeblock, change 'allow_patterns' to the dataset you want to download. Note the entire repo is over 100GB so ensure you have enough space before downloading. 
+
+```
+pip install huggingface_hub
+
+python -c "
+from huggingface_hub import snapshot_download
+snapshot_download(
+    repo_id='hbakhtiar/AdaptFM_Testing',
+    repo_type='dataset',
+    allow_patterns='BBBC024/*', #Replace with desired folder
+    local_dir='/mnt/local/data5/hbakhtiar/'
+)
+"
+```
 
 ### Using SSVT
 
