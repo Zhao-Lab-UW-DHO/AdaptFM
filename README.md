@@ -109,7 +109,7 @@ from huggingface_hub import snapshot_download
 snapshot_download(
     repo_id='hbakhtiar/SSVT_Organoids',
     repo_type='model',
-    allow_patterns='SSVT.pth',  # Replace with real filename
+    allow_patterns='SSVT.pth',  # Only download the checkpoint
     local_dir=''  # Add destination folder
 )
 "
