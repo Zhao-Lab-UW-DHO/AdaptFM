@@ -1,6 +1,6 @@
 # Using AdaptFM To Create Annotations
 
-You can use AdaptFM to create annotations to use as labels for fine-tuning models. Before fine-tuning, first make sure you have [installed](../../README.md/#Installation) and [tested](./Testing-Models.md) the model, since fine-tuning might not be needed.
+You can use AdaptFM to create annotations to use as labels for fine-tuning models. Before fine-tuning, first make sure you have [installed](../../README.md#main-installation) and [tested](./Testing-Models.md) the model, since fine-tuning might not be needed.
 
 Steps for creating annotations are:
 1. Select the algorithm you would like to use.

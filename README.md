@@ -16,7 +16,7 @@ In AdaptFM you can:
 
 Clone the repo and install required dependencies
 
-```shell
+```bash
 conda create --name AdaptFM python=3.13 -y
 conda activate AdaptFM
 git clone https://github.com/Zhao-Lab-UW-DHO/AdaptFM.git
@@ -24,7 +24,7 @@ cd AdaptFM
 pip install -e .
 ```
 Then, since PyTorch must be installed based on the Compute Platform of your own system: find [on the PyTorch local installation helper](https://pytorch.org/get-started/locally/) the `pip3 install` command with Linux, Pip, Python, and the Compute Platform of your GPU (typically found by looking at the CUDA Version of `nvidia-smi`) selected. Copy and paste the PyTorch `pip3 install` command when prompted from running:  
-```shell
+```bash
 adaptfm-set-pytorch
 ``` 
 This will install PyTorch into AdaptFM as well as save the hardware specific install for use in automatic [installation of External Models](#external-model-install).
@@ -33,7 +33,7 @@ This will install PyTorch into AdaptFM as well as save the hardware specific ins
 > Support for using [SAM2](https://github.com/facebookresearch/sam2) and [SAM3](https://github.com/facebookresearch/sam3) are optional additions to the AdaptFM environment since these tools have specific system requirements. SAM2 and SAM3 can be installed with below commands. SAM3 comes with additional steps: **To use SAM3 you must request access to their checkpoints through [hugging face](https://huggingface.co/facebook/sam3) (download [here](https://huggingface.co/facebook/sam3/resolve/main/sam3.pt?download=true)) and place the file sam3.pt into** `<AdaptFM-Install-Location>/AdaptFM/AdaptFM/segmentation/sam3/checkpoint/sam3.pt`. AdaptFM will still work if you do not install SAM2 or SAM3.
 > > We have found in testing that SAM3 will not work with the PyTorch Compute Platform CUDA 12.6
 
-```
+```bash
 adaptfm-install-sam2
 adaptfm-install-sam3
 ```
@@ -43,7 +43,7 @@ adaptfm-install-sam3
 > AdaptFM **must** be launched from inside the main AdaptFM folder (the folder containing the `LICENSE` file).
 
 With the AdaptFM conda environment activated use 
-```shell
+```bash
 python -m AdaptFM.dev_launch
 ``` 
 to run AdaptFM.
@@ -53,21 +53,21 @@ to run AdaptFM.
 AdaptFM supports a variety of external models. These are optional; you only need to install the models you plan to use. AdaptFM provides a series of automatic install commands to create the conda environments with the necessary packages and expected environment names to run your choice of external model:
 
 [MicroSAM](https://github.com/computational-cell-analytics/micro-sam) 
-```
+```bash
 adaptfm-install-microsam
 ```
 [CellposeSAM](https://github.com/mouseland/cellpose)
-```
+```bash
 adaptfm-install-cellposesam
 ```
 [nnUNet](https://github.com/MIC-DKFZ/nnUNet/tree/master)
-```
+```bash
 adaptfm-install-nnunet
 ```
 Note that nnUNet is currently experiencing [a bug](https://github.com/MIC-DKFZ/nnUNet/issues/3009) that will prevent users from training.  
 
 [SAM-Med3D](https://github.com/uni-medical/sam-med3d)
-```
+```bash
 adaptfm-install-sammed3d
 ```
 The installation of SAM-Med3D will prompt you for the location of the AdaptFM and SAM-Med3D folders
@@ -81,7 +81,7 @@ Use 'allow_patterns' to specify the dataset you want to download. The folder nam
 
 You can download the entire dataset at once by removing the 'allow_patterns' line completely. **However, note that the repo is over 100GB so ensure you have enough space before downloading**
 
-```
+```bash
 conda activate AdaptFM
 pip install huggingface_hub
 
