@@ -47,7 +47,8 @@ to run AdaptFM.
 
 AdaptFM supports a variety of external models. These are optional; you only need to install the models you plan to use. AdaptFM provides a series of automatic install commands to create the conda environments with the necessary pacakges and expected environment names to run your choice of external model:
 
-- ```adaptfm-install-microsam``` for [MicroSAM](https://github.com/computational-cell-analytics/micro-sam) 
+[MicroSAM](https://github.com/computational-cell-analytics/micro-sam) 
+```adaptfm-install-microsam```
 - `adaptfm-install-cellposesam` for [CellposeSAM](https://github.com/mouseland/cellpose)
 - `adaptfm-install-nnunet` for [nnUNet](https://github.com/MIC-DKFZ/nnUNet/tree/master)
     - Note that nnUNet is currently experiencing [a bug](https://github.com/MIC-DKFZ/nnUNet/issues/3009) that will prevent users from training.  
