@@ -27,7 +27,7 @@ Then, since PyTorch must be installed based on the Compute Platform of your own 
 ```shell
 adaptfm-set-pytorch
 ``` 
-This will PyTorch into AdaptFM as well as save the hardware specific install for use in automatic [installation of External Models](#external-model-install).
+This will install PyTorch into AdaptFM as well as save the hardware specific install for use in automatic [installation of External Models](#external-model-install).
 
 > [!TIP]
 > Support for using [SAM2](https://github.com/facebookresearch/sam2) and [SAM3](https://github.com/facebookresearch/sam3) are optional additions to the AdaptFM environment since these tools have specific system requirements. SAM2 and SAM3 can be installed with below commands. SAM3 comes with additional steps: **To use SAM3 you must request access to their checkpoints through [hugging face](https://huggingface.co/facebook/sam3) (download [here](https://huggingface.co/facebook/sam3/resolve/main/sam3.pt?download=true)) and place the file sam3.pt into** `<AdaptFM-Install-Location>/AdaptFM/AdaptFM/segmentation/sam3/checkpoint/sam3.pt`. AdaptFM will still work if you do not install SAM2 or SAM3.
