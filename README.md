@@ -59,7 +59,7 @@ adaptfm-install-cellposesam
 ```
 adaptfm-install-nnunet
 ```
-    - Note that nnUNet is currently experiencing [a bug](https://github.com/MIC-DKFZ/nnUNet/issues/3009) that will prevent users from training.  
+Note that nnUNet is currently experiencing [a bug](https://github.com/MIC-DKFZ/nnUNet/issues/3009) that will prevent users from training.  
 
 [SAM-Med3D](https://github.com/uni-medical/sam-med3d)
 ```
