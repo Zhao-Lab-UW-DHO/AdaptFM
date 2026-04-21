@@ -52,7 +52,7 @@ AdaptFM supports a variety of external models. These are optional; you only need
 - `adaptfm-install-nnunet` for [nnUNet](https://github.com/MIC-DKFZ/nnUNet/tree/master)
     - Note that nnUNet is currently experiencing [a bug](https://github.com/MIC-DKFZ/nnUNet/issues/3009) that will prevent users from training.  
 - `adaptfm-install-sammed3d` for [SAM-Med3D](https://github.com/uni-medical/sam-med3d)
-    - The installation of SAM-Med3D will prompt you for the location of the AdaptFM and SAM-Med3D folders if not provided
+    - The installation of SAM-Med3D will prompt you for the location of the AdaptFM and SAM-Med3D folders
 
 ### Using SSVT
 
