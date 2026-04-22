@@ -1173,7 +1173,7 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
     def _load_predictor(self) -> None:
 
         import sys
-        print(sys.path)
+        # print(sys.path)
         if self._predictor is not None:
             return
 
