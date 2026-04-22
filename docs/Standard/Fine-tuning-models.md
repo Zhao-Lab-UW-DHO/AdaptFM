@@ -11,8 +11,8 @@ Steps:
    - SSVT - train_SSVT
    - SAM-Med-3D - launch_training
 1. Adjust parameters as needed including the choice of checkpoint. See [AdaptFM's README](../../README.md) to get the checkpoint for using SSVT.
-1. "Select dataset folder" --> choose the folder you saved files to while making [annotations](Annotations.md)
- \n a. If you made annotations outside of AdaptFM ensure:
+1. "Select dataset folder" --> choose the folder you saved files to while making [annotations](Annotations.md)  
+a. If you made annotations outside of AdaptFM ensure:
       - All images (original and annotations) are placed together in one folder
       - All images are in .tiff format
       - Annotations file names end with '_seg.tiff'
