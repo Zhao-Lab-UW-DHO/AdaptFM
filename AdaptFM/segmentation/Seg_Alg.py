@@ -1194,7 +1194,7 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
             ) from e
 
 
-        ckpt_dir  = Path(os.environ.get("SAM3_CHECKPOINT_DIR", Path(__file__).parent / "checkpoints"))
+        ckpt_dir  = Path(os.environ["SAM3_CHECKPOINT_DIR"])
         # SAM3 loads checkpoints via HuggingFace by default; pass the dir so it
         # can find a locally cached copy, or leave empty to trigger HF download.
         ckpt_path = next(ckpt_dir.glob('*.pt'))
