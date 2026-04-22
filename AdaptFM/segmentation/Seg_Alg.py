@@ -718,12 +718,6 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
 
     def tunable_params(self) -> dict:
         return {
-            "model_size": {
-                "type": "choice",
-                "default": "large",
-                "options": ["base", "large"],
-                "description": "SAM3 model variant",
-            },
             "propagation_direction": {
                 "type": "choice",
                 "default": "both",
@@ -792,7 +786,6 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
         self._frames_dir  = None
         self._n_slices    = 0
         self._initialized = False
-        self._model_size  = None
         self._active_obj_ids = []
 
 
@@ -810,7 +803,6 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
         os.environ['PYTHONPATH']="${SAM3_REPO_ROOT}:${PYTHONPATH}"
         os.environ['SAM3_CHECKPOINT_DIR']= str(ckpt_dir)
         params = params or {}
-        model_size = params.get("model_size", "large")
         self.gpu = params.get('GPU')
 
         self._volume   = volume
@@ -819,7 +811,7 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
         self._img_w = volume.shape[2]
         self._label_vol = np.zeros(volume.shape, dtype=np.int32)
 
-        self._load_predictor(model_size)
+        self._load_predictor()
         self._write_frames_to_disk(volume)
 
         # Open / replace session
@@ -1178,11 +1170,11 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
     # Private helpers
     # ------------------------------------------------------------------
 
-    def _load_predictor(self, model_size: str) -> None:
+    def _load_predictor(self) -> None:
 
         import sys
         print(sys.path)
-        if self._predictor is not None and self._model_size == model_size:
+        if self._predictor is not None:
             return
 
         try:
@@ -1206,7 +1198,6 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
            checkpoint_path=ckpt_path,
             gpus_to_use=[self.gpu]
         )
-        self._model_size = model_size
 
     def _write_frames_to_disk(self, volume: np.ndarray) -> None:
         """Write normalised RGB PNGs. SAM3's video loader expects the same
