@@ -1,5 +1,6 @@
 import json
-
+import tifffile as tiff
+import SimpleITK as sitk 
 from AdaptFM.model.model_utils import extract_tunable_params,normalize_to_uint8
 from AdaptFM.model.model_spec import ModelSpec
 import subprocess, json
@@ -486,6 +487,30 @@ class Sammed3DSpec(FoundationModelSpec):
     #this model does not require a prepare dataset
 
     def prepare_dataset(self, dataset_manager, output_dir,params):
+
+        imagesTrFolder = os.path.join(dataset_manager.folder,'imagesTr')
+        labelsTrFolder = os.path.join(dataset_manager.folder,'labelsTr')
+        os.makedirs(imagesTrFolder,exist_ok=True)
+        os.makedirs(labelsTrFolder,exist_ok=True)
+
+        tiff_images = [file for file in os.listdir(dataset_manager.folder) if file.endswith(('.tif','.tiff'))]
+
+        for tiff_file in tiff_images:
+            tiff_image_path = os.path.join(dataset_manager.folder,tiff_file)
+            tiff_image = tiff.imread(tiff_image_path)
+            tiff_image = sitk.GetImageFromArray(tiff_image)
+
+            nii_name = tiff_file.replace('_seg', '').replace('.tiff', '.nii.gz')
+
+            if '_seg.tiff' in tiff_file:
+                nii_path = os.path.join(labelsTrFolder,nii_name)
+
+            if '_seg.tiff' not in tiff_file:
+                nii_path = os.path.join(imagesTrFolder,nii_path)
+
+            sitk.WriteImage(tiff_image,nii_name)
+            os.remove(tiff_image_path)        
+
         return {"dataset_dir": dataset_manager.folder}
     
 
