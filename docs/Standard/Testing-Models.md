@@ -6,7 +6,7 @@ All inference pipelines follow the same steps:
 1. Select the "Models" --> "Inference" at the top of Napari.
 1. Use the 'model' dropdown to select the model you would like to test.
 1. "Select dataset folder" --> raw images you would like to predict using the model.
-    - the images in the dataset folder must be in a format supported by the model which is .tiff for all models except SAMMed-3D which uses .nii.gz
+    - The images in the dataset folder must be in a format supported by the model which is .tiff for all models except SAMMed-3D which uses .nii.gz
 1. "Select model checkpoint" --> these are the weights of the trained model to test
     - This is an optional input for MicroSAM, CellposeSAM, or SAMMed-3D, as their downloaded checkpoints will be automatically read and used. 
     - This is a required input for nnUNetv2 and SSVT.
