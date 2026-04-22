@@ -11,6 +11,7 @@ class InferenceWidget(ModelWorkflowWidget):
         self.skip_tag = None
         super().__init__(dataset_manager)
 
+        self.widget.setWindowTitle("Inference")  
         self._build_checkpoint_selector()
 
     def _build_checkpoint_selector(self):
