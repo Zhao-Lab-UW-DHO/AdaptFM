@@ -12,6 +12,9 @@ Steps:
    - SAM-Med-3D - launch_training
 1. Adjust parameters as needed including the choice of checkpoint. See [AdaptFM's README](../../README.md) to get the checkpoint for using SSVT.
 1. "Select dataset folder" --> choose the folder you saved files to while making [annotations](Annotations.md)
+2. If you made annotations outside of AdaptFM:
+3.    Place all images in one folder
+4.   
 1. When you hit "Run" you will be prompted to select an output directory for your results, and a GPU to use.
 
 ![Training Demo](../../asset/training-gif.gif)
