@@ -16,6 +16,7 @@ a. If you made annotations outside of AdaptFM ensure:
       - All images (original and annotations) are placed together in one folder
       - All images are in .tiff format
       - Annotations file names end with '_seg.tiff'
-1. When you hit "Run" you will be prompted to select an output directory for your results, and a GPU to use.
+1. When you hit "Run" you will be prompted to select an output directory for your results, and a GPU to use.  
+a. If using SSVT or SAM-Med3D, be sure to enter the full path to the model checkpoints
 
 ![Training Demo](../../asset/training-gif.gif)
