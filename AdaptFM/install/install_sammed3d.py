@@ -159,7 +159,7 @@ def main() -> None:
     )
     if ENV_NAME in env_check.stdout:
         print(f"Environment '{ENV_NAME}' already exists — skipping creation.")
-        print("To reinstall from scratch, run:  conda env remove -n sammed3d_adapt")
+        print("To reinstall from scratch, run:  conda env remove -n sammed3d_adapt and adaptfm-install-sammed3d")
         # Still (re-)write the hooks in case the paths changed
         print("\nUpdating conda activation hooks …")
         _write_conda_hooks(ENV_NAME, sammed3d_root, adaptfm_root)
