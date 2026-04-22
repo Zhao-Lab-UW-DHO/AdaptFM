@@ -506,9 +506,9 @@ class Sammed3DSpec(FoundationModelSpec):
                 nii_path = os.path.join(labelsTrFolder,nii_name)
 
             if '_seg.tiff' not in tiff_file:
-                nii_path = os.path.join(imagesTrFolder,nii_path)
+                nii_path = os.path.join(imagesTrFolder,nii_name)
 
-            sitk.WriteImage(tiff_image,nii_name)
+            sitk.WriteImage(tiff_image,nii_path)
             os.remove(tiff_image_path)        
 
         return {"dataset_dir": dataset_manager.folder}
