@@ -5,7 +5,7 @@ You can use AdaptFM to create annotations to use as labels for fine-tuning model
 Steps for creating annotations are:
 1. Select the algorithm you would like to use.
 1. Enter the parameters for segmentation. 
-1. If using SAM2 or SAM3, follow the below steps:
+1. If using SAM2 or SAM3, follow the below steps (if not, go to step 4):
     - **For SAM2**:
         1. Press "Initialize (encode all slices)"
         1. Select the 'Segment click mode' checkbox. Click on objects to segment in **one layer**. Changing layers during click segmentation will cause SAM2 to improperly propagate segmentations.
