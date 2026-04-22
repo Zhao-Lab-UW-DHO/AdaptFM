@@ -1193,11 +1193,14 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
                 "Clone https://github.com/facebookresearch/sam3 and run `pip install -e .`"
             ) from e
 
-
-        ckpt_dir  = Path(os.environ["SAM3_CHECKPOINT_DIR"])
-        # SAM3 loads checkpoints via HuggingFace by default; pass the dir so it
-        # can find a locally cached copy, or leave empty to trigger HF download.
-        ckpt_path = next(ckpt_dir.glob('*.pt'))
+        try:
+            ckpt_dir  = Path(os.environ["SAM3_CHECKPOINT_DIR"])
+            assert ckpt_dir.exists(), f"{ckpt_dir} does not exist!"
+            # (in future) SAM3 loads checkpoints via HuggingFace by default; pass the dir so it
+            # can find a locally cached copy, or leave empty to trigger HF download.
+            ckpt_path = next(ckpt_dir.glob('*.pt'))
+        except Exception as e:
+            print(e)
 
         self._predictor  = build_sam3_video_predictor(
            checkpoint_path=ckpt_path,
