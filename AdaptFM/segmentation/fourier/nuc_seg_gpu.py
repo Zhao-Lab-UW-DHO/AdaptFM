@@ -6,7 +6,6 @@ from kneed import KneeLocator
 import os
 import tifffile as tiff
 
-device = torch.device(f'cuda' if torch.cuda.is_available() else 'cpu')
 
 # GPU-accelerated 3D power spectrum
 def get_3d_power_spectrum(image):
@@ -115,11 +114,13 @@ def log_gabor_3d_filter(shape, f0, sigma_f):
     return log_gabor
 
 # GPU-enabled nuclear segmentation
-def run_nuclear_segmentation_gpu_chunked(volume, percentile, max_freq, frequency_step, sigma, remove_background: bool, chunk_size=5):
+def run_nuclear_segmentation_gpu_chunked(volume, percentile, max_freq, frequency_step, sigma, remove_background: bool, chunk_size=5,gpu_id =0):
     """
     Fully GPU-accelerated nuclear segmentation with chunked frequency processing
     to avoid out-of-memory errors.
     """
+    device = torch.device(f'cuda:{gpu_id}' if torch.cuda.is_available() else 'cpu')
+
     vol = torch.tensor(volume, dtype=torch.float32, device=device)
     dz, dy, dx = vol.shape
     frequencies = np.arange(1, max_freq, frequency_step)
