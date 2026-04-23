@@ -11,9 +11,18 @@ def main():
     args = parser.parse_args()
     test_dir = args.dataset_dir
     output_path = args.output_path
+    checkpoint = args.checkpoint
+    
+    if checkpoint is not None:
+        
+        predictor, segmenter = get_predictor_and_segmenter('vit_b_lm',
+                                                        device='cuda',
+                                                        checkpoint=checkpoint)
 
-    predictor, segmenter = get_predictor_and_segmenter('vit_b_lm',
-                                                   device='cuda')
+    else:
+         
+        predictor, segmenter = get_predictor_and_segmenter('vit_b_lm',
+                                                        device='cuda')
     
     images2test = os.listdir(test_dir)
 
