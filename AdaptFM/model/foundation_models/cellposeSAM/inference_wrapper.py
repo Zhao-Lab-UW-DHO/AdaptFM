@@ -13,6 +13,9 @@ def main():
     test_dir = args.test_dir
     output_path = args.output_path
     checkpoint = args.checkpoint
+    
+    if checkpoint == "None":
+        checkpoint = None
 
     if checkpoint is not None:
 
