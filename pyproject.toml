@@ -7,7 +7,7 @@ name = "AdaptFM"
 version = "0.1.0"
 description = "An Interactive Framework for Empirical Evaluation and Fine-Tuning of Foundation & Deep Learning Models in 3D Biological Imaging"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 
 
 dependencies = ["napari",
