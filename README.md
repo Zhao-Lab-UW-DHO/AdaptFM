@@ -98,7 +98,7 @@ snapshot_download(
 
 ### Using SSVT
 
-SSVT is a model pretrained on roughly 180,000 organoid images. The checkpoint is publicly available for download on [hugging face](https://huggingface.co/hbakhtiar/SSVT_Organoids/tree/main). SSVT is supported directly within AdaptFM. You can copy and paste the below code block to download the model
+SSVT is a model pretrained on roughly 180,000 organoid images. The checkpoint is publicly available for download on [hugging face](https://huggingface.co/hbakhtiar/SSVT_Organoids/tree/main). SSVT is supported directly within AdaptFM. You can copy and paste the below code block to download the model. Change the local_dir to the download location for the model (keep quotes).
 
 ```bash
 conda activate AdaptFM
