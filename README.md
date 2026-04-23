@@ -17,7 +17,7 @@ In AdaptFM you can:
 Clone the repo and install required dependencies
 
 ```bash
-conda create --name AdaptFM python=3.13 -y
+conda create --name AdaptFM python=3.12 -y
 conda activate AdaptFM
 git clone https://github.com/Zhao-Lab-UW-DHO/AdaptFM.git
 cd AdaptFM
