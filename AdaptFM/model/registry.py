@@ -28,7 +28,8 @@ MODEL_REGISTRY = {
         conda_env=_read_prefix("micro-sam_adapt"),
         module_path="micro_sam.training",
         training_wrapper_path = "AdaptFM.model.foundation_models.microSAM.train_wrapper",
-        inference_wrapper_path = "AdaptFM.model.foundation_models.microSAM.inference_wrapper"
+        inference_wrapper_path = "AdaptFM.model.foundation_models.microSAM.inference_wrapper",
+        training_function = 'train_sam'
     ),
 
     "CellposeSAM": CellposeSAMSpec(
@@ -36,7 +37,8 @@ MODEL_REGISTRY = {
         conda_env=_read_prefix("cellpose_adapt"),
         module_path="cellpose.train",
         training_wrapper_path ="AdaptFM.model.foundation_models.cellposeSAM.train_wrapper",
-        inference_wrapper_path = "AdaptFM.model.foundation_models.cellposeSAM.inference_wrapper"
+        inference_wrapper_path = "AdaptFM.model.foundation_models.cellposeSAM.inference_wrapper",
+        training_function = 'train_seg'
     ),
 
 
@@ -45,7 +47,8 @@ MODEL_REGISTRY = {
         conda_env=_read_prefix("sammed3d_adapt"),
         module_path="AdaptFM.model.foundation_models.sammed3d.train_wrapper",
         training_wrapper_path="AdaptFM.model.foundation_models.sammed3d.train_wrapper",
-        inference_wrapper_path="AdaptFM.model.foundation_models.sammed3d.inference_wrapper"
+        inference_wrapper_path="AdaptFM.model.foundation_models.sammed3d.inference_wrapper",
+        training_function = 'launch_training'
     ),
 
     "SSVT" : SSVTSpec(
@@ -53,7 +56,8 @@ MODEL_REGISTRY = {
         conda_env = str(Path(sys.prefix)),
         module_path  ="AdaptFM.model.foundation_models.SSVT.train_wrapper",
         training_wrapper_path="AdaptFM.model.foundation_models.SSVT.train_wrapper",
-        inference_wrapper_path="AdaptFM.model.foundation_models.SSVT.inference_wrapper"
+        inference_wrapper_path="AdaptFM.model.foundation_models.SSVT.inference_wrapper",
+        training_function = 'train_SSVT'
     ),
     
 }
