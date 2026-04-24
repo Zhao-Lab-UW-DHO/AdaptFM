@@ -40,6 +40,7 @@ class SegmentationWidget:
         self.widget = self.algo_selector.native
         self.viewer.window.add_dock_widget(self.widget, area="right")
 
+
     def _on_algorithm_selected(self, algo_name: str):
         self._teardown_sam2()  # no-op if previous algo was batch
 
@@ -74,6 +75,7 @@ class SegmentationWidget:
         w.setWindowFlags(w.windowFlags() | Qt.WindowStaysOnTopHint | Qt.Window)
         w.show()
 
+        w.setWindowTitle("Annotation")   
 
         # Add "Run auto-seg" button dynamically
         if self.run_button is None:
