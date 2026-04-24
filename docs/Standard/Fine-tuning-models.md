@@ -6,7 +6,7 @@ Steps:
 1. Select the "Models" --> "Training" at the top of Napari.
 2. Use the 'model' dropdown to select the model you would like to train.
 3. "Select dataset folder" --> choose the folder you saved files to while making [annotations](Annotations.md)
-4. Press 'Load Parameters' to see the model's hyperparameters
+4. Press 'Load Parameters' to see the model's hyperparameters  
 a. If using SSVT or SAM-Med3D, be sure to enter the full path to the model checkpoints
 
 5.  Adjust parameters as needed including the choice of checkpoint. See [AdaptFM's README](../../README.md) to get the checkpoint for using SSVT.
