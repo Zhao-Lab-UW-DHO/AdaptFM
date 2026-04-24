@@ -35,6 +35,7 @@ class BenchmarkWidget(QWidget):
 
         # List of models added
         self.models_list = QListWidget()
+
         self.layout.addWidget(self.models_list)
 
                 # Remove selected model button
@@ -61,24 +62,21 @@ class BenchmarkWidget(QWidget):
         )
 
         self.layout.addWidget(self.nproc_spinbox)
-        
+
+        self.setWindowTitle('Benchmarking')
+
         self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
 
 
 
     def select_ground_truth(self):
-        from qtpy.QtWidgets import QMessageBox
-        msg = QMessageBox()
-        msg.setWindowTitle("Select type")
-        msg.setText("Are you selecting a folder or a single file?")
-        folder_btn = msg.addButton("Folder", QMessageBox.ButtonRole.AcceptRole)
-        file_btn = msg.addButton("File", QMessageBox.ButtonRole.AcceptRole)
-        msg.exec()
 
-        if msg.clickedButton() == folder_btn:
-            path = QFileDialog.getExistingDirectory(None, "Select folder")
-        else:
+        metric_name = self.metric_dropdown.currentText()
+
+        if metric_name == 'Compare Counts':
             path, _ = QFileDialog.getOpenFileName(None, "Select file")
+        else:
+            path = QFileDialog.getExistingDirectory(None, "Select folder")
 
         if path:
             self.gt_dir = path
