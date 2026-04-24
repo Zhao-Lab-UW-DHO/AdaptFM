@@ -9,18 +9,19 @@ import shutil
 import os
 
 class FoundationModelSpec(ModelSpec):
-    def __init__(self, name, conda_env, module_path,training_wrapper_path=None,inference_wrapper_path=None):
+    def __init__(self, name, conda_env, module_path,training_wrapper_path=None,inference_wrapper_path=None,training_function=None):
         self.name = name
         self.conda_env = conda_env
         self.module_path = module_path
         self.training_wrapper_path = training_wrapper_path
         self.inference_wrapper_path = inference_wrapper_path
+        self.training_function = training_function
 
     def default_params(self):
         return {}
 
 
-    def tunable_params(self, tag: str):
+    def tunable_params(self):
         import textwrap, subprocess, json
 
         code = f"""
@@ -30,7 +31,7 @@ class FoundationModelSpec(ModelSpec):
     old_stdout = sys.stdout
     sys.stdout = io.StringIO()
     mod = importlib.import_module('{self.module_path}')
-    fn = getattr(mod, '{tag}')
+    fn = getattr(mod, '{self.training_function}')
     sig = inspect.signature(fn)
 
     sys.stdout = old_stdout  # restore
@@ -83,8 +84,8 @@ class FoundationModelSpec(ModelSpec):
 
 
 class MicroSAMSpec(FoundationModelSpec):
-    def __init__(self, name, conda_env, module_path,training_wrapper_path,inference_wrapper_path):
-        super().__init__(name, conda_env, module_path,training_wrapper_path,inference_wrapper_path)
+    def __init__(self, name, conda_env, module_path,training_wrapper_path,inference_wrapper_path,training_function):
+        super().__init__(name, conda_env, module_path,training_wrapper_path,inference_wrapper_path,training_function)
 
     def prepare_dataset(self, dataset_manager, output_dir,params):
         """
@@ -216,8 +217,8 @@ class MicroSAMSpec(FoundationModelSpec):
                
 
 class CellposeSAMSpec(FoundationModelSpec):
-    def __init__(self, name, conda_env, module_path,training_wrapper_path,inference_wrapper_path):
-        super().__init__(name, conda_env, module_path,training_wrapper_path,inference_wrapper_path)  
+    def __init__(self, name, conda_env, module_path,training_wrapper_path,inference_wrapper_path,training_function):
+        super().__init__(name, conda_env, module_path,training_wrapper_path,inference_wrapper_path,training_function)  
 
     def prepare_dataset(self, dataset_manager, output_dir,params):
 
@@ -347,8 +348,8 @@ class CellposeSAMSpec(FoundationModelSpec):
 
 
 class SSVTSpec(FoundationModelSpec):
-    def __init__(self, name, conda_env, module_path,training_wrapper_path,inference_wrapper_path):
-        super().__init__(name, conda_env, module_path,training_wrapper_path,inference_wrapper_path)  
+    def __init__(self, name, conda_env, module_path,training_wrapper_path,inference_wrapper_path,training_function):
+        super().__init__(name, conda_env, module_path,training_wrapper_path,inference_wrapper_path,training_function)  
 
 
     def prepare_dataset(self, dataset_manager, output_dir,params):
@@ -481,8 +482,8 @@ class SSVTSpec(FoundationModelSpec):
 
 
 class Sammed3DSpec(FoundationModelSpec):
-    def __init__(self, name, conda_env, module_path,training_wrapper_path,inference_wrapper_path):
-        super().__init__(name, conda_env, module_path,training_wrapper_path,inference_wrapper_path)
+    def __init__(self, name, conda_env, module_path,training_wrapper_path,inference_wrapper_path,training_function):
+        super().__init__(name, conda_env, module_path,training_wrapper_path,inference_wrapper_path,training_function)
 
     #this model does not require a prepare dataset
 
