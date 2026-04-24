@@ -5,11 +5,8 @@ AdaptFM supports GUI-based fine-tuning for various models. First, make sure you 
 Steps:
 1. Select the "Models" --> "Training" at the top of Napari.
 1. Use the 'model' dropdown to select the model you would like to train.
-1. Enter the function used for training to pull in hyper parameters. They are:
-   - CellposeSAM - train_seg
-   - MicroSAM - train_sam
-   - SSVT - train_SSVT
-   - SAM-Med-3D - launch_training
+1. Optionally, you can press 'Load parameters' to adjust the model's hyperparameters
+- Note that SAM-Med3D and SSVT you need to specify the model checkpoint path.
 1. Adjust parameters as needed including the choice of checkpoint. See [AdaptFM's README](../../README.md) to get the checkpoint for using SSVT.
 1. "Select dataset folder" --> choose the folder you saved files to while making [annotations](Annotations.md)  
 a. If you made annotations outside of AdaptFM ensure:
