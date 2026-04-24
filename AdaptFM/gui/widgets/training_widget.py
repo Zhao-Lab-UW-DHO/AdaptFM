@@ -7,6 +7,10 @@ from pathlib import Path
 
 class TrainingWidget(ModelWorkflowWidget):
     TAG_LABEL = "Training tag"
+    
+    def __init__(self,dataset_manager):
+        super().__init__(dataset_manager)
+        self.widget.setWindowTitle("Training")  
 
     def _run(self):
         if self.model is None or self.dataset_dir is None:
