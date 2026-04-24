@@ -300,74 +300,6 @@ class SegmentationWidget:
         # Wire up click callback on the labels layer
         self._sam2_connect_clicks()
 
-    def _sam2_connect_clicks(self):
-        """
-        Intercept mouse clicks on the viewer canvas while SAM2 is active.
-        We use the viewer's mouse_drag_callbacks so we get position in
-        world coords regardless of which layer the user clicks on.
-        """
-        # Disconnect any previous callback first
-        self._sam2_disconnect_clicks()
-
-        def on_click(viewer, event):
-            if not self._sam2_click_active.value:  # <-- skip if not active
-                return
-            if event.type != "mouse_press":
-                return
-            if not self.current_algo.is_initialized:
-                return
-            
-
-            # Only act in 2-D display mode (slice view)
-            if viewer.dims.ndisplay != 2:
-                self._sam2_status.value = "Status: switch to 2D view to add prompts"
-                return
-
-            # World → data coordinates
-            # viewer.dims.current_step gives (z, ...) for the current slice
-            coords = self.viewer.layers["Original"].world_to_data(event.position)
-            if len(coords) < 3:
-                return
-
-            z   = int(np.clip(round(coords[0]), 0, self.current_algo.n_slices - 1))
-            row = int(coords[1])   # y in SAM2 terms
-            col = int(coords[2])   # x in SAM2 terms
-
-            # Left-click = foreground, right-click = background
-            if event.button == 1:
-                label = 1
-            elif event.button == 2:
-                label = 0
-            else:
-                return
-
-            # Override with the toggle widget if the user prefers keyboard-free control
-            if self._sam2_click_mode.value == "Background":
-                label = 0
-
-            obj_id = self._sam2_obj_spinner.value
-
-            try:
-                self.current_algo.add_prompt(
-                    z=z, x=col, y=row,
-                    label=label,
-                    obj_id=obj_id,
-                    params=self._sam2_get_params(),
-                )
-                self._sam2_refresh_labels()
-                self._sam2_status.value = (
-                    f"Status: prompt added — slice {z}, obj {obj_id}, "
-                    f"{'FG' if label else 'BG'} ({col}, {row})"
-                )
-
-                if label == 1:
-                    self._sam2_obj_spinner.value = obj_id + 1
-
-            except Exception as e:
-                self._sam2_status.value = f"Status: ERROR — {e}"
-
-        self._sam2_click_callback = on_click
-        self.viewer.mouse_drag_callbacks.append(on_click)
 
     def _sam2_disconnect_clicks(self):
         if self._sam2_click_callback is not None:
@@ -376,6 +308,98 @@ class SegmentationWidget:
             except ValueError:
                 pass
             self._sam2_click_callback = None
+
+    def _sam2_connect_clicks(self):
+        self._sam2_disconnect_clicks()
+        self._sam2_box_start = None
+
+        BOX_MIN_DRAG_PX = 5  # tune this threshold as needed
+
+        def on_drag(viewer, event):
+            if not self._sam2_click_active.value:
+                return
+            if not self.current_algo.is_initialized:
+                return
+            if viewer.dims.ndisplay != 2:
+                self._sam2_status.value = "Status: switch to 2D view to add prompts"
+                return
+
+            # Only start tracking on left or right click
+            if event.button not in (1, 2):
+                return
+
+            coords = self.viewer.layers["Original"].world_to_data(event.position)
+            if len(coords) < 3:
+                return
+
+            z0  = int(np.clip(round(coords[0]), 0, self.current_algo.n_slices - 1))
+            r0  = int(coords[1])
+            c0  = int(coords[2])
+
+            # Right-click: handle immediately, no drag tracking needed
+            if event.button == 2:
+                obj_id = self._sam2_obj_spinner.value
+                try:
+                    self.current_algo.add_prompt(
+                        z=z0, x=c0, y=r0, label=0,
+                        obj_id=obj_id, params=self._sam2_get_params(),
+                    )
+                    self._sam2_refresh_labels()
+                    self._sam2_status.value = f"Status: BG click — slice {z0}, obj {obj_id}, ({c0}, {r0})"
+                except Exception as e:
+                    self._sam2_status.value = f"Status: ERROR — {e}"
+                return
+
+            # ── Left click: yield to receive move/release events ──────────
+            yield  # napari now streams subsequent events into this generator
+
+            while event.type == "mouse_move":
+                coords = self.viewer.layers["Original"].world_to_data(event.position)
+
+                yield
+
+            # mouse_release
+            coords = self.viewer.layers["Original"].world_to_data(event.position)
+            if len(coords) < 3:
+                return
+
+            z1  = int(np.clip(round(coords[0]), 0, self.current_algo.n_slices - 1))
+            r1  = int(coords[1])
+            c1  = int(coords[2])
+
+            drag_dist = np.hypot(c1 - c0, r1 - r0)
+            obj_id = self._sam2_obj_spinner.value
+
+            try:
+                if drag_dist < BOX_MIN_DRAG_PX:
+                    label = 1 if self._sam2_click_mode.value != "Background" else 0
+                    self.current_algo.add_prompt(
+                        z=z0, x=c0, y=r0, label=label,
+                        obj_id=obj_id, params=self._sam2_get_params(),
+                    )
+                    self._sam2_refresh_labels()
+                    self._sam2_status.value = f"Status: {'FG' if label else 'BG'} click — slice {z0}, obj {obj_id}, ({c0}, {r0})"
+                    if label == 1:
+                        self._sam2_obj_spinner.value = obj_id + 1
+                else:
+                    x_min, x_max = sorted([c0, c1])
+                    y_min, y_max = sorted([r0, r1])
+                    self.current_algo.add_box_prompt(
+                        z=z0, 
+                        x0=x_min,
+                        y0=y_min,
+                        x1=x_max,
+                        y1=y_max,
+                        obj_id=obj_id, params=self._sam2_get_params(),
+                    )
+                    self._sam2_refresh_labels()
+                    self._sam2_status.value = f"Status: box — slice {z0}, obj {obj_id}, [{x_min},{y_min} → {x_max},{y_max}]"
+                    self._sam2_obj_spinner.value = obj_id + 1
+            except Exception as e:
+                self._sam2_status.value = f"Status: ERROR — {e}"
+
+        self._sam2_click_callback = on_drag
+        self.viewer.mouse_drag_callbacks.append(on_drag)
 
 
     def _sam2_propagate(self):
