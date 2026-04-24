@@ -15,6 +15,7 @@ from qtpy.QtWidgets import QAction
 
 def main():
     viewer = napari.Viewer()
+    viewer.title ="AdaptFM"
 
     # Core managers
     vm = VolumeManager()
