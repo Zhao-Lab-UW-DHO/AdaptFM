@@ -6,8 +6,7 @@ from qtpy.QtWidgets import (
 from pathlib import Path
 from qtpy.QtCore import Qt
 from AdaptFM.model.registry import MODEL_REGISTRY
-from AdaptFM.model.fmSpec import FoundationModelSpec
-
+from AdaptFM.model.nnUNetV2Spec import NNUNetV2ModelSpec
 
 class ModelWorkflowWidget:
     TAG_LABEL = "Tag"   # overridden by subclasses
@@ -20,6 +19,7 @@ class ModelWorkflowWidget:
 
         self.widget = QWidget()
         self.layout = QVBoxLayout(self.widget)
+        self.param_button =None
 
         self._build_base()
 
@@ -39,6 +39,7 @@ class ModelWorkflowWidget:
 
         self._build_model_selector()
         self._build_dataset_selector()
+        
         self.layout.addWidget(scroll)
 
         self._build_run_button()
@@ -65,20 +66,17 @@ class ModelWorkflowWidget:
 
 
     def _build_tag_input(self):
-        if hasattr(self, "tag_widget"):
+        
+        if hasattr(self,'skip_tag'): #don't give option to load parameters for inference 
             return
         
-        if hasattr(self,'skip_tag'):
+        if self.param_button is not None:      
             return
 
-        @magicgui(call_button="Load parameters",
-                tag={"label": self.TAG_LABEL})
-        def load_tag(tag: str):
-            self._load_tunable_params(tag)
+        self.param_button = QPushButton("Load Parameters")
+        self.param_button.clicked.connect(self._load_tunable_params)
+        self.layout.addWidget(self.param_button)
 
-        self.tag_widget = load_tag
-        self.tag_widget.visible = True
-        self.tag_widget.show()
 
 
     def _build_dataset_selector(self):
@@ -96,22 +94,26 @@ class ModelWorkflowWidget:
     def _on_model_selected(self, model_name):
         self.model = MODEL_REGISTRY[model_name]
         self._clear_params()
-        self._clear_tag_widget()  # <-- add this
 
         self._on_model_changed()
 
-        if isinstance(self.model, FoundationModelSpec):
-            # needs a tag first
-            self._build_tag_input()
-        else:
-            # nnUNetv2, classical models, etc
-            self._load_tunable_params(tag=None)
+        if isinstance(self.model, NNUNetV2ModelSpec):
 
-    def _load_tunable_params(self, tag):
+            self._load_tunable_params() #load parameters for nnUNet always because they are required
+
+            if self.param_button is not None:
+                self.layout.removeWidget(self.param_button)
+                self.param_button.deleteLater()
+                self.param_button = None                
+
+        else:
+            self._build_tag_input()
+
+    def _load_tunable_params(self):
 
         self._clear_params()
 
-        schema = self.model.tunable_params(tag=tag)
+        schema = self.model.tunable_params()
         
         for name, spec in schema.items():
             w = self._make_param_widget(name, spec)
@@ -150,12 +152,6 @@ class ModelWorkflowWidget:
         while self.params_form.count():
             self.params_form.removeRow(0)
         self.param_widgets.clear()
-
-    def _clear_tag_widget(self):
-        if hasattr(self, "tag_widget"):
-            self.layout.removeWidget(self.tag_widget.native)
-            self.tag_widget.native.deleteLater()
-            del self.tag_widget
 
     # ---------- OVERRIDES ----------
 
