@@ -875,7 +875,7 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
             for px, py in pts_abs
         ]
 
-        device = torch.device("cuda:2")
+        device = torch.device(f"cuda:{self.gpu}")
 
         points_tensor = torch.tensor(
             pts_rel,
