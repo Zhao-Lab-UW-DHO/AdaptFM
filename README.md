@@ -38,6 +38,8 @@ adaptfm-install-sam2
 adaptfm-install-sam3
 ```
 
+**Note that SAM3 has an [issue](https://github.com/facebookresearch/sam3/issues/193) with box prompts. There is a proposed workaround, but we are still waiting for a durable solution**
+
 ### <a id="launching"></a>Launch after install 
 > [!WARNING]
 > AdaptFM **must** be launched from inside the main AdaptFM folder (the folder containing the `LICENSE` file).
