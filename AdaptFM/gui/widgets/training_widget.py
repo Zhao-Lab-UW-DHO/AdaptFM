@@ -22,7 +22,7 @@ class TrainingWidget(ModelWorkflowWidget):
             None, "Select output directory"
         ))
         
-        gpu, _ = QInputDialog.getInt(
+        gpu, returned_ok = QInputDialog.getInt(
             None,
             "Select GPU",
             "GPU index:",
@@ -32,6 +32,9 @@ class TrainingWidget(ModelWorkflowWidget):
             step=1,
         )
 
+        if not returned_ok:
+            return
+        
         params["gpu"] = gpu
 
         prepared_dataset = self.model.prepare_dataset(
