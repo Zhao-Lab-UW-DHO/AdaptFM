@@ -12,6 +12,7 @@ Steps for creating annotations are:
         1. Unselect the 'Segment click mode' checkbox to move around the image.
         1. Click "Propagate through volume" once all desired objects on the current layer are selected.
         1. Scroll to other layers to segment objects as needed.
+        1. You can additionally use box prompts by creating a shapes layer in Napari and using the "Select Shapes" pointer
     - **For SAM3**:
         1. Press "Initialize (encode all slices)"
         1. Provide a text prompt for the segmentation model and click "Segment by text". SAM3 does not support click segmentation without text segmentation first. 
