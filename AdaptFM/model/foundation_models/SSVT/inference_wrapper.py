@@ -14,6 +14,7 @@ def main():
     parser.add_argument('--checkpoint')
     parser.add_argument("--test_dir")
     parser.add_argument('--output_path')
+    output_path = Path(output_path)
 
     args = parser.parse_args()
     test_dir = args.test_dir
