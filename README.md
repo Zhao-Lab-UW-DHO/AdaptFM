@@ -8,6 +8,12 @@ In AdaptFM you can:
 - Use those annotations to fine-tune/train models on your data
 - Add new models or annotation algorithms
 
+***Model Versions***
+
+The installation scripts for CellposeSAM, MicroSAM, SAM2, SAM3, SAM-Med3D, and nnU-Net have been tested with the specific commit hashes/versions. These upstream tools change frequently, so we track and update compatibility as needed.
+
+If you find a newer version that works (or breaks), please open an Issue so we can update the installer
+
 [Installation](#main-installation) | [Get Started](docs/Standard) | [Customizing (Advanced Users)](docs/Customizations/customizations-main.md) | [Try the Demo](docs/Testing_AdaptFM.md)
 
 ![Segmentation Demo](asset/demo_cropped.gif) ![SAM2 Demo](asset/SAM2_GIF.gif)
