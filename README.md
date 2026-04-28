@@ -14,6 +14,8 @@ In AdaptFM you can:
 
 ## <a id="main-installation"></a>Installation
 
+***AdaptFM has only been tested on Ubuntu 22.04.5***
+
 Clone the repo and install required dependencies
 
 ```bash
