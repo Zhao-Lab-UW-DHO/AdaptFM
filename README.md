@@ -131,7 +131,7 @@ Once downloaded you can follow our [fine-tuning instructions](docs/Standard/Fine
 
 ### Versions/Hashes
 
-CellposeSAM Version 3.1 
-MicroSAM Version 1.7.6 
-nnUNet Version 2.7.0 
+CellposeSAM Version 3.1  
+MicroSAM Version 1.7.6  
+nnUNet Version 2.7.0  
 
