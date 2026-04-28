@@ -10,7 +10,7 @@ All inference pipelines follow the same steps:
     - Note that SAM-Med3d is prompt-based. If predicting using SAM-Med3D, your dataset folder **must** contain the below subfolders. In AdaptFM you will select the parent folder: 
       * imagesTr containing raw images
       * labelsTr containing annotated images used to generate prompts
-          - Names in imagesTr and labelsTr must match identically.     
+      * Names in imagesTr and labelsTr must match identically.     
 1. "Select model checkpoint" --> these are the weights of the trained model to test
     - This is an optional input for MicroSAM, and CellposeSAM as their downloaded checkpoints will be automatically read and used. 
     - This is a required input for SAM-Med3D, nnUNetv2 and SSVT.
