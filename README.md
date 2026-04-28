@@ -10,7 +10,7 @@ In AdaptFM you can:
 
 ***Model Versions***
 
-Use the below install scripts to install AdaptFM and associated models. 
+Use the below [install scripts](#main-installation)  to install AdaptFM and associated models. 
 
 The installation scripts for CellposeSAM, MicroSAM, SAM2, SAM3, SAM-Med3D, and nnU-Net have been tested with the specific commit [hashes/versions](#versionshashes). These upstream tools change frequently, so we track and update compatibility as needed.
 
