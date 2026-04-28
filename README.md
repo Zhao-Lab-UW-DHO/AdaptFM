@@ -10,7 +10,7 @@ In AdaptFM you can:
 
 ***Model Versions***
 
-The installation scripts for CellposeSAM, MicroSAM, SAM2, SAM3, SAM-Med3D, and nnU-Net have been tested with the specific commit [hashes/versions](#main-Versions/Hashes). These upstream tools change frequently, so we track and update compatibility as needed.
+The installation scripts for CellposeSAM, MicroSAM, SAM2, SAM3, SAM-Med3D, and nnU-Net have been tested with the specific commit [hashes/versions](#Versions/Hashes). These upstream tools change frequently, so we track and update compatibility as needed.
 
 If you find a newer version that works (or breaks), please open an Issue so we can update the installer
 
