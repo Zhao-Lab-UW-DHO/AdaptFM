@@ -91,6 +91,8 @@ Use 'allow_patterns' to specify the dataset you want to download. The folder nam
 
 You can download the entire dataset at once by removing the 'allow_patterns' line completely. **However, note that the repo is over 100GB so ensure you have enough space before downloading**
 
+You can then test AdaptFM using this [demo script](https://github.com/Zhao-Lab-UW-DHO/AdaptFM/blob/AdaptFM/docs/Testing_AdaptFM.md)
+
 ```bash
 conda activate AdaptFM
 pip install huggingface_hub
@@ -126,3 +128,5 @@ snapshot_download(
 ```
 
 Once downloaded you can follow our [fine-tuning instructions](docs/Standard/Fine-tuning-models.md) to build a model for a specific downstream segmentation task. 
+
+
