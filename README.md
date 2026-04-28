@@ -134,4 +134,7 @@ Once downloaded you can follow our [fine-tuning instructions](docs/Standard/Fine
 CellposeSAM Version 3.1  
 MicroSAM Version 1.7.6  
 nnUNet Version 2.7.0  
+SAM2 Version 1.0. Hash 2b90b9f5ceec907a1c18123530e92e794ad901a4  
+SAM3 Hash c3a42ff67487eb489f74dce7a747477324734e44  
+SAM-Med3D Hash f3de1fa10da98e46f49f176773d2b1e306ba131f
 
