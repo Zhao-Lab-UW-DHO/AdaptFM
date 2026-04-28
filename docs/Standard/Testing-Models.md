@@ -7,9 +7,9 @@ All inference pipelines follow the same steps:
 1. Use the 'model' dropdown to select the model you would like to test.
 1. "Select dataset folder" --> raw images you would like to predict using the model.
     - The images in the dataset folder must be in a format supported by the model which is .tiff for all models except SAMMed-3D which uses .nii.gz
-    - Note that SAM-Med3d is prompt-based. If predicting using SAM-Med3D, your dataset folder **must** contain the below subfolders. In AdaptFM you will select the parent folder 
-         *imagesTr - raw images
-          - labelsTr - annotated images used to generate prompts
+    - Note that SAM-Med3d is prompt-based. If predicting using SAM-Med3D, your dataset folder **must** contain the below subfolders. In AdaptFM you will select the parent folder: 
+           * imagesTr - raw images
+           labelsTr - annotated images used to generate prompts
           - Names in imagesTr and labelsTr must match identically.     
 1. "Select model checkpoint" --> these are the weights of the trained model to test
     - This is an optional input for MicroSAM, and CellposeSAM as their downloaded checkpoints will be automatically read and used. 
