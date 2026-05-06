@@ -23,6 +23,7 @@ If you find a newer version that works (or breaks), please open an Issue so we c
 ## <a id="main-installation"></a>Installation
 
 ***AdaptFM has only been tested on Ubuntu 22.04.5 LTS***
+***AdaptFM requires an Nvida GPU, and has only been tested on A100 and H200 GPUs***
 
 Clone the repo and install required dependencies
 
