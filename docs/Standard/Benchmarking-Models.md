@@ -10,4 +10,4 @@ You can use AdaptFM to determine which model performed best on a specific task. 
 7. All metrics except for counts comparison can be made faster using multiple processes.
 8. Benchmark plots are saved to the folder containing ground truth images
 
-Example benchmark plots for [counts comparison](../../asset/Compare_counts_example.jpg) and boxplots
+Example benchmark plots for [counts comparison](../../asset/Compare_counts_example.jpg) and [boxplots](../../asset/Example Dice Boxplot.jpg)
