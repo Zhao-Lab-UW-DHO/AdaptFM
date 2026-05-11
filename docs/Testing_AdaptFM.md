@@ -10,3 +10,5 @@ Once you have [installed](../README.md/#main-installation) the tool (including t
 3. Create [annotations](Standard/Annotations.md) using the annotation widget. The annotation tool is intended to generate the labels for the next step using the Save for training button.
     - If you prefer to skip manual annotation of enough labels for fine-tuning, you can use the Organoids_Nuclear_Channel dataset by placing a subset of the matched labels and raw images into a single folder to select for training.
 4. [Fine-tune/train](Standard/Fine-tuning-models.md) the models using the data from the previous step.
+
+***Total runtime varies by model, dataset, and training parameters, and can thus range from as low as 30 minutes to 24 hours (or more)***
