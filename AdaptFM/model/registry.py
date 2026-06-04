@@ -1,6 +1,6 @@
 # AdaptFM/models/registry.py
 from AdaptFM.model.nnUNetV2Spec import NNUNetV2ModelSpec
-from AdaptFM.model.fmSpec import FoundationModelSpec, MicroSAMSpec,CellposeSAMSpec,SSVTSpec,Sammed3DSpec
+from AdaptFM.model.fmSpec import FoundationModelSpec, MicroSAMSpec,CellposeSAMSpec,SSVTSpec,Sammed3DSpec,CellSAMSpec
 import subprocess
 from pathlib import Path
 import sys
