@@ -139,7 +139,7 @@ def main() -> None:
         break
 
 
-    cmd = ["python","-m","model.foundation_models.cellSAM.get_model_first","--access_token",access_token]
+    cmd = ["python","-m","AdaptFM.model.foundation_models.cellSAM.get_model_first","--access_token",access_token]
 
     env = os.environ.copy()
     working_dir = os.getcwd()
