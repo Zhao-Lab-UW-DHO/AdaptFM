@@ -15,7 +15,7 @@ import subprocess
 import sys
 from pathlib import Path
 import shlex
-from AdaptFM.model.registry import _conda_prefix
+from AdaptFM.model.registry import _conda_prefix,read_prefix
 
 ENV_NAME = "cellsam_adapt"
 PYTHON_VERSION = "3.10"
@@ -127,7 +127,7 @@ def main() -> None:
             continue
 
     _conda_run(
-        ENV_NAME,
+        _read_prefix(ENV_NAME),
         ["python","-m","AdaptFM.model.foundation_models.cellSAM.get_model_first","--access_token",access_token])
 
 
