@@ -15,7 +15,7 @@ import subprocess
 import sys
 from pathlib import Path
 import shlex
-from AdaptFM.model.registry import _conda_prefix,read_prefix
+from AdaptFM.model.registry import _conda_prefix,_read_prefix
 
 ENV_NAME = "cellsam_adapt"
 PYTHON_VERSION = "3.10"
