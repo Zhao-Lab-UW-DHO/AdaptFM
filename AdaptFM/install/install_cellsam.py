@@ -125,6 +125,7 @@ def main() -> None:
         if not access_token:
             print("  Access token cannot be empty. Reference the CellSAM github on how to get a token.")
             continue
+        break
 
     _conda_run(
         _read_prefix(ENV_NAME),
