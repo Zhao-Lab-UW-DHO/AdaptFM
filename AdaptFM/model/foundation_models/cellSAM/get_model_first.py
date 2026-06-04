@@ -12,5 +12,7 @@ def main():
   export DEEPCELL_ACCESS_TOKEN=args.access_token
   model = get_model(model='cellsam_extra')
 
+  print("Successfully installed model")
+
 if __name__ == "__main__":
     main()
