@@ -117,6 +117,19 @@ def main() -> None:
     print(f"\n✓ CellSAM environment '{ENV_NAME}' created successfully.")
     print(f"  Activate with:  conda activate {ENV_NAME}\n")
 
+    while True:
+        access_token = input("DeepCell Access Token: ").strip()
+
+        # Allow the user to paste the full line including a leading "pip"
+        # or just the arguments portion; normalise to a full pip invocation.
+        if not access_token:
+            print("  Access token cannot be empty. Reference the CellSAM github on how to get a token.")
+            continue
+
+    _conda_run(
+        ENV_NAME,
+        ["python","-m","AdaptFM.model.foundation_models.cellSAM.get_model_first","--access_token",access_token])
+
 
 if __name__ == "__main__":
     main()
