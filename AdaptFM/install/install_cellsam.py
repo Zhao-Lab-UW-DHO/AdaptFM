@@ -1,9 +1,9 @@
 """
-install-cellsam: creates the CellSAM conda environment, installs CellSAM,
+install-CellSAM: creates the CellSAM conda environment, installs CellSAM,
 then swaps in the user's custom PyTorch build.
 
 Usage (after `pip install -e .`):
-    install-CellSAM
+    install-Cellsam
 
 CellSAM pulls in a default PyTorch (often CUDA 13 / latest) that most users
 don't have.  This script removes it immediately after install and replaces it
@@ -69,7 +69,7 @@ def main() -> None:
     )
     if ENV_NAME in env_check.stdout:
         print(f"Environment '{ENV_NAME}' already exists — skipping creation.")
-        print("To reinstall from scratch, run:  conda env remove -n cellsam_adapt")
+        print("To reinstall from scratch, run:  conda env remove -n CellSAM_adapt")
         sys.exit(0)
 
     # Read user's custom PyTorch command
@@ -91,13 +91,12 @@ def main() -> None:
 
     # Install CellSAM (this drags in a default torch/torchvision)
     print("\n--- Installing CellSAM ---")
-    _conda_run(ENV_NAME, ["python", "-m", "pip", "install", "git+https://github.com/vanvalenlab/cellSAM.git"])
+    _conda_run(
+        ENV_NAME,
+        ["python", "-m", "pip", "install", "git+https://github.com/vanvalenlab/cellSAM.git"]
+    )
 
-    # usegment3D is a required dependency 
-    print("\n--- Installing usegment3d ---")
-    _conda_run(ENV_NAME, ["python", "-m", "pip", "install", "u-Segment3D"])
-  
-    # Remove the default torch/torchvision that cellsam bundled
+    # Remove the default torch/torchvision that CellSAM bundled
     print("\n--- Removing default torch/torchvision ---")
     _conda_run(
         ENV_NAME,
@@ -109,7 +108,13 @@ def main() -> None:
     print("\n--- Installing user-specified PyTorch ---")
     _conda_run(ENV_NAME, pytorch_cmd)
 
-    print(f"\n✓ CellSAMenvironment '{ENV_NAME}' created successfully.")
+    print("\n--- Installing usegment3D for CellSAM ---")
+    _conda_run(
+        ENV_NAME,
+        ["python", "-m", "pip", "install", "u-Segment3D"]
+    )
+
+    print(f"\n✓ CellSAM environment '{ENV_NAME}' created successfully.")
     print(f"  Activate with:  conda activate {ENV_NAME}\n")
 
 
