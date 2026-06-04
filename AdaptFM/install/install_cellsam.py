@@ -15,12 +15,22 @@ import subprocess
 import sys
 from pathlib import Path
 import shlex
+import os
 from AdaptFM.model.registry import _conda_prefix,_read_prefix
 
 ENV_NAME = "cellsam_adapt"
 PYTHON_VERSION = "3.10"
 PYTORCH_CMD_FILE = Path.home() / ".adaptfm" / "pytorch_cmd.txt"
 
+
+def _wrap_with_conda(conda_env, cmd: list[str]) -> list[str]:
+    python_bin = os.path.join(conda_env, "bin", "python")
+    # cmd is typically ["python", "script.py", ...args]
+    # replace the "python" at the front with the env's absolute python binary
+    if cmd[0] == "python":
+        return [python_bin, *cmd[1:]]
+    else:
+        return [python_bin, *cmd]
 
 def _run(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
     print(f"  + {' '.join(cmd)}")
@@ -125,12 +135,31 @@ def main() -> None:
         if not access_token:
             print("  Access token cannot be empty. Reference the CellSAM github on how to get a token.")
             continue
+
         break
 
-    _conda_run(
-        _read_prefix(ENV_NAME),
-        ["python","-m","AdaptFM.model.foundation_models.cellSAM.get_model_first","--access_token",access_token])
 
+    cmd = ["python","-m","model.foundation_models.cellSAM.get_model_first","--access_token",access_token]
+
+    env = os.environ.copy()
+    working_dir = os.getcwd()
+    env["PYTHONPATH"] = working_dir
+
+
+    get_model_cmd = [
+            "conda", "run", "-p", _read_prefix(ENV_NAME),
+            "--no-capture-output",
+            *cmd
+        ]
+    results = subprocess.Popen(
+        get_model_cmd,
+        env=env
+    )
+    print(results.stdout)
+    print(results.stderr)
+
+
+    print('CellSAM successfully installed')
 
 if __name__ == "__main__":
     main()
