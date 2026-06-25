@@ -9,7 +9,6 @@ from AdaptFM.session.annotation_session import AnnotationSession
 from AdaptFM.gui.widgets.inference_widget import InferenceWidget
 from AdaptFM.gui.widgets.training_widget import TrainingWidget
 from AdaptFM.gui.widgets.benchmark_widget import BenchmarkWidget
-from AdaptFM.gui.widgets.postprocess_widget import PostProcessWidget
 from AdaptFM.gui.widgets.env_manager_dialog import EnvironmentManagerDialog
 from AdaptFM.model.registry import MODEL_REGISTRY
 from qtpy.QtWidgets import QAction
@@ -70,16 +69,6 @@ def main():
 
     # Show widget when menu action triggered
     benchmark_action.triggered.connect(benchmark_widget.show)
-
-    menu = viewer.window._qt_window.menuBar().addMenu("Post Process")
-    postprocess_action = QAction("Run Post processing", viewer.window._qt_window)
-    menu.addAction(postprocess_action)
-
-    # Lazy-create widget
-    postprocess_widget = PostProcessWidget(dataset_manager=dm).widget
-
-    # Show widget when menu action triggered
-    postprocess_action.triggered.connect(postprocess_widget.show)
 
     # ------------------------------------------------------------------ #
     # Environments menu  ← NEW
