@@ -1,3 +1,4 @@
+
 """
 env_manager_dialog.py
 ---------------------
@@ -8,9 +9,12 @@ Layout
   ┌─ EnvironmentManagerDialog ──────────────────────────────────────────┐
   │  [↻ Check for updates]                                              │
   │                                                                     │
+  │  ▶ PyTorch Configuration  ● Configured   <- collapsible card       │
+  │    (expands to show pip command editor + Save / Save & Install)     │
+  │                                                                     │
   │  ┌─ EnvCard: CellposeSAM ──────────────────────── ● Installed ─┐  │
   │  │  Cellpose segmentation with SAM backbone.                    │  │
-  │  │  ⚠ Requires custom PyTorch build                            │  │
+  │  │  ⚠ Requires PyTorch — click to configure  <- clickable link  │  │
   │  │  cellpose  1.0.2  →  1.1.0  [Update]                        │  │
   │  │  PyTorch   2.2.0  ✓  up to date                             │  │
   │  │                          [Uninstall]                         │  │
@@ -29,12 +33,12 @@ from __future__ import annotations
 
 import shutil
 import subprocess
-from typing import Optional
+from typing import Callable, Optional
 
 from qtpy.QtCore import (
     Qt, QProcess, QThread, Signal, QObject,
 )
-from qtpy.QtGui import QColor, QFont, QTextCursor
+from qtpy.QtGui import QFont, QTextCursor
 from qtpy.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QScrollArea, QWidget, QFrame, QTextEdit, QSizePolicy,
@@ -45,6 +49,7 @@ from AdaptFM.install.env_registry import ENV_REGISTRY, EnvironmentSpec
 from AdaptFM.install.env_inspector import (
     EnvStatus, PackageVersionInfo, probe_all,
 )
+from AdaptFM.gui.widgets.pytorch_config_widget import PyTorchConfigWidget
 
 
 # ---------------------------------------------------------------------------
@@ -151,7 +156,8 @@ class _PackageRow(QWidget):
 class _EnvCard(QFrame):
     """One card per EnvironmentSpec."""
 
-    action_requested = Signal(str, str)   # (env_key, action)  action ∈ {install, uninstall, update_pkg}
+    action_requested       = Signal(str, str)  # (env_key, action)
+    pytorch_config_clicked = Signal()           # user clicked the PyTorch warning link
 
     def __init__(self, status: EnvStatus, parent=None):
         super().__init__(parent)
@@ -208,10 +214,26 @@ class _EnvCard(QFrame):
         desc.setWordWrap(True)
         outer.addWidget(desc)
 
-        # --- PyTorch swap warning ---
+        # --- PyTorch swap warning (clickable link → opens config card) ---
         if spec.requires_pytorch_swap:
-            warn = QLabel("⚠  Requires a custom PyTorch build — run adaptfm-set-pytorch first.")
-            warn.setStyleSheet(f"color: {_UPDATE_COLOR}; font-size: 10px;")
+            from AdaptFM.gui.widgets.pytorch_config_widget import PYTORCH_CMD_FILE
+            if PYTORCH_CMD_FILE.exists() and PYTORCH_CMD_FILE.read_text().strip():
+                warn_text = (
+                    '⚠  Uses a custom PyTorch build  '
+                    f'<a href="configure" style="color:{_UPDATE_COLOR}; font-size:10px;">'
+                    'change</a>'
+                )
+            else:
+                warn_text = (
+                    f'<span style="color:{_WARNING_COLOR};">⚠  PyTorch not configured</span>  '
+                    f'<a href="configure" style="color:{_UPDATE_COLOR}; font-size:10px;">'
+                    'configure now ↑</a>'
+                )
+            warn = QLabel(warn_text)
+            warn.setOpenExternalLinks(False)
+            warn.setTextInteractionFlags(Qt.TextBrowserInteraction)
+            warn.linkActivated.connect(lambda _: self.pytorch_config_clicked.emit())
+            warn.setStyleSheet("font-size: 10px;")
             outer.addWidget(warn)
 
         # --- Package version rows (only when installed) ---
@@ -355,10 +377,24 @@ class EnvironmentManagerDialog(QDialog):
         self._card_layout = QVBoxLayout(self._card_container)
         self._card_layout.setContentsMargins(0, 0, 4, 0)
         self._card_layout.setSpacing(8)
+
+
         self._card_layout.addStretch()
         self._scroll.setWidget(self._card_container)
         scroll_layout.addWidget(self._scroll)
         splitter.addWidget(scroll_outer)
+
+        # PyTorch config card — always first in the scroll area
+        self._pytorch_card = PyTorchConfigWidget(
+            log_fn=self._log_line,
+            run_process_fn=self._run_process,
+        )
+        self._pytorch_card.setSizePolicy(
+            QSizePolicy.Expanding,
+            QSizePolicy.Fixed
+        )
+
+        self._card_layout.addWidget(self._pytorch_card)
 
         # Log panel
         log_outer = QWidget()
@@ -439,6 +475,7 @@ class EnvironmentManagerDialog(QDialog):
         for status in statuses:
             card = _EnvCard(status)
             card.action_requested.connect(self._on_action)
+            card.pytorch_config_clicked.connect(self._focus_pytorch_card)
             self._cards[status.spec.key] = card
             # Insert before the trailing stretch
             idx = self._card_layout.count() - 1
@@ -449,6 +486,54 @@ class EnvironmentManagerDialog(QDialog):
         self._refresh_btn.setEnabled(True)
         self._status_lbl.setText(f"Scan failed: {msg}")
         self._log_line(f"[probe error] {msg}", color=_WARNING_COLOR)
+
+    # ------------------------------------------------------------------
+    # Shared QProcess runner — used by both env actions and PyTorchConfigWidget
+    # ------------------------------------------------------------------
+
+    def _run_process(
+        self,
+        program: str,
+        args: list[str],
+        label: str = "",
+        on_done: Optional[Callable[[int], None]] = None,
+    ):
+        """
+        Start *program* with *args* in a QProcess.
+        stdout/stderr stream to the log panel.
+        on_done(exit_code) is called when the process finishes.
+        Blocks all cards while running.
+        """
+        if self._process and self._process.state() != QProcess.NotRunning:
+            QMessageBox.warning(
+                self, "Busy",
+                "Another operation is already running.\n"
+                "Please wait for it to finish.",
+            )
+            return
+
+        self._set_all_cards_busy(True)
+        self._progress.setVisible(True)
+        self._pytorch_card.setEnabled(False)
+
+        self._process = QProcess(self)
+        self._process.setProcessChannelMode(QProcess.MergedChannels)
+        self._process.readyRead.connect(self._on_process_output)
+
+        def _done(code, _status):
+            self._progress.setVisible(False)
+            self._set_all_cards_busy(False)
+            self._pytorch_card.setEnabled(True)
+            if on_done:
+                on_done(code)
+
+        self._process.finished.connect(_done)
+        self._process.start(program, args)
+
+    def _focus_pytorch_card(self):
+        """Expand the PyTorch config card and scroll to it."""
+        self._pytorch_card.expand()
+        self._scroll.ensureWidgetVisible(self._pytorch_card)
 
     # ------------------------------------------------------------------
     # Action dispatch — install / uninstall / update
@@ -477,9 +562,8 @@ class EnvironmentManagerDialog(QDialog):
             self._run_pip_update(spec, pkg_name, env_key)
 
     # ------------------------------------------------------------------
-    # QProcess runner — all three operations share this infrastructure
+    # Per-action helpers — delegate to _run_process
     # ------------------------------------------------------------------
-
     def _run_command(self, spec: EnvironmentSpec, command: str, env_key: str):
         """Run a named entry-point command (install / uninstall scripts)."""
         exe = shutil.which(command)
@@ -502,6 +586,7 @@ class EnvironmentManagerDialog(QDialog):
             lambda code, status: self._on_process_done(code, status, env_key)
         )
         self._process.start(exe, [])
+
 
     def _run_uninstall(self, spec: EnvironmentSpec, env_key: str):
         """Uninstall = run uninstall script if it exists, else conda env remove."""
@@ -543,22 +628,16 @@ class EnvironmentManagerDialog(QDialog):
         )
         self._process.start("conda", ["env", "remove", "-n", spec.conda_env_name, "-y"])
 
-
     def _run_pip_update(self, spec: EnvironmentSpec, import_name: str, env_key: str):
         """Run `conda run -n <env> pip install --upgrade <package>`."""
         args = ["run", "-n", spec.conda_env_name, "--no-capture-output",
                 "pip", "install", "--upgrade", import_name]
         self._log_line(f"\n▶ conda {' '.join(args)}", bold=True)
-        self._set_all_cards_busy(True)
-        self._progress.setVisible(True)
-
-        self._process = QProcess(self)
-        self._process.setProcessChannelMode(QProcess.MergedChannels)
-        self._process.readyRead.connect(self._on_process_output)
-        self._process.finished.connect(
-            lambda code, status: self._on_process_done(code, status, env_key)
+        self._run_process(
+            "conda", args,
+            label=f"pip upgrade {import_name}",
+            on_done=lambda code: self._on_process_done(code, env_key),
         )
-        self._process.start("conda", args)
 
     # ------------------------------------------------------------------
     # QProcess callbacks
