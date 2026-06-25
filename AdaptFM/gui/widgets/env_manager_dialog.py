@@ -629,20 +629,20 @@ class EnvironmentManagerDialog(QDialog):
         self._process.start("conda", ["env", "remove", "-n", spec.conda_env_name, "-y"])
 
     def _run_pip_update(self, spec: EnvironmentSpec, import_name: str, env_key: str):
-            """Run `conda run -n <env> pip install --upgrade <package>`."""
-            args = ["run", "-n", spec.conda_env_name, "--no-capture-output",
-                    "pip", "install", "--upgrade", import_name]
-            self._log_line(f"\n▶ conda {' '.join(args)}", bold=True)
-            self._set_all_cards_busy(True)
-            self._progress.setVisible(True)
-    
-            self._process = QProcess(self)
-            self._process.setProcessChannelMode(QProcess.MergedChannels)
-            self._process.readyRead.connect(self._on_process_output)
-            self._process.finished.connect(
-                lambda code, status: self._on_process_done(code, status, env_key)
-            )
-            self._process.start("conda", args)
+        """Run `conda run -n <env> pip install --upgrade <package>`."""
+        args = ["run", "-n", spec.conda_env_name, "--no-capture-output",
+                "pip", "install", "--upgrade", import_name]
+        self._log_line(f"\n▶ conda {' '.join(args)}", bold=True)
+        self._set_all_cards_busy(True)
+        self._progress.setVisible(True)
+
+        self._process = QProcess(self)
+        self._process.setProcessChannelMode(QProcess.MergedChannels)
+        self._process.readyRead.connect(self._on_process_output)
+        self._process.finished.connect(
+            lambda code, status: self._on_process_done(code, status, env_key)
+        )
+        self._process.start("conda", args)
 
     # ------------------------------------------------------------------
     # QProcess callbacks
