@@ -8,11 +8,24 @@ In AdaptFM you can:
 - Use those annotations to fine-tune/train models on your data
 - Add new models or annotation algorithms
 
+***Model Versions***
+
+Use the below [install scripts](#main-installation)  to install AdaptFM and associated models. 
+
+The installation scripts for CellposeSAM, MicroSAM, SAM2, SAM3, SAM-Med3D, and nnU-Net have been tested with the specific commit [hashes/versions](#versionshashes). These upstream tools change frequently, so we track and update compatibility as needed.
+
+If you find a newer version that works (or breaks), please open an Issue so we can update the installer
+
 [Installation](#main-installation) | [Get Started](docs/Standard) | [Customizing (Advanced Users)](docs/Customizations/customizations-main.md) | [Try the Demo](docs/Testing_AdaptFM.md)
 
 ![Segmentation Demo](asset/demo_cropped.gif) ![SAM2 Demo](asset/SAM2_GIF.gif)
 
 ## <a id="main-installation"></a>Installation
+
+***AdaptFM has only been tested on Ubuntu 22.04.5 LTS***  
+***AdaptFM requires an Nvida GPU, and has only been tested on A100 and H200 GPUs***  
+***All installation requirements for the below models still apply***  
+***Total installation for all dependencies is under 20 minutes***
 
 Clone the repo and install required dependencies
 
@@ -31,12 +44,15 @@ This will install PyTorch into AdaptFM as well as save the hardware specific ins
 
 > [!TIP]
 > Support for using [SAM2](https://github.com/facebookresearch/sam2) and [SAM3](https://github.com/facebookresearch/sam3) are optional additions to the AdaptFM environment since these tools have specific system requirements. SAM2 and SAM3 can be installed with below commands. SAM3 comes with additional steps: **To use SAM3 you must request access to their checkpoints through [hugging face](https://huggingface.co/facebook/sam3) (download [here](https://huggingface.co/facebook/sam3/resolve/main/sam3.pt?download=true)) and place the file sam3.pt into** `<AdaptFM-Install-Location>/AdaptFM/AdaptFM/segmentation/sam3/checkpoint/sam3.pt`. AdaptFM will still work if you do not install SAM2 or SAM3.
-> > We have found in testing that SAM3 will not work with the PyTorch Compute Platform CUDA 12.6
+> > We have found in testing that SAM3 will not work with the PyTorch Compute Platform CUDA 12.6  
+> > SAM3's repo is installed in AdaptFM. Installing with the wrong CUDA (e.g. 12.6) can cause AdaptFM to break
 
 ```bash
 adaptfm-install-sam2
 adaptfm-install-sam3
 ```
+
+**Note that SAM3 has an [issue](https://github.com/facebookresearch/sam3/issues/193) with box prompts. There is a proposed workaround, but we are still waiting for a durable solution**
 
 ### <a id="launching"></a>Launch after install 
 > [!WARNING]
@@ -81,6 +97,8 @@ Use 'allow_patterns' to specify the dataset you want to download. The folder nam
 
 You can download the entire dataset at once by removing the 'allow_patterns' line completely. **However, note that the repo is over 100GB so ensure you have enough space before downloading**
 
+You can then test AdaptFM using this [demo script](https://github.com/Zhao-Lab-UW-DHO/AdaptFM/blob/AdaptFM/docs/Testing_AdaptFM.md)
+
 ```bash
 conda activate AdaptFM
 pip install huggingface_hub
@@ -116,3 +134,13 @@ snapshot_download(
 ```
 
 Once downloaded you can follow our [fine-tuning instructions](docs/Standard/Fine-tuning-models.md) to build a model for a specific downstream segmentation task. 
+
+### Versions/Hashes
+
+CellposeSAM Version 3.1  
+MicroSAM Version 1.7.6  
+nnUNet Version 2.7.0  
+SAM2 Version 1.0. Hash 2b90b9f5ceec907a1c18123530e92e794ad901a4  
+SAM3 Hash c3a42ff67487eb489f74dce7a747477324734e44  
+SAM-Med3D Hash f3de1fa10da98e46f49f176773d2b1e306ba131f
+

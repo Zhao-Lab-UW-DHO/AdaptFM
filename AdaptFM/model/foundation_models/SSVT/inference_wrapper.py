@@ -19,6 +19,7 @@ def main():
     test_dir = args.test_dir
     output_path = args.output_path
     checkpoint = args.checkpoint
+    output_path = Path(output_path)
 
     #baseline SSVT is hard-coded based on how it was pretrained
     device = 'cuda'

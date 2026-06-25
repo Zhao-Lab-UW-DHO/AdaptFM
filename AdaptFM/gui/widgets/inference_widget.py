@@ -34,7 +34,7 @@ class InferenceWidget(ModelWorkflowWidget):
             None, "Select output directory"))
         
                 # 2. Prompt for GPU
-        gpu, _ = QInputDialog.getInt(
+        gpu, returned_ok = QInputDialog.getInt(
             None,
             "Select GPU",
             "GPU index:",
@@ -45,6 +45,9 @@ class InferenceWidget(ModelWorkflowWidget):
         )
 
         params["gpu"] = gpu
+
+        if not returned_ok:
+            return
 
         self.model.run_inference(
             dataset_dir=self.dataset_dir,
