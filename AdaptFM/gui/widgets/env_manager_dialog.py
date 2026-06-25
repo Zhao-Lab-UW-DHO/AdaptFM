@@ -36,13 +36,13 @@ import subprocess
 from typing import Callable, Optional
 
 from qtpy.QtCore import (
-    Qt, QProcess, QThread, Signal, QObject,
+    Qt, QProcess, QThread, Signal, QObject,QProcessEnvironment
 )
 from qtpy.QtGui import QFont, QTextCursor
 from qtpy.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QScrollArea, QWidget, QFrame, QTextEdit, QSizePolicy,
-    QMessageBox, QProgressBar, QSplitter,
+    QMessageBox, QProgressBar, QSplitter,QInputDialog
 )
 
 from AdaptFM.install.env_registry import ENV_REGISTRY, EnvironmentSpec
@@ -574,6 +574,28 @@ class EnvironmentManagerDialog(QDialog):
                 color=_WARNING_COLOR,
             )
             return
+        
+        extra_env = None
+        if env_key == "CellSAM" and command == spec.install_command:
+            access_token, ok = QInputDialog.getText(
+                self,
+                "DeepCell Access Token",
+                "Enter your DeepCell access token for CellSAM:"
+            )
+            if not ok:
+                self._log_line("[install cancelled] CellSAM token entry cancelled.", color=_WARNING_COLOR)
+                return
+
+            access_token = access_token.strip()
+            if not access_token:
+                QMessageBox.warning(
+                    self,
+                    "Missing token",
+                    "A DeepCell access token is required to install CellSAM."
+                )
+                return
+
+            extra_env = {"DEEPCELL_ACCESS_TOKEN": access_token}
 
         self._log_line(f"\n▶ {command}", bold=True)
         self._set_all_cards_busy(True)
@@ -585,6 +607,13 @@ class EnvironmentManagerDialog(QDialog):
         self._process.finished.connect(
             lambda code, status: self._on_process_done(code, status, env_key)
         )
+
+        if extra_env:
+            env = QProcessEnvironment.systemEnvironment()
+            for k, v in extra_env.items():
+                env.insert(k, v)
+            self._process.setProcessEnvironment(env)
+
         self._process.start(exe, [])
 
 

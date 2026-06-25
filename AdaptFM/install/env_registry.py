@@ -146,7 +146,24 @@ ENV_REGISTRY: list[EnvironmentSpec] = [
                            github_repo="https://github.com/uni-medical/SAM-Med3D.git")
         ],
         docs_url="https://github.com/uni-medical/sam-med3d"
-    )
+    ),
+
+    EnvironmentSpec(
+        key="CellSAM",
+        display_name='CellSAM',
+        description="A foundation model for cell segmentation",
+        conda_env_name="cellsam_adapt",
+        install_command="adaptfm-install-cellsam",
+        uninstall_command="adaptfm-uninstall",
+        requires_gpu=True,
+        pip_packages=[
+            PipPackageSpec("cellSAM",
+                           display_name="CellSAM",
+                           update_source="github",
+                           github_repo="git+https://github.com/vanvalenlab/cellSAM.git")
+        ],
+        docs_url="https://vanvalenlab.github.io/cellSAM/"
+        )
 
     # ------------------------------------------------------------------ #
 ]
