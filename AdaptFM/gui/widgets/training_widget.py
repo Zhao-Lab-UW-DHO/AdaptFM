@@ -44,8 +44,7 @@ class TrainingWidget(ModelWorkflowWidget):
         )
 
 
-        if self.model.name =='nnUNetV2':
-
+        if self.model.name =='nnUNetV2' or self.model.name =="Merlin nnUNet":
 
             preprocess_proc = self.model.run_preprocessing(
                 dataset_dir=prepared_dataset,

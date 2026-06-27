@@ -1,5 +1,5 @@
 # AdaptFM/models/registry.py
-from AdaptFM.model.nnUNetV2Spec import NNUNetV2ModelSpec
+from AdaptFM.model.nnUNetV2Spec import NNUNetV2ModelSpec,MerlinNNUNetV2ModelSpec
 from AdaptFM.model.fmSpec import FoundationModelSpec, MicroSAMSpec,CellposeSAMSpec,SSVTSpec,Sammed3DSpec,CellSAMSpec
 import subprocess
 from pathlib import Path
@@ -67,6 +67,16 @@ MODEL_REGISTRY = {
     training_wrapper_path = "",
     inference_wrapper_path = "AdaptFM.model.foundation_models.cellSAM.inference_wrapper",
     training_function=""#does not support training/finetuning
+    ),
+    
+    
+    "nnUNetv2": NNUNetV2ModelSpec(
+        conda_env = _read_prefix("nnUNet_adapt")
+    ),
+
+    "Merlin nnUNet" : MerlinNNUNetV2ModelSpec(
+        conda_env = _read_prefix("Merlin_nnUNet_adapt"),
+        transform_path = "AdaptFM.model.foundation_models.merlin.transforms"
     )
     
 }
