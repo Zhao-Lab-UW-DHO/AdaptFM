@@ -163,6 +163,24 @@ ENV_REGISTRY: list[EnvironmentSpec] = [
                            github_repo="git+https://github.com/vanvalenlab/cellSAM.git")
         ],
         docs_url="https://vanvalenlab.github.io/cellSAM/"
+        ),
+
+
+    EnvironmentSpec(
+        key="Merlin-nnUNet",
+        display_name='Merlin nnUNet',
+        description="3D Ct Segmentation using fine-tuned Merlin",
+        conda_env_name="Merlin_nnUNet_adapt",
+        install_command="adaptfm-install-merlin",
+        uninstall_command="adaptfm-uninstall",
+        requires_gpu=True,
+        pip_packages=[
+            PipPackageSpec("nnunetv2",
+                           display_name="Merlin nnUNet",
+                           update_source="github",
+                           github_repo="git+https://github.com/ashwinkumargb/Merlin-nnUNet.git")
+        ],
+        docs_url="https://vanvalenlab.github.io/cellSAM/"
         )
 
     # ------------------------------------------------------------------ #
