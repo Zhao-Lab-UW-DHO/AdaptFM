@@ -27,10 +27,12 @@ def main():
     # Model registry (shared by training + inference)
     model_registry = MODEL_REGISTRY
     # or: model_registry = MODEL_REGISTRY
+
     viewer.window.add_dock_widget(
     SessionWidget(viewer, session, vm, sm).widget,
     area="right",name ='AdaptFM Image Manager'
     )
+
     # Existing widgets
     viewer.window.add_dock_widget(
         SegmentationWidget(viewer, sm).widget,

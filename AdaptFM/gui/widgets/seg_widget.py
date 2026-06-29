@@ -37,8 +37,8 @@ class SegmentationWidget:
         self.param_container.native.hide()  # hide initially
 
         # Layout into a dock
-        self.widget = self.algo_selector.native
-        self.viewer.window.add_dock_widget(self.widget, area="right")
+        # self.widget = self.algo_selector.native
+        # self.viewer.window.add_dock_widget(self.widget, area="right")
 
 
     def _on_algorithm_selected(self, algo_name: str):
