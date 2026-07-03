@@ -7,6 +7,7 @@ import subprocess, json
 from pathlib import Path
 import shutil
 import os
+import random
 
 class FoundationModelSpec(ModelSpec):
     def __init__(self, name, conda_env, module_path,training_wrapper_path=None,inference_wrapper_path=None,training_function=None):
@@ -56,6 +57,9 @@ class FoundationModelSpec(ModelSpec):
         ]
 
         out = subprocess.check_output(cmd, text=True).strip() 
+
+                
+        
         return json.loads(out)
 
 
@@ -604,6 +608,151 @@ class CellSAMSpec(FoundationModelSpec):
             "python",
             "-m", f"{self.inference_wrapper_path}",
             "--test_dir",str(dataset_dir),
+            "--output_path",str(output_dir),
+        ]
+
+
+
+    def run_inference(self, dataset_dir, checkpoint, output_dir, params):
+
+        gpu = params.pop("gpu", None)
+        env = os.environ.copy()
+        if gpu is not None:
+            env["CUDA_VISIBLE_DEVICES"] = str(gpu)
+
+
+        inference_cmd = self.inference_command(dataset_dir=dataset_dir,
+                                                checkpoint=checkpoint,
+                                                output_dir=output_dir) 
+
+        cmd = self._wrap_with_conda(inference_cmd)
+
+        subprocess.Popen(
+            cmd,
+            stdout=open(output_dir / "stdout.log", "w"),
+            stderr=open(output_dir / "stderr.log", "w"),
+            start_new_session=True,
+            env=env
+        )
+
+
+class BMEXSpec(FoundationModelSpec):
+    
+    def __init__(self, name, conda_env, module_path,training_wrapper_path,inference_wrapper_path,training_function):
+        super().__init__(name, conda_env, module_path,training_wrapper_path,inference_wrapper_path,training_function)
+
+
+    def prepare_dataset(self, dataset_manager, output_dir, params):
+
+        imagesTrFolder = os.path.join(output_dir, 'imagesTr')
+        labelsTrFolder = os.path.join(output_dir, 'labelsTr')
+        os.makedirs(imagesTrFolder, exist_ok=True)
+        os.makedirs(labelsTrFolder, exist_ok=True)
+        os.makedirs(output_dir, exist_ok=True)
+
+        # assume that all images are tiff at this time
+        tiff_images = [file for file in os.listdir(dataset_manager.folder) if file.endswith(('.tif', '.tiff'))]
+
+        # base_name -> {"image": ..., "label": ...}
+        pairs = {}
+
+        for tiff_file in tiff_images:
+            tiff_image_path = os.path.join(dataset_manager.folder, tiff_file)
+            tiff_image = tiff.imread(tiff_image_path)
+            tiff_image = sitk.GetImageFromArray(tiff_image)
+
+            nii_name = tiff_file.replace('_seg', '').replace('.tiff', '.nii.gz')
+
+            is_label = '_seg.tiff' in tiff_file
+            base_name = nii_name  # same root for image/label since '_seg' was stripped
+
+            if is_label:
+                nii_path = os.path.join(labelsTrFolder, nii_name)
+                rel_path = os.path.join('labelsTr', nii_name)
+                pairs.setdefault(base_name, {})['label'] = rel_path
+            else:
+                nii_path = os.path.join(imagesTrFolder, nii_name)
+                rel_path = os.path.join('imagesTr', nii_name)
+                pairs.setdefault(base_name, {})['image'] = rel_path
+
+            sitk.WriteImage(tiff_image, nii_path)
+
+        # only keep complete image/label pairs
+        complete_pairs = [
+            {"image": entry["image"], "label": entry["label"]}
+            for entry in pairs.values()
+            if "image" in entry and "label" in entry
+        ]
+
+        # shuffle reproducibly, then split 80/20
+        seed = params.get("seed", 42) if params else 42
+        rng = random.Random(seed)
+        shuffled_pairs = complete_pairs.copy()
+        rng.shuffle(shuffled_pairs)
+
+        split_idx = int(round(len(shuffled_pairs) * 0.8))
+        training_pairs = shuffled_pairs[:split_idx]
+        validation_pairs = shuffled_pairs[split_idx:]
+
+        dataset_dict = {
+            "training": training_pairs,
+            "validation": validation_pairs
+        }
+
+        dataset_dict_path = os.path.join(output_dir, "json_list.json")
+
+        with open(dataset_dict_path, "w") as file:
+            json.dump(dataset_dict, file, indent=4)
+
+        dataset_dir = Path(dataset_manager.folder).parent
+
+        return {"dataset_dir": dataset_dir}
+    
+
+    def training_command(self, dataset_info, params, run_dir):
+        """
+        CellposeSAM training is Python API–based, not CLI-based.
+        So we call a small wrapper script inside the env.
+        """
+        return [
+            "python",
+            "-m", f"{self.training_wrapper_path}",
+            "--params", json.dumps(params),
+            "--output_dir",run_dir,
+            '--data_dir', dataset_info['dataset_dir']
+
+        ]
+
+    def run_training(self, dataset_info, params, run_dir):
+        run_dir.mkdir(parents=True, exist_ok=True)
+
+        with open(run_dir / "params.json", "w") as f:
+            json.dump(params, f, indent=4)
+
+        gpu = params.pop("gpu", None)
+        env = os.environ.copy()
+        if gpu is not None:
+            env["CUDA_VISIBLE_DEVICES"] = str(gpu)
+
+        training_cmd = self.training_command(dataset_info, params, run_dir)
+
+        cmd = self._wrap_with_conda(training_cmd)
+
+        subprocess.Popen(
+            cmd,
+            stdout=open(run_dir / "stdout.log", "w"),
+            stderr=open(run_dir / "stderr.log", "w"),
+            start_new_session=True,
+            env=env
+        )
+        
+        
+    def inference_command(self, dataset_dir, checkpoint, output_dir):
+        return [
+            "python",
+            "-m", f"{self.inference_wrapper_path}",
+            "--test_dir",str(dataset_dir),
+            "--checkpoint",str(checkpoint),
             "--output_path",str(output_dir),
         ]
 
