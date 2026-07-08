@@ -1,0 +1,84 @@
+import argparse
+import segment3D.parameters as uSegment3D_params
+import segment3D.usegment3d as uSegment3D
+from pathlib import Path
+import tifffile as tiff
+import numpy as np
+
+def get_all_planes(input_dir: Path):
+    """
+    input_dir/
+        XY_planes/
+        YZ_planes/
+        XZ_planes/
+    Each contains TIFF stacks with identical basenames.
+    """
+
+    xy_dir = input_dir / "XY_planes"
+    yz_dir = input_dir / "YZ_planes"
+    xz_dir = input_dir / "XZ_planes"
+
+    # Collect filenames (without extension)
+    xy_files = {f.stem: f for f in xy_dir.glob("*.tif")}
+    yz_files = {f.stem: f for f in yz_dir.glob("*.tif")}
+    xz_files = {f.stem: f for f in xz_dir.glob("*.tif")}
+
+    # Only process images present in all three folders
+    common = set(xy_files) & set(yz_files) & set(xz_files)
+
+    results = {}
+
+    for name in sorted(common):
+        xy_stack = tiff.imread(xy_files[name])
+        yz_stack = tiff.imread(yz_files[name])
+        xz_stack = tiff.imread(xz_files[name])
+
+        results[name] = {
+            "xy": np.asarray(xy_stack),
+            "yz": np.asarray(yz_stack),
+            "xz": np.asarray(xz_stack)
+        }
+
+    return results
+
+
+
+def run_postprocessing(input_dir: Path, output_dir: Path):
+
+    all_images = get_all_planes(input_dir)
+
+    for image_name, planes in all_images.items():
+        try:
+            indirect_aggregation_params = uSegment3D_params.get_2D_to_3D_aggregation_params()
+            indirect_aggregation_params['indirect_method']['dtform_method'] = 'edt'
+
+            segmentation3D, (probability3D, gradients3D) = (
+                uSegment3D.aggregate_2D_to_3D_segmentation_indirect_method(
+                    segmentations=[planes["xy"], planes["xz"], planes["yz"]],
+                    img_xy_shape=planes["xy"].shape,
+                    precomputed_binary=None,
+                    params=indirect_aggregation_params,
+                    savefolder=None,
+                    basename=None
+                )
+            )
+
+            out_path = output_dir / f"{image_name}.tif"
+            tiff.imwrite(out_path, segmentation3D)
+
+        except Exception as e:
+            print(f"Unable to merge planes on image {image_name}: {e}")
+
+    return
+
+
+if __name__ =='__main__':
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input_dir")
+    parser.add_argument('--output_dir')
+
+
+    args = parser.parse_args()
+
+    run_postprocessing(Path(args.input_dir), Path(args.output_dir))

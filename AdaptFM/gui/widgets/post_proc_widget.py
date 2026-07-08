@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from qtpy.QtWidgets import QWidget, QVBoxLayout,QComboBox,QLabel,QFileDialog,QPushButton
+from qtpy.QtWidgets import QWidget, QVBoxLayout,QComboBox,QLabel,QFileDialog,QPushButton,QInputDialog
 from AdaptFM.postprocessing.post_proc_registry import POSTPROC_REGISTRY
 
 
@@ -81,8 +81,19 @@ class PostProcessingWidget(QWidget):
         pipeline_name = self.postproc_dropdown.currentText()
 
         pipeline = POSTPROC_REGISTRY[pipeline_name]
+
+
+        gpu, returned_ok = QInputDialog.getInt(
+            None,
+            "Select GPU",
+            "GPU:",
+            value=0,
+            min=0,
+            max=16,   # adjust if you want
+            step=1,
+        )
         pipeline.run_postprocess(self.folder2process,
-                        self.output_folder)
+                        self.output_folder,gpu)
         
 
 

@@ -10,7 +10,7 @@ POSTPROC_REGISTRY={
     "USegment3D": USegment3DSpec(
         name= "USegment3D",
         conda_env = _read_prefix("usegment3d_adapt"),
-        module_path =  "AdaptFM.postprocessing.pipelines.usegment3d"
+        module_path =  "AdaptFM.postprocessing.pipelines.useg3d"
     ),
 
     "ThreeDCellComposer": ThreeDCellComposerSpec(
