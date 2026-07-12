@@ -229,7 +229,24 @@ ENV_REGISTRY: list[EnvironmentSpec] = [
         ],
         docs_url="https://github.com/DanuserLab/u-segment3D"
 
-    )
+    ),
+
+    EnvironmentSpec(
+        key="ThreeDCellComposer",
+        display_name='ThreeDCellComposer',
+        description="A Versatile Pipeline Utilizing 2D Cell Segmentation Methods for 3D Cell Segmentation",
+        conda_env_name="3dcellcompose_adapt",
+        install_command="adaptfm-install-3dcellcompose",
+        uninstall_command="adaptfm-uninstall",
+        requires_gpu=True,
+        pip_packages=[
+            PipPackageSpec("ThreeDCellComposer",
+                           display_name="ThreeDCellComposer",
+                           update_source="github")
+        ],
+        docs_url="https://github.com/murphygroup/3DCellComposer/tree/main"
+        ),
+
     
 
     # ------------------------------------------------------------------ #

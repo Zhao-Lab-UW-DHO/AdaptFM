@@ -576,14 +576,14 @@ class EnvironmentManagerDialog(QDialog):
             return
         
         extra_env = None
-        if env_key == "CellSAM" and command == spec.install_command:
+        if env_key in ("CellSAM", "ThreeDCellComposer") and command == spec.install_command:
             access_token, ok = QInputDialog.getText(
                 self,
                 "DeepCell Access Token",
-                "Enter your DeepCell access token for CellSAM:"
+                "Enter your DeepCell access token:"
             )
             if not ok:
-                self._log_line("[install cancelled] CellSAM token entry cancelled.", color=_WARNING_COLOR)
+                self._log_line("[install cancelled] token entry cancelled.", color=_WARNING_COLOR)
                 return
 
             access_token = access_token.strip()
@@ -591,7 +591,7 @@ class EnvironmentManagerDialog(QDialog):
                 QMessageBox.warning(
                     self,
                     "Missing token",
-                    "A DeepCell access token is required to install CellSAM."
+                    "A DeepCell access token is required to install CellSAM and ThreeDCellComposer."
                 )
                 return
 

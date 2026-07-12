@@ -24,7 +24,6 @@ class PostProcess(ABC):
         ]
     
 
-
 class USegment3DSpec(PostProcess):
 
     def __init__(self,name,conda_env,module_path):
@@ -55,21 +54,4 @@ class USegment3DSpec(PostProcess):
             start_new_session=True,
             env=env
         )
-
-
-
-
-class ThreeDCellComposerSpec(PostProcess):
-
-    def __init__(self,name,conda_env,module_path):
-        super().__init__(name,conda_env,module_path)
-        self.name=name
-        self.conda_env= conda_env
-        self.module_path=module_path
-
-    def run_postprocess(self, input_dir, output_dir):
-        return super().run_postprocess(input_dir, output_dir)
-
-
-
 

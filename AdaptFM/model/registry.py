@@ -1,6 +1,6 @@
 # AdaptFM/models/registry.py
 from AdaptFM.model.nnUNetV2Spec import NNUNetV2ModelSpec,MerlinNNUNetV2ModelSpec
-from AdaptFM.model.fmSpec import FoundationModelSpec, MicroSAMSpec,CellposeSAMSpec,SSVTSpec,Sammed3DSpec,CellSAMSpec,BMEXSpec
+from AdaptFM.model.fmSpec import FoundationModelSpec, MicroSAMSpec,CellposeSAMSpec,SSVTSpec,Sammed3DSpec,CellSAMSpec,BMEXSpec,ThreeDCellSpec
 import subprocess
 from pathlib import Path
 import sys
@@ -78,6 +78,17 @@ MODEL_REGISTRY = {
     inference_wrapper_path = "AdaptFM.model.foundation_models.bmex.inference_wrapper",
     training_function="launch_training"#does not support training/finetuning
     ),
+
+    "ThreeDCellComposer": ThreeDCellSpec(
+    name = "ThreeDCellComposer",
+    conda_env = _read_prefix("3dcellcompose_adapt"),
+    module_path = "",#does not support training/fine-tuning
+    training_wrapper_path = "",
+    inference_wrapper_path = "AdaptFM.model.foundation_models.ThreeDCellCompose.inference_wrapper",
+    training_function = ""
+    
+    ),
+    
     
     
     "nnUNetv2": NNUNetV2ModelSpec(
@@ -88,6 +99,5 @@ MODEL_REGISTRY = {
         conda_env = _read_prefix("Merlin_nnUNet_adapt"),
         transform_path = "AdaptFM.model.foundation_models.merlin.transforms"
     )
-    
 }
 

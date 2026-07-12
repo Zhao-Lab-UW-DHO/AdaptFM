@@ -1,5 +1,5 @@
 from pathlib import Path
-from AdaptFM.postprocessing.post_proc_spec import USegment3DSpec,ThreeDCellComposerSpec
+from AdaptFM.postprocessing.post_proc_spec import USegment3DSpec
 
 
 def _read_prefix(env: str) -> str | None:
@@ -11,12 +11,6 @@ POSTPROC_REGISTRY={
         name= "USegment3D",
         conda_env = _read_prefix("usegment3d_adapt"),
         module_path =  "AdaptFM.postprocessing.pipelines.useg3d"
-    ),
-
-    "ThreeDCellComposer": ThreeDCellComposerSpec(
-        name = "ThreeDCellComposer",
-        conda_env=_read_prefix("threeDcell_adapt"),
-        module_path = "AdaptFM.postprocessing.pipelines.threeDcellcomposer"
     )
     }
     

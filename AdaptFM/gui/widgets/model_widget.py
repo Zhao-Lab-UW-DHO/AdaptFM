@@ -7,6 +7,7 @@ from pathlib import Path
 from qtpy.QtCore import Qt
 from AdaptFM.model.registry import MODEL_REGISTRY
 from AdaptFM.model.nnUNetV2Spec import NNUNetV2ModelSpec
+from AdaptFM.model.fmSpec import ThreeDCellSpec
 
 class ModelWorkflowWidget:
     TAG_LABEL = "Tag"   # overridden by subclasses
@@ -104,7 +105,17 @@ class ModelWorkflowWidget:
             if self.param_button is not None:
                 self.layout.removeWidget(self.param_button)
                 self.param_button.deleteLater()
-                self.param_button = None                
+                self.param_button = None
+
+        elif isinstance(self.model, ThreeDCellSpec):
+
+            self._load_inference_params()
+            
+            if self.param_button is not None:
+                self.layout.removeWidget(self.param_button)
+                self.param_button.deleteLater()
+                self.param_button = None
+
 
         else:
             self._build_tag_input()
@@ -115,6 +126,16 @@ class ModelWorkflowWidget:
 
         schema = self.model.tunable_params()
         
+        for name, spec in schema.items():
+            w = self._make_param_widget(name, spec)
+            self.param_widgets[name] = w
+            self.params_form.addRow(name,w.native)
+
+    def _load_inference_params(self):
+
+        self._clear_params()
+        schema = self.model.inference_params()
+
         for name, spec in schema.items():
             w = self._make_param_widget(name, spec)
             self.param_widgets[name] = w
