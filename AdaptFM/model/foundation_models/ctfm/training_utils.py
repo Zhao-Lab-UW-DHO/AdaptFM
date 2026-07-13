@@ -10,7 +10,8 @@ from monai.metrics import DiceHelper
 from torchmetrics import Metric
 from torchmetrics.utilities import dim_zero_cat
 from torch import Tensor
-
+from lighter.utils.types.enums import Mode
+import pytorch_lightning as pl
 
 class DiceScore(Metric):
     def __init__(self, include_background: bool = False, per_class: bool = False):
@@ -18,6 +19,7 @@ class DiceScore(Metric):
         reduction = "mean_batch" if per_class else "mean"
         self.metric = DiceHelper(
             include_background=include_background,
+
             reduction=reduction,
             get_not_nans=False,
             ignore_empty=True,
@@ -31,6 +33,11 @@ class DiceScore(Metric):
 
     def compute(self) -> Tensor:
         return dim_zero_cat(self.dice)
+    
+
+class ModeFixer(pl.Callback):
+    def on_train_epoch_start(self, trainer, pl_module):
+        pl_module.mode = Mode.TRAIN
 
 
 def load_ct_fm_segresnet(out_channels: int) -> nn.Module:
