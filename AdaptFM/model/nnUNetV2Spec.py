@@ -164,7 +164,7 @@ class NNUNetV2ModelSpec(ModelSpec):
 
     def inference_command(self, params, output_dir,checkpoint, env):
         
-        imagesTs = os.path.join(env['nnUNet_raw'],f'Dataset{params['Set ID']}_{params['Set Name']}','imagesTs')
+        imagesTs = os.path.join(env['nnUNet_raw'],f'Dataset{params["Set ID"]}_{params["Set Name"]}','imagesTs')
         ckpt_name = os.path.basename(checkpoint)
 
         return [
