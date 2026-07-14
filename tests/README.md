@@ -1,2 +1,1 @@
-use `python -m unittest` from this directory or
-`python -m unittest discover -s tests` in the repo's root directory to run tests
+use `bash run_tests.sh` to run tests
