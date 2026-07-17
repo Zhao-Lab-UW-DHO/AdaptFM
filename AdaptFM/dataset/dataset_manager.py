@@ -17,22 +17,20 @@ class DatasetManager:
 
     def load_from_folder(self, folder):
         self.folder = folder
-        image_paths = sorted(glob.glob(os.path.join(folder, "*.tif*")))
+        image_paths = sorted(Path(folder).glob("*.tif*"))
         for img_path in image_paths:
-            if img_path.endswith("_seg.tiff"):
+            if img_path.name.endswith("_seg.tiff"):
                 continue
 
-            base = os.path.splitext(img_path)[0]
-            mask_path = base + "_seg.tiff"
+            mask_path = img_path.with_name(f"{img_path.stem}_seg.tiff")
 
-
-            if not (os.path.exists(mask_path)):
+            if not mask_path.exists():
                 continue
 
             self.samples.append({
-                "id": os.path.basename(base),
-                "image": img_path,
-                "mask": mask_path
+                "id": img_path.stem,
+                "image": str(img_path),
+                "mask": str(mask_path)
             })
 
     def iter_samples(self, shuffle=True):

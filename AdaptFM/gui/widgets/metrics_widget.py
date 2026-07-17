@@ -497,5 +497,5 @@ class CountsComparison(Metric):
         ax.legend()
         plt.tight_layout()
 
-        save_dir = os.path.dirname(gt_csv) if isinstance(gt_csv, str) else str(Path(model_preds[0]).parent)
-        plt.savefig(os.path.join(save_dir, 'counts_correlation.png'), dpi=300)
+        save_dir = str(Path(gt_csv).parent) if isinstance(gt_csv, str) else str(Path(model_preds[0]).parent)
+        plt.savefig((Path(save_dir) / 'counts_correlation.png'), dpi=300)

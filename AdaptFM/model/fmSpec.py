@@ -171,8 +171,8 @@ class MicroSAMSpec(FoundationModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(run_dir / "stdout.log", "w"),
-            stderr=open(run_dir / "stderr.log", "w"),
+            stdout=(run_dir / "stdout.log").open(mode='w'),
+            stderr=(run_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )
@@ -208,8 +208,8 @@ class MicroSAMSpec(FoundationModelSpec):
         cmd = self._wrap_with_conda(inference_cmd)
         subprocess.Popen(
             cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(output_dir / "stdout.log").open(mode='w'),
+            stderr=(output_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )
@@ -301,8 +301,8 @@ class CellposeSAMSpec(FoundationModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(run_dir / "stdout.log", "w"),
-            stderr=open(run_dir / "stderr.log", "w"),
+            stdout=(run_dir / "stdout.log").open(mode='w'),
+            stderr=(run_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )
@@ -339,8 +339,8 @@ class CellposeSAMSpec(FoundationModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(output_dir / "stdout.log").open(mode='w'),
+            stderr=(output_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )
@@ -435,8 +435,8 @@ class SSVTSpec(FoundationModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(run_dir / "stdout.log", "w"),
-            stderr=open(run_dir / "stderr.log", "w"),
+            stdout=(run_dir / "stdout.log").open(mode='w'),
+            stderr=(run_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )
@@ -473,8 +473,8 @@ class SSVTSpec(FoundationModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(output_dir / "stdout.log").open(mode='w'),
+            stderr=(output_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )
@@ -489,28 +489,28 @@ class Sammed3DSpec(FoundationModelSpec):
 
     def prepare_dataset(self, dataset_manager, output_dir,params):
 
-        imagesTrFolder = os.path.join(dataset_manager.folder,'imagesTr')
-        labelsTrFolder = os.path.join(dataset_manager.folder,'labelsTr')
+        imagesTrFolder = Path(dataset_manager.folder) / 'imagesTr'
+        labelsTrFolder = Path(dataset_manager.folder) / 'labelsTr'
         os.makedirs(imagesTrFolder,exist_ok=True)
         os.makedirs(labelsTrFolder,exist_ok=True)
 
         tiff_images = [file for file in os.listdir(dataset_manager.folder) if file.endswith(('.tif','.tiff'))]
 
         for tiff_file in tiff_images:
-            tiff_image_path = os.path.join(dataset_manager.folder,tiff_file)
+            tiff_image_path = Path(dataset_manager.folder) / tiff_file
             tiff_image = tiff.imread(tiff_image_path)
             tiff_image = sitk.GetImageFromArray(tiff_image)
 
             nii_name = tiff_file.replace('_seg', '').replace('.tiff', '.nii.gz')
 
             if '_seg.tiff' in tiff_file:
-                nii_path = os.path.join(labelsTrFolder,nii_name)
+                nii_path = Path(labelsTrFolder) / nii_name
 
             if '_seg.tiff' not in tiff_file:
-                nii_path = os.path.join(imagesTrFolder,nii_name)
+                nii_path = Path(imagesTrFolder) / nii_name
 
             sitk.WriteImage(tiff_image,nii_path)
-            os.remove(tiff_image_path)        
+            Path(tiff_image_path).unlink()
 
         return {"dataset_dir": dataset_manager.folder}
     
@@ -547,8 +547,8 @@ class Sammed3DSpec(FoundationModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(run_dir / "stdout.log", "w"),
-            stderr=open(run_dir / "stderr.log", "w"),
+            stdout=(run_dir / "stdout.log").open(mode='w'),
+            stderr=(run_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )
@@ -585,8 +585,8 @@ class Sammed3DSpec(FoundationModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(output_dir / "stdout.log").open(mode='w'),
+            stderr=(output_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )

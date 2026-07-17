@@ -14,7 +14,7 @@ class SaveWidget:
             call_button="Save for training",
         )
         def widget(
-            save_dir=Path("."),
+            save_dir=Path(),
             filename_base="",
         ):
             if "auto_seg" not in self.viewer.layers:

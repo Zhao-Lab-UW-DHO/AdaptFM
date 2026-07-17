@@ -3,6 +3,7 @@ import tifffile as tiff
 import dask.array as da
 import numpy as np
 import SimpleITK as sitk
+from pathlib import Path
 
 class VolumeManager:
     def __init__(
@@ -30,7 +31,7 @@ class VolumeManager:
     def load_image(self, path):
         self.path = path
 
-        mb_est = os.path.getsize(path) / (1024 ** 2)
+        mb_est = Path(path).stat().st_size / (1024 ** 2)
 
         if mb_est < self.eager_threshold_mb:
             self.mode = "eager"

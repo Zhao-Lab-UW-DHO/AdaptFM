@@ -30,6 +30,7 @@ dependencies = ["napari",
 [project.optional-dependencies]
 sam2 = []   # submodule handles it, this just signals intent
 sam3 = []
+dev = ["ruff"]
 
 [project.scripts]
 
@@ -44,3 +45,56 @@ adaptfm-install-sammed3d = "AdaptFM.install.install_sammed3d:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
+
+[tool.ruff.lint]
+select = [
+    "E", "F",   # Standard pycodestyle (formerly pep8)
+    "B",        # flake8-bugbear 
+    "SIM",      # flake8-simplify
+    "PTH",      # flake8-use-pathlib (to prevent / vs \ issues)
+    "PLW",      # Pylint Warnings (includes issues for file encodings)
+    "S",        # flake8-bandit (includes highlighting reliance on /tmp not present in Win11)
+]
+ignore = [
+    ### BLOCK OF EXCEPTIONS FOR POSSIBLY DESIRED BUT UNIMPORTANT FOR COMPATABILITY CHECKS
+    "E501",    # line-too-long 119
+    "E402",    # module-import-not-at-top-of-file 76
+    "F401",    # unused-import 37
+    "E401",    # multiple-imports-on-one-line 4
+    "E701",    # multiple-statements-on-one-line-colon 2
+    "E702",    # multiple-statements-on-one-line-semicolon 2
+    "E721",    # type-comparison 2
+    "E712",    # true-false-comparison 1
+    "F811",    # redefined-while-unused 44
+    "F841",    # unused-variable 4
+    "B006",    # mutable-argument-default 2
+    "B027",    # empty-method-without-abstract-decorator 2
+    "B007",    # unused-loop-control-variable 1
+    "B904",    # raise-without-from-inside-except 1
+    "SIM115",  # open-file-with-context-handler 22
+    "SIM300",  # yoda-conditions 8
+    "SIM105",  # suppressible-exception 2
+    "SIM102",  # collapsible-if 1
+    "SIM108",  # if-else-block-instead-of-if-exp 1
+    "SIM118",  # in-dict-keys 1
+    "PLW2901", # redefined-loop-name 12
+    "PLW0603", # global-statement 7
+    "B905",    # zip-without-explicit-strict 6
+    "S101",    # assert 16
+    "S311",    # suspicious-non-cryptographic-random-usage 10
+    "S110",    # try-except-pass 2
+    "S112",    # try-except-continue 2
+
+
+    ### BEGIN dropped checks unlikely to fix
+    "S310", # url audits not problematic for software run at user level.
+
+    "S603", # use of subprocess run/Popen which requires running checks on inputs to ensure safe execution. 24 occurences at time of writing
+
+    ### BEGIN dropped check that make windows compatability worse, but willnotfix
+    "S607", # use of subprocess calls without specifying the full path e.g. "conda" or "git" vs "/<path>/bin/conda". 12 occurences at time of writing
+    
+]
+
+[tool.ruff.format]
+line-ending = "lf"

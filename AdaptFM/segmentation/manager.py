@@ -4,6 +4,7 @@ from datetime import datetime
 import tifffile as tiff
 import json
 from AdaptFM.segmentation.fourier.nuc_seg import run_nuclear_segmentation
+from pathlib import Path
 
 @dataclass
 class AutoSegParams:
@@ -53,15 +54,15 @@ class SegmentationManager:
 
     def save_for_training(self, save_dir, filename_base=None, manual_seg=None):
 
-            os.makedirs(save_dir, exist_ok=True)
+            Path(save_dir).mkdir(parents=True, exist_ok=True)
 
             # --- filenames ---
             if filename_base is None:
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 filename_base = f"volume_{timestamp}"
 
-            vol_path = os.path.join(save_dir, f"{filename_base}.tiff")
-            seg_path = os.path.join(save_dir, f"{filename_base}_seg.tiff")
+            vol_path = Path(save_dir) / f"{filename_base}.tiff"
+            seg_path = Path(save_dir) / f"{filename_base}_seg.tiff"
 
             # --- get data ---
             volume = self.vm.get_eager()

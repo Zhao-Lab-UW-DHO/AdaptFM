@@ -7,6 +7,7 @@ Going forward we will only support repos that can be installed as a package
 import copy
 import os
 import os.path as osp
+from pathlib import Path
 import re
 import argparse
 import numpy as np
@@ -380,7 +381,7 @@ def validate_paired_img_gt(model, img_path, gt_path, output_path,
     torch.manual_seed(seed)
     np.random.seed(seed)
 
-    os.makedirs(osp.dirname(output_path), exist_ok=True)
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
 
     exist_categories, final_pred = get_category_list_and_zero_mask(gt_path)
     _, gt_meta = read_arr_from_nifti(gt_path, get_meta_info=True)

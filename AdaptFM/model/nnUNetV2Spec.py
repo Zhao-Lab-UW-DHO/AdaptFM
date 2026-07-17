@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from AdaptFM.model.model_spec import ModelSpec
 import os
 import subprocess
@@ -82,8 +84,8 @@ class NNUNetV2ModelSpec(ModelSpec):
 
         process= subprocess.Popen(
             cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(output_dir / "stdout.log").open(mode='w'),
+            stderr=(output_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )
@@ -126,8 +128,8 @@ class NNUNetV2ModelSpec(ModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(run_dir / "stdout.log", "w"),
-            stderr=open(run_dir / "stderr.log", "w"),
+            stdout=(run_dir / "stdout.log").open(mode='w'),
+            stderr=(run_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )
@@ -155,8 +157,8 @@ class NNUNetV2ModelSpec(ModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(output_dir / "stdout.log").open(mode='w'),
+            stderr=(output_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )
@@ -164,8 +166,8 @@ class NNUNetV2ModelSpec(ModelSpec):
 
     def inference_command(self, params, output_dir,checkpoint, env):
         
-        imagesTs = os.path.join(env['nnUNet_raw'],f'Dataset{params['Set ID']}_{params['Set Name']}','imagesTs')
-        ckpt_name = os.path.basename(checkpoint)
+        imagesTs = Path(env['nnUNet_raw']) / f'Dataset{params['Set ID']}_{params['Set Name']}' / 'imagesTs'
+        ckpt_name = Path(checkpoint).name
 
         return [
             'nnUNetv2_predict',
