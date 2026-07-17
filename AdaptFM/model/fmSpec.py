@@ -491,25 +491,26 @@ class Sammed3DSpec(FoundationModelSpec):
 
         imagesTrFolder = Path(dataset_manager.folder) / 'imagesTr'
         labelsTrFolder = Path(dataset_manager.folder) / 'labelsTr'
-        os.makedirs(imagesTrFolder,exist_ok=True)
-        os.makedirs(labelsTrFolder,exist_ok=True)
 
-        tiff_images = [file for file in os.listdir(dataset_manager.folder) if file.endswith(('.tif','.tiff'))]
+        imagesTrFolder.mkdir(parents=True, exist_ok=True)
+        labelsTrFolder.mkdir(parents=True, exist_ok=True)
+
+        tiff_images = [file.name for file in Path(dataset_manager.folder).iterdir() if file.is_file() and file.suffix.lower() in ('.tif', '.tiff')]
 
         for tiff_file in tiff_images:
             tiff_image_path = Path(dataset_manager.folder) / tiff_file
             tiff_image = tiff.imread(tiff_image_path)
             tiff_image = sitk.GetImageFromArray(tiff_image)
 
-            nii_name = tiff_file.replace('_seg', '').replace('.tiff', '.nii.gz')
+            nii_name = Path(tiff_file).stem.replace('_seg', '') + '.nii.gz'
 
             if '_seg.tiff' in tiff_file:
                 nii_path = Path(labelsTrFolder) / nii_name
 
-            if '_seg.tiff' not in tiff_file:
+            else:
                 nii_path = Path(imagesTrFolder) / nii_name
 
-            sitk.WriteImage(tiff_image,nii_path)
+            sitk.WriteImage(tiff_image, str(nii_path))
             Path(tiff_image_path).unlink()
 
         return {"dataset_dir": dataset_manager.folder}

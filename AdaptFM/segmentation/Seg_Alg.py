@@ -345,7 +345,7 @@ class SAM2ClickAndPropagate(SegmentationAlgorithmSpec):
         REPO_ROOT = Path(__file__).resolve().parents[1]  # AdaptFM/AdaptFM
         ckpt_dir = REPO_ROOT / "segmentation" / "sam2" / "checkpoints"
 
-        os.environ["SAM2_REPO_ROOT"] = REPO_ROOT / 'segmentation' / 'sam2' / 'sam2'
+        os.environ["SAM2_REPO_ROOT"] = str(REPO_ROOT / 'segmentation' / 'sam2' / 'sam2')
 
         os.environ["SAM2_CHECKPOINT_DIR"] = str(ckpt_dir)
 #note that if this is their first time using, SAM2 checkpoints are downloaded
@@ -593,7 +593,7 @@ class SAM2ClickAndPropagate(SegmentationAlgorithmSpec):
 
         device = f"cuda:{gpu}" if torch.cuda.is_available() else "cpu"
 
-        cfg_file = Path("configs") / "sam2.1" / Path(cfg_file)
+        cfg_file = str(Path("configs") / "sam2.1" / Path(cfg_file))
 
         self._predictor  = build_sam2_video_predictor(cfg_file, str(ckpt_path), device=device)
         self._model_size = model_size
@@ -798,7 +798,7 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
         REPO_ROOT = Path(__file__).resolve().parents[1]
         ckpt_dir = REPO_ROOT / 'segmentation'/'sam3'/'checkpoint'
 
-        os.environ['SAM3_REPO_ROOT']= REPO_ROOT / 'segmentation' / 'sam3' / 'sam3' # path to this repo
+        os.environ['SAM3_REPO_ROOT']= str(REPO_ROOT / 'segmentation' / 'sam3' / 'sam3') # path to this repo
 
         os.environ['PYTHONPATH']="${SAM3_REPO_ROOT}:${PYTHONPATH}"
         os.environ['SAM3_CHECKPOINT_DIR']= str(ckpt_dir)

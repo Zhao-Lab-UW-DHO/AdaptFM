@@ -61,8 +61,8 @@ class SegmentationManager:
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 filename_base = f"volume_{timestamp}"
 
-            vol_path = Path(save_dir) / f"{filename_base}.tiff"
-            seg_path = Path(save_dir) / f"{filename_base}_seg.tiff"
+            vol_path = str(Path(save_dir) / f"{filename_base}.tiff")
+            seg_path = str(Path(save_dir) / f"{filename_base}_seg.tiff")
 
             # --- get data ---
             volume = self.vm.get_eager()

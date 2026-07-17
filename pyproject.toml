@@ -56,7 +56,8 @@ select = [
     "S",        # flake8-bandit (includes highlighting reliance on /tmp not present in Win11)
 ]
 ignore = [
-    ### BLOCK OF EXCEPTIONS FOR POSSIBLY DESIRED BUT UNIMPORTANT FOR COMPATABILITY CHECKS
+    ### BLOCK OF EXCEPTIONS FOR POSSIBLY DESIRED BUT UNIMPORTANT FOR COMPATIBILITY CHECKS
+    ### with number of times raised at time of ignore
     "E501",    # line-too-long 119
     "E402",    # module-import-not-at-top-of-file 76
     "F401",    # unused-import 37
@@ -91,7 +92,7 @@ ignore = [
 
     "S603", # use of subprocess run/Popen which requires running checks on inputs to ensure safe execution. 24 occurences at time of writing
 
-    ### BEGIN dropped check that make windows compatability worse, but willnotfix
+    ### BEGIN dropped check that make windows compatibility  worse, but willnotfix
     "S607", # use of subprocess calls without specifying the full path e.g. "conda" or "git" vs "/<path>/bin/conda". 12 occurences at time of writing
     
 ]
