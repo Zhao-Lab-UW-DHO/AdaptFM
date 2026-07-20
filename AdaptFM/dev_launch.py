@@ -9,8 +9,10 @@ from AdaptFM.session.annotation_session import AnnotationSession
 from AdaptFM.gui.widgets.inference_widget import InferenceWidget
 from AdaptFM.gui.widgets.training_widget import TrainingWidget
 from AdaptFM.gui.widgets.benchmark_widget import BenchmarkWidget
+from AdaptFM.gui.widgets.preprocessing_widget import PreprocessingWidget
 from AdaptFM.model.registry import MODEL_REGISTRY
 from qtpy.QtWidgets import QAction
+
 
 
 def main():
@@ -68,6 +70,15 @@ def main():
 
     # Show widget when menu action triggered
     benchmark_action.triggered.connect(benchmark_widget.show)
+
+
+    # Add Pre-proccessing menu
+    pre_menu = viewer.window._qt_window.menuBar().addMenu("Preprocessing")
+    preprocess_action = QAction("Run Preprocessing", viewer.window._qt_window)
+    pre_menu.addAction(preprocess_action)
+
+    viewer.window._pre_proc_widget = PreprocessingWidget()
+    preprocess_action.triggered.connect(viewer.window._pre_proc_widget.show)
 
 
     napari.run()
