@@ -1,27 +1,29 @@
+from pathlib import Path
 import re
 import json
 import os
 # Function to construct required folder structure for nnunetv2
 def construct_nnUNet_folders(base_dir, setID=1, setName="Organoids"):
-    dataset_root = os.path.join(
-        base_dir, f"nnUNet_raw/Dataset{setID:03}_{setName}"
-    )
-    os.makedirs(os.path.join(base_dir,'nnUNet_preprocessed'),exist_ok=True)
-    os.makedirs(os.path.join(base_dir,'nnUNet_results'),exist_ok=True)
+    base = Path(base_dir)
+    dataset_root = base / "nnUNet_raw" / f"Dataset{setID:03}_{setName}"
+
+    (base / 'nnUNet_preprocessed').mkdir(parents=True, exist_ok=True)
+    (base / 'nnUNet_results').mkdir(parents=True, exist_ok=True)
 
     paths = {
-        "dataset_root": dataset_root,
-        "imagesTr": os.path.join(dataset_root, "imagesTr"),
-        "imagesTs": os.path.join(dataset_root, "imagesTs"),
-        "labelsTr": os.path.join(dataset_root, "labelsTr"),
+        "dataset_root": str(dataset_root),
+        "imagesTr": str(dataset_root / "imagesTr"),
+        "imagesTs": str(dataset_root / "imagesTs"),
+        "labelsTr": str(dataset_root / "labelsTr"),
     }
 
-    for name, path in paths.items():
-        if not os.path.exists(path):
-            os.makedirs(path, exist_ok=True)
-            print(f"Created directory: {path}")
+    for name, path_str in paths.items():
+        path_obj = Path(path_str)
+        if not path_obj.exists():
+            path_obj.mkdir(parents=True, exist_ok=True)
+            print(f"Created directory: {path_str}")
         else:
-            print(f"Directory already exists: {path}")
+            print(f"Directory already exists: {path_str}")
 
     return paths
 
@@ -41,13 +43,15 @@ def get_channel_dict(directory,setName,channel=0):
 
 
     num_channels = None
-    for filename in os.listdir(directory):
-        match = re.match(pattern, filename)
-        if match:
-            channel_count = int(match.group(1))  # Extract the Y value
-            # Update the largest Y value
-            if num_channels is None or channel_count > num_channels:
-                num_channels = channel_count
+    for file_obj in Path(directory).iterdir():
+        if file_obj.is_file():
+            filename = file_obj.name
+            match = re.match(pattern, filename)
+            if match:
+                channel_count = int(match.group(1))  # Extract the Y value
+                # Update the largest Y value
+                if num_channels is None or channel_count > num_channels:
+                    num_channels = channel_count
 
 
     channel_names = {f'Channel {i}': f'{i}' for i in range(0, num_channels + 1)}
@@ -63,11 +67,13 @@ def count_unique_cases(directory,setName):
 
     unique_cases = set()
 
-    for filename in os.listdir(directory):
-        match = re.match(pattern, filename)
-        if match:
-            case = int(match.group(1))  # Extract the case value
-            unique_cases.add(case)
+    for file_obj in Path(directory).iterdir():
+        if file_obj.is_file():
+            filename = file_obj.name
+            match = re.match(pattern, filename)
+            if match:
+                case = int(match.group(1))  # Extract the case value
+                unique_cases.add(case)
 
     return len(unique_cases) #just need to know the number of unique training/testing cases
 
@@ -90,8 +96,8 @@ def count_unique_cases(directory,setName):
 def write_nnUNet_json(base_dir,setName,setID,file_ending='.tiff',channel=0):
 
     formatted_setID = f'{int(setID):03d}'
-    nnUNet_directory = os.path.join(base_dir,f'nnUNet_raw/Dataset{formatted_setID}_{setName}')
-    training_directory = os.path.join(nnUNet_directory,'imagesTr/')
+    nnUNet_directory = str( Path(base_dir) / 'nnUNet_raw' / f'Dataset{formatted_setID}_{setName}' )
+    training_directory = str( Path(nnUNet_directory) / 'imagesTr') + '/'
     # Assume for now that we can get this directly from the traiing directory
     
     channel_dict = get_channel_dict(training_directory,setName=setName,channel=channel)
@@ -112,7 +118,7 @@ def write_nnUNet_json(base_dir,setName,setID,file_ending='.tiff',channel=0):
         'file_ending': file_ending,
     }
 
-    with open(os.path.join(nnUNet_directory,'dataset.json'), 'w') as f:
+    with (Path(nnUNet_directory) / 'dataset.json').open('w') as f:
         json.dump(dataset_json, f, sort_keys=False, indent=4)
 
 

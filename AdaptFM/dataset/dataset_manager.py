@@ -46,7 +46,8 @@ class DatasetManager:
     def export_for_framework(self, framework="nnunet", out_folder=None,params=None):
         # copy files to nnunet folder structure or return lists of paths
         
-        os.makedirs(out_folder,exist_ok=True)
+        Path(out_folder).mkdir(parents=True, exist_ok=True)
+        
         print(params)
         if framework =='nnunet':
             return self._export_nnunet(out_folder,params=params)
@@ -71,8 +72,8 @@ class DatasetManager:
 
             case_id = f"Organoids_{idx:03d}"
 
-            img_dst = os.path.join(imagesTr, f"{case_id}_0000.tiff")
-            lbl_dst = os.path.join(labelsTr, f"{case_id}.tiff")
+            img_dst = str(Path(imagesTr) / f"{case_id}_0000.tiff")
+            lbl_dst = str(Path(labelsTr) / f"{case_id}.tiff")
 
             shutil.copy(s["image"], img_dst)
             shutil.copy(s["mask"], lbl_dst)
@@ -90,16 +91,17 @@ class DatasetManager:
 
 
     def _export_simple_pairs(self, out_folder, framework):
-        img_dir = os.path.join(out_folder, "images")
-        msk_dir = os.path.join(out_folder, "masks")
+        out_folder_path = Path(out_folder)
+        img_dir = out_folder_path / "images"
+        msk_dir = out_folder_path / "masks"
 
-        os.makedirs(img_dir, exist_ok=True)
-        os.makedirs(msk_dir, exist_ok=True)
+        img_dir.mkdir(parents=True, exist_ok=True)
+        msk_dir.mkdir(parents=True, exist_ok=True)
 
         for s in self.samples:
-            shutil.copy(s["image"], os.path.join(img_dir, os.path.basename(s["image"])))
-            shutil.copy(s["mask"], os.path.join(msk_dir, os.path.basename(s["mask"])))
+            shutil.copy(s["image"], img_dir / Path(s["image"]).name)
+            shutil.copy(s["mask"], msk_dir / Path(s["mask"]).name)
 
-        return Path(out_folder)
+        return out_folder_path
 
         

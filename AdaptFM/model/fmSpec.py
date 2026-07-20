@@ -98,8 +98,8 @@ class MicroSAMSpec(FoundationModelSpec):
         training_dir = output_dir / "training"
         seg_dir = output_dir / "segmentations"
 
-        training_dir.mkdir(exist_ok=True)
-        seg_dir.mkdir(exist_ok=True)
+        training_dir.mkdir(parents=True, exist_ok=True)
+        seg_dir.mkdir(parents=True, exist_ok=True)
 
         for s in dataset_manager.samples:
             img = tiff.imread(s["image"])
@@ -110,14 +110,14 @@ class MicroSAMSpec(FoundationModelSpec):
             shutil.copy(s["mask"], seg_dir / mask_name)
 
 
-        raw_paths = [os.path.join(training_dir, f) for f in os.listdir(training_dir)]
-        label_paths = [os.path.join(seg_dir, f) for f in os.listdir(seg_dir)]
+        raw_paths = [str(f) for f in Path(training_dir).iterdir() if f.is_file()]
+        label_paths = [str(f) for f in Path(seg_dir).iterdir() if f.is_file()]
 
-        raw_dict = {os.path.basename(p): p for p in raw_paths}
+        raw_dict = {Path(p).name: p for p in raw_paths}
 
         label_dict = {}
         for p in label_paths:
-            fname = os.path.basename(p)
+            fname = Path(p).name
             if fname.endswith("_seg.tiff"):
                 base = fname.replace("_seg.tiff", ".tiff")
                 label_dict[base] = p
@@ -157,7 +157,7 @@ class MicroSAMSpec(FoundationModelSpec):
     def run_training(self, dataset_info, params, run_dir):
         run_dir.mkdir(parents=True, exist_ok=True)
 
-        with open(run_dir / "params.json", "w") as f:
+        with (Path(run_dir) / 'params.json').open('w') as f:
             json.dump(params, f, indent=4)
 
         gpu = params.pop("gpu", None)
@@ -287,7 +287,7 @@ class CellposeSAMSpec(FoundationModelSpec):
     def run_training(self, dataset_info, params, run_dir):
         run_dir.mkdir(parents=True, exist_ok=True)
 
-        with open(run_dir / "params.json", "w") as f:
+        with (Path(run_dir) / 'params.json').open('w') as f:
             json.dump(params, f, indent=4)
 
         gpu = params['gpu']
@@ -421,7 +421,7 @@ class SSVTSpec(FoundationModelSpec):
     def run_training(self, dataset_info, params, run_dir):
         run_dir.mkdir(parents=True, exist_ok=True)
 
-        with open(run_dir / "params.json", "w") as f:
+        with (Path(run_dir) / 'params.json').open('w') as f:
             json.dump(params, f, indent=4)
 
         gpu = params.pop("gpu", None)
@@ -534,7 +534,7 @@ class Sammed3DSpec(FoundationModelSpec):
     def run_training(self, dataset_info, params, run_dir):
         run_dir.mkdir(parents=True, exist_ok=True)
 
-        with open(run_dir / "params.json", "w") as f:
+        with (Path(run_dir) / 'params.json').open('w') as f:
             json.dump(params, f, indent=4)
 
         gpu = params.pop("gpu", None)

@@ -77,9 +77,9 @@ class NNUNetV2ModelSpec(ModelSpec):
         )
 
         env = os.environ.copy()
-        env['nnUNet_raw'] = os.path.join(dataset_dir,'nnUNet_raw')
-        env['nnUNet_preprocessed'] = os.path.join(dataset_dir,'nnUNet_preprocessed')
-        env['nnUNet_results'] =os.path.join(dataset_dir,'nnUNet_results')
+        env['nnUNet_raw'] = str(Path(dataset_dir) / 'nnUNet_raw')
+        env['nnUNet_preprocessed'] = str(Path(dataset_dir) / 'nnUNet_preprocessed')
+        env['nnUNet_results'] = str(Path(dataset_dir) / 'nnUNet_results')
         env['CUDA_VISIBLE_DEVICES'] = str(gpu)
 
         process= subprocess.Popen(
@@ -111,12 +111,12 @@ class NNUNetV2ModelSpec(ModelSpec):
 
         gpu = params['gpu']
         env = os.environ.copy()
-        env['nnUNet_raw'] = os.path.join(dataset_info,'nnUNet_raw')
-        env['nnUNet_preprocessed'] = os.path.join(dataset_info,'nnUNet_preprocessed')
-        env['nnUNet_results'] =os.path.join(dataset_info,'nnUNet_results')
+        env['nnUNet_raw'] = str(Path(dataset_info) / 'nnUNet_raw')
+        env['nnUNet_preprocessed'] = str(Path(dataset_info) / 'nnUNet_preprocessed')
+        env['nnUNet_results'] = str(Path(dataset_info) / 'nnUNet_results')
         env['CUDA_VISIBLE_DEVICES'] = str(gpu)
 
-        with open(run_dir / "params.json", "w") as f:
+        with (Path(run_dir) / 'params.json').open('w') as f:
             json.dump(params, f, indent=4)
 
         training_commnad = self.training_command(params)
@@ -140,9 +140,9 @@ class NNUNetV2ModelSpec(ModelSpec):
         gpu = params['gpu']
         env = os.environ.copy()
 
-        env['nnUNet_raw'] = os.path.join(dataset_dir,'nnUNet_raw')
-        env['nnUNet_preprocessed'] = os.path.join(dataset_dir,'nnUNet_preprocessed')
-        env['nnUNet_results'] =os.path.join(dataset_dir,'nnUNet_results')
+        env['nnUNet_raw'] = str(Path(dataset_dir) / 'nnUNet_raw')
+        env['nnUNet_preprocessed'] = str(Path(dataset_dir) / 'nnUNet_preprocessed')
+        env['nnUNet_results'] = str(Path(dataset_dir) / 'nnUNet_results')
 
         if gpu is not None:
             env["CUDA_VISIBLE_DEVICES"] = str(gpu)      

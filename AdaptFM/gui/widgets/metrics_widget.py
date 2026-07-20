@@ -110,7 +110,7 @@ def plot_dice_boxplot(results, gt_dir, name):
     plt.title(f"{name} Distribution per Model")
     plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
-    plt.savefig(os.path.join(gt_dir, f"{name}_boxplot.png"), dpi=300)
+    plt.savefig(Path(gt_dir) / f"{name}_boxplot.png", dpi=300)
 
 
 # ──────────────────────────────────────────────
@@ -460,15 +460,15 @@ class CountsComparison(Metric):
                 filename = row['File']
                 gt_count = row['Counts']
 
-                pred_path = os.path.join(model_dir, filename)
-                if not os.path.exists(pred_path):
-                    stem = os.path.splitext(filename)[0]
-                    candidates = [f for f in os.listdir(model_dir)
-                                if os.path.splitext(f)[0] == stem]
+                pred_path = str(Path(model_dir) / filename)
+                if not Path(pred_path).exists():
+                    stem = Path(filename).stem
+                    candidates = [f.name for f in Path(model_dir).iterdir()
+                                  if f.is_file() and f.stem == stem]
                     if not candidates:
                         print(f"Warning: no prediction found for {filename} in {model_dir}, skipping")
                         continue
-                    pred_path = os.path.join(model_dir, candidates[0])
+                    pred_path = str(Path(model_dir) / candidates[0])
 
                 pred_img = tifffile.imread(pred_path)
                 labeled = label(pred_img, connectivity=2)
