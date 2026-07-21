@@ -33,7 +33,7 @@ class SessionWidget:
         @magicgui(call_button="Open image")
         def open_image():
             path, _ = QFileDialog.getOpenFileName(
-                None,
+                self.widget,
                 "Select image",
                 ""
             )

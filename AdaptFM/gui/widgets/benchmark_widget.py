@@ -74,16 +74,16 @@ class BenchmarkWidget(QWidget):
         metric_name = self.metric_dropdown.currentText()
 
         if metric_name == 'Compare Counts':
-            path, _ = QFileDialog.getOpenFileName(None, "Select file")
+            path, _ = QFileDialog.getOpenFileName(self, "Select file")
         else:
-            path = QFileDialog.getExistingDirectory(None, "Select folder")
+            path = QFileDialog.getExistingDirectory(self, "Select folder")
 
         if path:
             self.gt_dir = path
             self.gt_button.setText(Path(path).name)
 
     def add_model(self):
-        model_dir = QFileDialog.getExistingDirectory(None, "Select model predictions")
+        model_dir = QFileDialog.getExistingDirectory(self, "Select model predictions")
         if model_dir:
             self.models_dirs.append(model_dir)
             self.models_list.addItem(model_dir)

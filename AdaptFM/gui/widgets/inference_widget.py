@@ -21,7 +21,7 @@ class InferenceWidget(ModelWorkflowWidget):
 
     def _select_checkpoint(self):
         path, _ = QFileDialog.getOpenFileName(
-            None, "Select checkpoint"        )
+            self.widget, "Select checkpoint"        )
         if path:
             self.checkpoint_path = Path(path)
 
@@ -31,11 +31,11 @@ class InferenceWidget(ModelWorkflowWidget):
 
         params = self.collect_params()
         output_dir = Path(QFileDialog.getExistingDirectory(
-            None, "Select output directory"))
+            self.widget, "Select output directory"))
         
                 # 2. Prompt for GPU
         gpu, returned_ok = QInputDialog.getInt(
-            None,
+            self.widget,
             "Select GPU",
             "GPU index:",
             value=0,

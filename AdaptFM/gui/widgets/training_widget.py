@@ -19,11 +19,11 @@ class TrainingWidget(ModelWorkflowWidget):
         params = self.collect_params()
 
         output_dir = Path(QFileDialog.getExistingDirectory(
-            None, "Select output directory"
+            self.widget, "Select output directory"
         ))
         
         gpu, returned_ok = QInputDialog.getInt(
-            None,
+            self.widget,
             "Select GPU",
             "GPU index:",
             value=0,
