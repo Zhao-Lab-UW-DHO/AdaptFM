@@ -87,7 +87,7 @@ class DatasetManager:
             
         )
 
-        return out_folder / f"nnUNet_raw/Dataset{setID:03}_{setName}"
+        return out_folder / "nnUNet_raw" / f"Dataset{setID:03}_{setName}"
 
 
     def _export_simple_pairs(self, out_folder, framework):
