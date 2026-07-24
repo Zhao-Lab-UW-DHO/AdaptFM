@@ -247,6 +247,23 @@ ENV_REGISTRY: list[EnvironmentSpec] = [
         docs_url="https://github.com/murphygroup/3DCellComposer/tree/main"
         ),
 
+    EnvironmentSpec(
+        key="ReScale4DL",
+        display_name='ReScale4DL',
+        description="Balancing Pixel and Contextual Information for Enhanced Bioimage Segmentation",
+        conda_env_name="rescale4dl_adapt",
+        install_command="adaptfm-install-rescale4dl",
+        uninstall_command="adaptfm-uninstall",
+        requires_gpu=True,
+        pip_packages=[
+            PipPackageSpec("rescale4dl",
+                           display_name="rescale4dl",
+                           update_source="pypi")
+        ],
+        docs_url="https://github.com/HenriquesLab/ReScale4DL"
+        ),
+    
+
     
 
     # ------------------------------------------------------------------ #

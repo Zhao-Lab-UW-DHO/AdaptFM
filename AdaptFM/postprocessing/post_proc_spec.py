@@ -55,3 +55,32 @@ class USegment3DSpec(PostProcess):
             env=env
         )
 
+
+class Rescale4dlSpec(PostProcess):
+
+    def __init__(self,name,conda_env,module_path):
+        super().__init__(name,conda_env,module_path)
+        self.name=name
+        self.conda_env= conda_env
+        self.module_path=module_path
+
+    def run_postprocess(self, input_dir):
+
+        env = os.environ.copy()
+
+        post_process_cmd =[
+            "python",
+            "-m", f"{self.module_path}",
+            "--input_dir",input_dir
+        ]
+
+        cmd = self._wrap_with_conda(post_process_cmd)
+
+        subprocess.Popen(
+            cmd,
+            stdout=open(input_dir / "stdout.log", "w"),
+            stderr=open(input_dir / "stderr.log", "w"),
+            start_new_session=True,
+            env=env
+        )
+

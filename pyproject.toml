@@ -46,8 +46,8 @@ adaptfm-install-useg = "AdaptFM.install.install_useg3d:main"
 adaptfm-install-merlin ="AdaptFM.install.install_merlin:main"
 adaptfm-install-bmex = "AdaptFM.install.install_bmex:main"
 adaptfm-install-3dcellcompose = "AdaptFM.install.install_3dcellcompose:main"
+adaptfm-install-rescale4dl = "AdaptFM.install.install_rescale4dl:main"
 adaptfm-uninstall = "AdaptFM.install.uninstall_general:main"
-
 
 
 [tool.setuptools.packages.find]
