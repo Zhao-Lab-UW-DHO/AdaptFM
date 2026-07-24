@@ -137,13 +137,10 @@ def main() -> None:
         sys.exit(1)
 
     # Resolve paths (CLI args take priority, then interactive prompt)
-    sammed3d_root: Path = args.sammed3d_root or _prompt_path(
-        "SAM-Med3D root (will clone repo here if absent)"
-    )
-    adaptfm_root: Path = args.adaptfm_root or _prompt_path(
-        "AdaptFM root",
-        default=Path.cwd(),
-    )
+    cwd = Path.cwd()
+
+    sammed3d_root = (cwd.parent / "SAM-Med3D")
+    adaptfm_root: Path =cwd
     sammed3d_root = sammed3d_root.expanduser().resolve()
     adaptfm_root = adaptfm_root.expanduser().resolve()
 
