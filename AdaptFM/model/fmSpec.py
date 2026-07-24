@@ -590,3 +590,42 @@ class Sammed3DSpec(FoundationModelSpec):
             start_new_session=True,
             env=env
         )
+
+
+class CellSAMSpec(FoundationModelSpec):
+    def __init__(self, name, conda_env, module_path,training_wrapper_path,inference_wrapper_path,training_function):
+        super().__init__(name, conda_env, module_path,training_wrapper_path,inference_wrapper_path,training_function)
+
+
+
+    def inference_command(self, dataset_dir, checkpoint, output_dir):
+        return [
+            "python",
+            "-m", f"{self.inference_wrapper_path}",
+            "--test_dir",str(dataset_dir),
+            "--output_path",str(output_dir),
+        ]
+
+
+
+    def run_inference(self, dataset_dir, checkpoint, output_dir, params):
+
+        gpu = params.pop("gpu", None)
+        env = os.environ.copy()
+        if gpu is not None:
+            env["CUDA_VISIBLE_DEVICES"] = str(gpu)
+
+
+        inference_cmd = self.inference_command(dataset_dir=dataset_dir,
+                                                checkpoint=checkpoint,
+                                                output_dir=output_dir) 
+
+        cmd = self._wrap_with_conda(inference_cmd)
+
+        subprocess.Popen(
+            cmd,
+            stdout=open(output_dir / "stdout.log", "w"),
+            stderr=open(output_dir / "stderr.log", "w"),
+            start_new_session=True,
+            env=env
+        )
