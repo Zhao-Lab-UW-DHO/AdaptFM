@@ -66,7 +66,7 @@ class FoundationModelSpec(ModelSpec):
 
     def training_command(self, dataset_dir, params, run_dir):
         return [
-            "python", "-m", self.module_path,
+            "python", self.module_path,
             "--dataset", str(dataset_dir),
             "--out", str(run_dir),
             "--params", json.dumps(params),
@@ -75,7 +75,7 @@ class FoundationModelSpec(ModelSpec):
     def inference_command(self,model_path,images_dir,output_dir):
         return [
             "python",
-            "-m", self.module_path,
+            self.module_path,
             "predict",
             "--model", str(model_path),
             "--images", str(images_dir),
@@ -144,7 +144,7 @@ class MicroSAMSpec(FoundationModelSpec):
         """
         return [
             "python",
-            "-m", f"{self.training_wrapper_path}",
+            f"{self.training_wrapper_path}",
             "--raw_paths", json.dumps(dataset_info["raw_paths"]),
             "--label_paths", json.dumps(dataset_info["label_paths"]),
             "--params", json.dumps(params),
@@ -185,7 +185,7 @@ class MicroSAMSpec(FoundationModelSpec):
 
         return [
             "python",
-            "-m", f"{self.inference_wrapper_path}",
+            f"{self.inference_wrapper_path}",
             "--dataset_dir",str(dataset_dir),
             "--output_path",str(output_dir),
             "--checkpoint", str(checkpoint),
@@ -277,7 +277,7 @@ class CellposeSAMSpec(FoundationModelSpec):
         """
         return [
             "python",
-            "-m", f"{self.training_wrapper_path}",
+            f"{self.training_wrapper_path}",
             "--train_dir", str(dataset_info["train_dir"]),
             "--test_dir", str(dataset_info["test_dir"]),
             "--params", json.dumps(params),
@@ -315,7 +315,7 @@ class CellposeSAMSpec(FoundationModelSpec):
 
         return [
             "python",
-            "-m", f"{self.inference_wrapper_path}",
+            f"{self.inference_wrapper_path}",
             "--test_dir",str(dataset_dir),
             "--output_path",str(output_dir),
             "--checkpoint", str(checkpoint),
@@ -408,7 +408,7 @@ class SSVTSpec(FoundationModelSpec):
             """
             return [
                 "python",
-                "-m", f"{self.training_wrapper_path}",
+                f"{self.training_wrapper_path}",
                 "--train_raw_images", str(dataset_info["train_raw_images"]),
                 "--train_mask_images", str(dataset_info["train_mask_images"]),
                 "--val_raw_images", str(dataset_info["val_raw_images"]),
@@ -449,7 +449,7 @@ class SSVTSpec(FoundationModelSpec):
 
         return [
             "python",
-            "-m", f"{self.inference_wrapper_path}",
+            f"{self.inference_wrapper_path}",
             "--test_dir",str(dataset_dir),
             "--output_path",str(output_dir),
             "--checkpoint", str(checkpoint),
@@ -522,7 +522,7 @@ class Sammed3DSpec(FoundationModelSpec):
         """
         return [
             "python",
-            "-m", f"{self.training_wrapper_path}",
+            f"{self.training_wrapper_path}",
             "--params", json.dumps(params),
             "--output_path",run_dir,
             '--dataset_dir', dataset_info['dataset_dir']
@@ -561,7 +561,7 @@ class Sammed3DSpec(FoundationModelSpec):
 
         return [
             "python",
-            "-m", f"{self.inference_wrapper_path}",
+            f"{self.inference_wrapper_path}",
             "--test_dir",str(dataset_dir),
             "--output_path",str(output_dir),
             "--checkpoint", str(checkpoint),
