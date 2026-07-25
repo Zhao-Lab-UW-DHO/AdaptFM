@@ -17,6 +17,7 @@ class FoundationModelSpec(ModelSpec):
         self.inference_wrapper_path = inference_wrapper_path
         self.training_function = training_function
 
+
     def default_params(self):
         return {}
 
