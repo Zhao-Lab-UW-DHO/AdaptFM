@@ -180,7 +180,7 @@ ENV_REGISTRY: list[EnvironmentSpec] = [
                            update_source="github",
                            github_repo="git+https://github.com/ashwinkumargb/Merlin-nnUNet.git")
         ],
-        docs_url="https://vanvalenlab.github.io/cellSAM/"
+        docs_url="https://github.com/ashwinkumargb/Merlin-nnUNet.git"
         )
 
     # ------------------------------------------------------------------ #
