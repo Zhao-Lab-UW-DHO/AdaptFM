@@ -373,7 +373,7 @@ def main():
 #num_workers
 
 
-def launch_training(chk_path:str ="/mnt/local/data5/hbakhtiar/testing/T1T2w-model.pt",
+def launch_training(chk_path:str ="",
                     max_epochs :int =100,
                     batch_size:int=8,
                     num_workers:int=1,
@@ -386,7 +386,6 @@ def launch_training(chk_path:str ="/mnt/local/data5/hbakhtiar/testing/T1T2w-mode
 
 if __name__ =="__main__":
     main()
-
 
 
 
