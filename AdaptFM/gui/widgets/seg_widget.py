@@ -32,13 +32,11 @@ class SegmentationWidget:
 
         self.algo_selector = algo_selector
 
-        # Container for dynamically generated param widgets
-        self.param_container = Container()
-        self.param_container.native.hide()  # hide initially
+        
+        self.param_container = Container() # Container for dynamically generated param widgets
+        self.main_container = Container(widgets=[self.algo_selector, self.param_container]) # bundle with the selector
+        self.widget = self.main_container.native
 
-        # Layout into a dock
-        self.widget = self.algo_selector.native
-        self.viewer.window.add_dock_widget(self.widget, area="right")
 
 
     def _on_algorithm_selected(self, algo_name: str):
@@ -71,11 +69,11 @@ class SegmentationWidget:
         self.param_container.native.show()
         from qtpy.QtCore import Qt
 
-        w = self.param_container.native
-        w.setWindowFlags(w.windowFlags() | Qt.WindowStaysOnTopHint | Qt.Window)
-        w.show()
+        # w = self.param_container.native
+        # w.setWindowFlags(w.windowFlags() | Qt.WindowStaysOnTopHint | Qt.Window)
+        # w.show()
 
-        w.setWindowTitle("Annotation")   
+        # w.setWindowTitle("Annotation")   
 
         # Add "Run auto-seg" button dynamically
         if self.run_button is None:
