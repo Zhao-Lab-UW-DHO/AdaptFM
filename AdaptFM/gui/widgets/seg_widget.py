@@ -5,6 +5,7 @@ from AdaptFM.segmentation.registry import SEGMENTATION_REGISTRY
 from magicgui import widgets, magicgui
 import dask.array as da
 import numpy as np
+from napari.qt.threading import thread_worker
 
 
 class SegmentationWidget:
@@ -24,14 +25,14 @@ class SegmentationWidget:
     def _build_widget(self):
         # Dropdown for selecting segmentation algorithm
         @magicgui(
-            segmentation_algorithm={"choices": SEGMENTATION_REGISTRY.names()},
-            call_button="Select Algorithm"
+            segmentation_algorithm={"choices": SEGMENTATION_REGISTRY.names(), "label": "Algorithm"},
+            auto_call=True
         )
         def algo_selector(segmentation_algorithm: str):
             self._on_algorithm_selected(segmentation_algorithm)
-
+        algo_selector.label = "" # otherwise puts the text algo selector on the dropdown
         self.algo_selector = algo_selector
-
+        
         
         self.param_container = Container() # Container for dynamically generated param widgets
         self.main_container = Container(widgets=[self.algo_selector, self.param_container]) # bundle with the selector
@@ -42,7 +43,7 @@ class SegmentationWidget:
     def _on_algorithm_selected(self, algo_name: str):
         self._teardown_sam2()  # no-op if previous algo was batch
 
-        self.current_algo = SEGMENTATION_REGISTRY.get(algo_name)
+        self.current_algo = SEGMENTATION_REGISTRY.get(algo_name) 
         
         if getattr(self.current_algo, "mode", "batch") == "interactive":
             self._build_interactive_panel()
@@ -85,18 +86,41 @@ class SegmentationWidget:
 
                 params = {k: w.control.value for k, w in self.param_widgets.items()}
                 volume = self.viewer.layers["Original"].data
+                algo = self.current_algo
 
-                if isinstance(volume, da.Array):
-                    print('converting')
-                    volume = volume.compute()
-                seg = self.current_algo.run(volume, params)
+                run_button.enabled = False # stop spawning multiple threads for 1 action
+                @thread_worker
+                def _run_in_thread(volume, algo, params):
+                    if isinstance(volume, da.Array):
+                        print('converting')
+                        volume = volume.compute()
+                    seg = algo.run(volume, params)
+                    return seg
 
-                if "auto_seg" in self.viewer.layers:
-                    self.viewer.layers["auto_seg"].data = seg
-                else:
-                    self.viewer.add_labels(seg, name="auto_seg",
-                                           colormap={1:'white',
-                                                     None: 'white'})
+                def _on_success(seg):
+                    run_button.enabled = True
+                    if seg is None:
+                        print(f"Warning: {algo.name} returned None.")
+                        return
+
+                    if algo.name in self.viewer.layers:
+                        self.viewer.layers[algo.name].data = seg
+                    else:
+                        self.viewer.add_labels(
+                            seg, 
+                            name=f"{algo.name}",
+                            metadata={"algorithm": algo.name},
+                            colormap={1:'white', None: 'white'}
+                        )
+
+                def _on_error(e):
+                    run_button.enabled = True
+                    print(f"Error running segmentation: {e}")
+
+                worker = _run_in_thread(volume, algo, params)
+                worker.returned.connect(_on_success)
+                worker.errored.connect(_on_error)
+                worker.start()
 
             self.run_button = run_button
             self.param_container.native.layout().addWidget(run_button.native)
