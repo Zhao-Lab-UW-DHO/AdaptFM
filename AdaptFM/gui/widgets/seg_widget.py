@@ -48,8 +48,12 @@ class SegmentationWidget:
         if getattr(self.current_algo, "mode", "batch") == "interactive":
             self._build_interactive_panel()
 
+            if self.run_button is not None:
+                self.run_button.visible = False
             self._load_tunable_params()
         else:
+            if self.run_button is not None:
+                    self.run_button.visible = True # sadly, unhiding this puts it at the top of the parameter options. not sure how to fix
             self._load_tunable_params() 
 
     def _load_tunable_params(self):
@@ -75,7 +79,6 @@ class SegmentationWidget:
         # w.show()
 
         # w.setWindowTitle("Annotation")   
-
         # Add "Run auto-seg" button dynamically
         if self.run_button is None:
             @magicgui(call_button="Run auto-segmentation")
@@ -108,8 +111,7 @@ class SegmentationWidget:
                     else:
                         self.viewer.add_labels(
                             seg, 
-                            name=f"{algo.name}",
-                            metadata={"algorithm": algo.name},
+                            name=f"{algo.name}_AdaptFMseg",
                             colormap={1:'white', None: 'white'}
                         )
 
@@ -296,32 +298,45 @@ class SegmentationWidget:
             return
 
         volume = self.viewer.layers["Original"].data
-        if isinstance(volume, da.Array):
-            volume = volume.compute()
 
         self._sam2_status.value = "Status: encoding slices… (may take a moment)"
+        self._sam2_init_btn.enabled = False
         self.param_container.native.repaint()  # force UI refresh before blocking call
 
-        try:
-            self.current_algo.initialize(volume, self._sam2_get_params())
-        except Exception as e:
+        @thread_worker
+        def _threaded_init_worker(volume):
+            if isinstance(volume, da.Array):
+                volume = volume.compute()
+
+            try:
+                self.current_algo.initialize(volume, self._sam2_get_params())
+                blank = self.current_algo.get_label_volume()
+                return blank
+            except Exception as e:
+                self._sam2_status.value = f"Status: ERROR — {e}"
+                return
+
+        def _on_success(blank):
+            self._sam2_init_btn.enabled = True
+            if self._sam2_labels_layer is not None and self._sam2_labels_layer in self.viewer.layers:
+                self.viewer.layers.remove(self._sam2_labels_layer)
+
+            self._sam2_labels_layer = self.viewer.add_labels(blank, name=f"{self.current_algo.name}_AdaptFMseg")
+            self._sam2_status.value = (
+                f"Status: ready — {self.current_algo.n_slices} slices encoded. "
+                "Left-click = add prompt, right-click = background"
+            )
+            self._sam2_connect_clicks()
+
+        def _on_error(e):
+            self._sam2_init_btn.enabled = True
             self._sam2_status.value = f"Status: ERROR — {e}"
-            return
+            print(f"Error running segmentation: {e}")
 
-        # Create (or replace) the labels layer
-        blank = self.current_algo.get_label_volume()
-        if self._sam2_labels_layer is not None and self._sam2_labels_layer in self.viewer.layers:
-            self.viewer.layers.remove(self._sam2_labels_layer)
-
-        self._sam2_labels_layer = self.viewer.add_labels(blank, name="auto_seg")
-        self._sam2_status.value = (
-            f"Status: ready — {self.current_algo.n_slices} slices encoded. "
-            "Left-click = add prompt, right-click = background"
-        )
-
-        # Wire up click callback on the labels layer
-        self._sam2_connect_clicks()
-
+        worker = _threaded_init_worker(volume)
+        worker.returned.connect(_on_success)
+        worker.errored.connect(_on_error)
+        worker.start()
 
     def _sam2_disconnect_clicks(self):
         if self._sam2_click_callback is not None:
@@ -434,17 +449,36 @@ class SegmentationWidget:
 
         # No longer need obj_id — propagates everything at once
         self._sam2_status.value = f"Status: propagating all objects ({direction})…"
-        self.param_container.native.repaint()
+        self._sam2_prop_btn.enabled = False
+        self.param_container.native.repaint()  # force UI refresh before blocking call
 
-        try:
+        @thread_worker
+        def _threaded_propagate_worker(direction_val, params_val):
+            try:
+                self.current_algo.propagate(direction=direction_val, params=params_val)
+                self.current_algo.reset_inference_state()
+                return True
+            except Exception as e:
+                self._sam2_status.value = f"Status: ERROR — {e}"
+                print(f"Error running propagation: {e}")
+                return None
 
-            self.current_algo.propagate(direction=direction, params=params)
-            self.current_algo.reset_inference_state()
+        def _on_success(result):
+            self._sam2_prop_btn.enabled = True
+            
+            if result is not None:
+                self._sam2_refresh_labels()
+                self._sam2_status.value = "Status: propagation done"
 
-            self._sam2_refresh_labels()
-            self._sam2_status.value = "Status: propagation done"
-        except Exception as e:
+        def _on_error(e):
+            self._sam2_prop_btn.enabled = True
             self._sam2_status.value = f"Status: ERROR — {e}"
+            print(f"Error running propagation: {e}")
+
+        worker = _threaded_propagate_worker(direction, params)
+        worker.returned.connect(_on_success)
+        worker.errored.connect(_on_error)
+        worker.start()
 
 
     def _sam2_refresh_labels(self):

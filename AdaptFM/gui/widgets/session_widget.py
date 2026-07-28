@@ -47,6 +47,9 @@ class SessionWidget:
         layout.addWidget(open_image.native)
 
     def _clear_auto_seg(self):
-        if "auto_seg" in self.viewer.layers:
-            self.viewer.layers.remove("auto_seg")
-
+        layers_to_remove = [
+            layer for layer in self.viewer.layers 
+            if layer.name.endswith("_AdaptFMseg")
+        ]
+        for layer in layers_to_remove:
+            self.viewer.layers.remove(layer)
