@@ -830,6 +830,9 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
         self._session_id = response["session_id"]
         self._initialized = True
 
+    def reset_inference_state(self) -> None:
+        pass # sam3 doesn't manage an _inf_state but have this hear to capture propagate logic in seg widget
+
     # ------------------------------------------------------------------
     # Point prompt (click-based)
     # ------------------------------------------------------------------
