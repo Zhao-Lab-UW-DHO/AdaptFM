@@ -280,7 +280,7 @@ class SegmentationWidget:
             )
             self._sam2_refresh_labels()
             self._sam2_status.value = (
-                f'Status: text prompt done — "{text}", obj {obj_id}, slice {z}. '
+                f'Status: text prompt done\n— "{text}" --,\n obj {obj_id}, slice {z}.\n'
                 "Now click Propagate."
             )
         except Exception as e:
