@@ -6,6 +6,7 @@ from magicgui import widgets, magicgui
 import dask.array as da
 import numpy as np
 from napari.qt.threading import thread_worker
+from qtpy.QtWidgets import QSizePolicy
 
 
 class SegmentationWidget:
@@ -185,6 +186,8 @@ class SegmentationWidget:
         layout.addWidget(self._sam2_click_active.native)
 
         self._sam2_status = widgets.Label(value="Status: not initialised")
+        self._sam2_status.native.setWordWrap(True) # attempt send text down rather than out (that autoresizes undesirably)
+        self._sam2_status.native.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred) # more enforcement of no dock size change
         layout.addWidget(self._sam2_status.native)
 
         @magicgui(call_button="Initialise (encode all slices)")
