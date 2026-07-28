@@ -323,7 +323,7 @@ class SegmentationWidget:
 
             self._sam2_labels_layer = self.viewer.add_labels(blank, name=f"{self.current_algo.name}_AdaptFMseg")
             self._sam2_status.value = (
-                f"Status: ready — {self.current_algo.n_slices} slices encoded. "
+                f"Status: ready — {self.current_algo.n_slices} slices encoded.\n"
                 "Left-click = add prompt, right-click = background"
             )
             self._sam2_connect_clicks()

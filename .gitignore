@@ -1,5 +1,6 @@
 # Ignore the autodownloaded segment-anything repositories
 AdaptFM/segmentation/sam*
+*.tiff
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
