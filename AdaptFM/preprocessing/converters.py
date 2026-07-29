@@ -2,6 +2,9 @@ import nd2
 import tifffile
 from pathlib import Path
 
+from AdaptFM.segmentation.registry import SEGMENTATION_REGISTRY
+import numpy as np
+
 def nd2_to_tiff_converter(input_dir: Path, output_dir: Path, progress_callback=None):
     """
     Converts all .nd2 files in the input directory to single-channel .tiff files 
@@ -45,6 +48,68 @@ def nd2_to_tiff_converter(input_dir: Path, output_dir: Path, progress_callback=N
                 data = xarr.values
                 out_name = f"{nd2file_path.stem}.tiff"
                 tifffile.imwrite(output_dir / out_name, data)
+        
+        if progress_callback:
+            percent_complete = int(((i + 1) / total_files) * 100)
+            progress_callback(percent_complete)
+
+
+def normalize_tiff_to_range(input_dir: Path, output_dir: Path, progress_callback=None, range_min=-1., range_max=1., axis_integer=None):
+    """
+    normalizes tiff files to float16 with a specified range. axis=None averages on the whole volume
+    Typically axis (0,1,2) maps to (Z/Depth,Y/Height,X/Width)
+    """
+    exts = {".tiff", ".tif"}
+    tiff_filepaths = sorted([x for x in input_dir.glob("*") if x.suffix.lower() in exts])
+    total_files = len(tiff_filepaths)
+
+    if axis_integer == "":
+        axis_integer = None
+    
+    if total_files == 0:
+        raise ValueError(f"No tiff files found in {input_dir}")
+
+    for i, tiff_filepath in enumerate(tiff_filepaths):
+        array = tifffile.imread(tiff_filepath).astype(np.float16)
+            
+        arr_min = np.min(array, axis=axis_integer, keepdims=True)
+        arr_max = np.max(array, axis=axis_integer, keepdims=True)
+        
+        # prevent divby0
+        diff = arr_max - arr_min
+        diff = np.where(diff == 0, 1.0, diff)
+        
+        # scale to 0-1
+        norm = (array) / diff
+        
+       # multiply sets the range and addition applies the offset
+        if (range_min, range_max) != (0.0, 1.0):
+            norm = norm * (range_max - range_min) + range_min
+
+        tifffile.imwrite(output_dir / tiff_filepath.name, norm)
+        
+        if progress_callback:
+            percent_complete = int(((i + 1) / total_files) * 100)
+            progress_callback(percent_complete)
+
+
+def apply_organoidseg(input_dir: Path, output_dir: Path, progress_callback, minimum_size=0.0, sigma=0.0):
+    """
+    Applies OrganoidSeg segmentation to TIFF files in input_dir and saves uint8 masks to output_dir
+    """
+    exts = {".tiff", ".tif"}
+    tiff_filepaths = sorted([x for x in input_dir.glob("*") if x.suffix.lower() in exts])
+    total_files = len(tiff_filepaths)
+    
+    if total_files == 0:
+        raise ValueError(f"No tiff files found in {input_dir}")
+
+    for i, tiff_filepath in enumerate(tiff_filepaths):
+        array = tifffile.imread(tiff_filepath)
+            
+        uint8_array = SEGMENTATION_REGISTRY.get('OrganoidSeg').run(array, {"minimum size":minimum_size, "sigma":sigma})
+
+        tifffile.imwrite(output_dir / tiff_filepath.name, uint8_array)
         
         if progress_callback:
             percent_complete = int(((i + 1) / total_files) * 100)
