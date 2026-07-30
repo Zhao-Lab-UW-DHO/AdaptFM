@@ -1,6 +1,12 @@
 # Ignore the autodownloaded segment-anything repositories
 AdaptFM/segmentation/sam*
 
+# ignore checkpoints
+*.pt
+
+#ignore merlin downloaded dir
+nnUNetTrainerMerlin__nnUNetPlans__3d_fullres/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
