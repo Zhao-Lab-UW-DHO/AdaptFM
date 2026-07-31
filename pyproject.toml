@@ -42,6 +42,10 @@ adaptfm-install-microsam = "AdaptFM.install.install_microsam:main"
 adaptfm-install-cellposesam = "AdaptFM.install.install_cellposesam:main"
 adaptfm-install-nnunet = "AdaptFM.install.install_nnunet:main"
 adaptfm-install-sammed3d = "AdaptFM.install.install_sammed3d:main"
+adaptfm-install-cellsam = "AdaptFM.install.install_cellsam:main"
+adaptfm-install-useg = "AdaptFM.install.install_useg3d:main"
+adaptfm-install-merlin ="AdaptFM.install.install_merlin:main"
+adaptfm-uninstall = "AdaptFM.install.uninstall_general:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
