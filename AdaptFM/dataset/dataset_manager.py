@@ -59,7 +59,7 @@ class DatasetManager:
     def _export_nnunet(self,out_folder,file_ending='.tiff',channel=0,params=None):
 
         print(params)
-        setID = params['Set ID']
+        setID = int(params['Set ID'])
         setName = params['Set Name']
 
         paths = construct_nnUNet_folders(
@@ -71,7 +71,7 @@ class DatasetManager:
 
         for idx, s in enumerate(self.samples):
 
-            case_id = f"Organoids_{idx:03d}"
+            case_id = f"{setName}_{idx:03d}"
 
             img_dst = os.path.join(imagesTr, f"{case_id}_0000.tiff")
             lbl_dst = os.path.join(labelsTr, f"{case_id}.tiff")
@@ -88,7 +88,7 @@ class DatasetManager:
             
         )
 
-        return out_folder / f"nnUNet_raw/Dataset{setID:03}_{setName}"
+        return out_folder 
 
 
     def _export_simple_pairs(self, out_folder, framework):
