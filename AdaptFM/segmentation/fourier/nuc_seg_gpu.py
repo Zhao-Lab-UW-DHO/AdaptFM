@@ -8,7 +8,7 @@ import tifffile as tiff
 
 
 # GPU-accelerated 3D power spectrum
-def get_3d_power_spectrum(image):
+def get_3d_power_spectrum(image, device):
     image = torch.tensor(image, dtype=torch.float32, device=device)
     fft_image = torch.fft.fftn(image)
     fft_image = torch.fft.fftshift(fft_image)
@@ -16,7 +16,7 @@ def get_3d_power_spectrum(image):
     return power_spectrum.cpu().numpy()  # convert back to numpy for compatibility
 
 # GPU radial average
-def radial_average_3d(power_spectrum):
+def radial_average_3d(power_spectrum, device):
     """
     Fully GPU-accelerated radial average of a 3D power spectrum.
     Maintains anisotropic z-scaling for typical volumetric images.
@@ -73,13 +73,13 @@ def detect_knee_3d(radial_frequencies, radial_power):
     knee_locator = KneeLocator(filtered_frequencies, filtered_power, curve='convex', direction='decreasing')
     return knee_locator.knee
 
-def apply_knee_detection_3d(power_spectrum):
-    radial_frequencies, radial_power = radial_average_3d(power_spectrum)
+def apply_knee_detection_3d(power_spectrum, device):
+    radial_frequencies, radial_power = radial_average_3d(power_spectrum, device)
     knee_point = detect_knee_3d(radial_frequencies, radial_power)
     return knee_point
 
 # GPU Gaussian low-pass filter
-def apply_gaussian_low_pass_filter_3d(grayscale_image, cutoff, z_scaling=1.0):
+def apply_gaussian_low_pass_filter_3d(grayscale_image, cutoff, device, z_scaling=1.0):
     img = torch.tensor(grayscale_image, dtype=torch.float32, device=device)
     fft_img = torch.fft.fftn(img)
     fft_img = torch.fft.fftshift(fft_img)
@@ -99,7 +99,7 @@ def apply_gaussian_low_pass_filter_3d(grayscale_image, cutoff, z_scaling=1.0):
     return filtered_img.cpu().numpy()
 
 # GPU Log-Gabor filter
-def log_gabor_3d_filter(shape, f0, sigma_f):
+def log_gabor_3d_filter(shape, f0, sigma_f, device): # Never called
     z, y, x = torch.meshgrid(
         torch.arange(-shape[0]//2, shape[0]//2, device=device),
         torch.arange(-shape[1]//2, shape[1]//2, device=device),
@@ -168,9 +168,9 @@ def run_nuclear_segmentation_gpu_chunked(volume, percentile, max_freq, frequency
 
     # Optional background removal
     if remove_background:
-        power_spectrum = get_3d_power_spectrum(volume)
-        knee_point = apply_knee_detection_3d(power_spectrum)
-        low_pass_image = apply_gaussian_low_pass_filter_3d(volume, cutoff=knee_point)
+        power_spectrum = get_3d_power_spectrum(volume, device)
+        knee_point = apply_knee_detection_3d(power_spectrum, device)
+        low_pass_image = apply_gaussian_low_pass_filter_3d(volume, knee_point, device)
         foreground_binary_mask = np.zeros_like(low_pass_image)
         for z in range(dz):
             layer_threshold = threshold_otsu(low_pass_image[z, :, :])
