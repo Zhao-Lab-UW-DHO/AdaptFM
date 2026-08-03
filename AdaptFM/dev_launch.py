@@ -56,7 +56,7 @@ def main():
     save_dock = create_save_dock()
     seg_dock = create_seg_dock()
     sesh_dock = create_sesh_dock()
-    
+
     side_docs = {
         create_sesh_dock: sesh_dock,
         create_seg_dock: seg_dock,
@@ -74,7 +74,6 @@ def main():
 
     restore_action = QAction("Restore AdaptFM Sidewidgets", viewer.window._qt_window)
     restore_action.triggered.connect(restore_docks)
-    viewer.window.main_menu.addAction(restore_action)
 
 
     # --- NEW: Training ---
@@ -124,7 +123,7 @@ def main():
  
     env_action.triggered.connect(_open_env_manager)
 
-
+    viewer.window.main_menu.addAction(restore_action)
     napari.run()
 
 
