@@ -39,6 +39,8 @@ class SegmentationWidget:
         self.main_container = Container(widgets=[self.algo_selector, self.param_container]) # bundle with the selector
         self.widget = self.main_container.native
 
+        # run the param retrieval on startup 
+        self._on_algorithm_selected(self.algo_selector.segmentation_algorithm.value)
 
 
     def _on_algorithm_selected(self, algo_name: str):

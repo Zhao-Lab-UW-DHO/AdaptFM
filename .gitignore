@@ -2,6 +2,12 @@
 AdaptFM/segmentation/sam*
 *.tiff
 
+# ignore checkpoints
+*.pt
+
+#ignore merlin checkpoints
+nnUNetTrainerMerlin__nnUNetPlans__3d_fullres/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
