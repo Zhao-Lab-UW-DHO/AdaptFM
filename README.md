@@ -66,7 +66,20 @@ to run AdaptFM.
 
 ### <a id="external-model-install"></a> Using Supported External Models with AdaptFM
 
-AdaptFM supports a variety of external models. These are optional; you only need to install the models you plan to use. AdaptFM provides a series of automatic install commands to create the conda environments with the necessary packages and expected environment names to run your choice of external model:
+AdaptFM supports a variety of external models. These are optional; you only need to install the models you plan to use. 
+
+| Name | Paper | Code | VRAM Recommendations | Original Modality | Pretrained Model Datatype |
+| --- | --- | --- | --- | --- | --- |
+| nnUNet | [Link](https://www.nature.com/articles/s41592-020-01008-z) | [Link](https://github.com/MIC-DKFZ/nnUNet) | [Link](https://github.com/MIC-DKFZ/nnUNet/blob/master/documentation/resenc_presets.md#how-to-use-the-new-presets) | General Biomedical Imaging | N/A |
+| Merlin nnUnet | [Link](https://arxiv.org/abs/2406.06512) | [Link](https://github.com/ashwinkumargb/Merlin-nnUNet) | [Link](https://github.com/MIC-DKFZ/nnUNet/blob/master/documentation/resenc_presets.md#how-to-use-the-new-presets) | CT | CT images with EHR diagnoses and radiology reports |
+| CellSAM | [Link](https://www.biorxiv.org/content/10.1101/2023.11.17.567630v3) | [Link](https://github.com/vanvalenlab/cellsam) | None listed | General Cell Imaging | tissue, cell culture, yeast, H&E and bacteria |
+| SAMMed3D | [Link](https://arxiv.org/abs/2310.15161) | [Link](https://github.com/uni-medical/sam-med3d) | None listed | CT and MRI | organs, tissues, tumors, and blood vessels |
+| CellposeSAM | [Link](https://www.biorxiv.org/content/10.1101/2025.04.28.651001v1) | [Link](https://github.com/MouseLand/cellpose) | None listed | General Cell Imaging | Microbes, cultured cells, human tissues, and cell nuclei |
+| microSAM | [Link](https://www.nature.com/articles/s41592-024-02580-4) | [Link](https://github.com/computational-cell-analytics/micro-sam) | [Link](https://computational-cell-analytics.github.io/micro-sam/micro_sam.html#usage-questions) | Light, electron, and X-ray microscopy (in various models) | Microbes, cells, organoids, organelles, nuclei, and tissues |
+| BME-X | [Link](https://www.nature.com/articles/s41551-024-01283-7) | [Link](https://github.com/DBC-Lab/Brain_MRI_Enhancement) | None listed | MR Images | Brain |
+| CT-FM | [Link](https://arxiv.org/abs/2501.09001) | [Link](https://github.com/project-lighter/CT-FM) | None listed | CT | Human anatomical structures |
+
+AdaptFM provides a series of automatic install commands to create the conda environments with the necessary packages and expected environment names to run your choice of external model:
 
 [MicroSAM](https://github.com/computational-cell-analytics/micro-sam) 
 ```bash
