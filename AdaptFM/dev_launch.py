@@ -26,21 +26,55 @@ def main():
 
     # Model registry (shared by training + inference)
     model_registry = MODEL_REGISTRY
-    # or: model_registry = MODEL_REGISTRY
-    viewer.window.add_dock_widget(
-    SessionWidget(viewer, session, vm, sm).widget,
-    area="right",name ='AdaptFM Image Manager'
-    )
-    # Existing widgets
-    viewer.window.add_dock_widget(
-        SegmentationWidget(viewer, sm).widget,
-        area="right",name = 'AdaptFM Annotation'
-    )
 
-    viewer.window.add_dock_widget(
-        SaveWidget(viewer, sm).widget,
-        area="right",name = 'AdaptFM Save Image'
-    )
+    def qt_widget_obj_exists(dock_obj) -> bool:
+        if dock_obj is None:
+            return False
+        try:
+            dock_obj.objectName()
+            return True
+        except (RuntimeError, AttributeError):
+            return False
+    
+
+    def create_sesh_dock():
+        return viewer.window.add_dock_widget(
+            SessionWidget(viewer, session, vm, sm).widget,
+            area="right", name='AdaptFM Image Manager'
+        )
+    def create_seg_dock():
+        return viewer.window.add_dock_widget(
+            SegmentationWidget(viewer, sm).widget,
+            area="right", name='AdaptFM Annotation'
+        )
+    def create_save_dock():
+        return viewer.window.add_dock_widget(
+            SaveWidget(viewer, sm).widget,
+            area="right", name='AdaptFM Save Image'
+        )
+    
+    save_dock = create_save_dock()
+    seg_dock = create_seg_dock()
+    sesh_dock = create_sesh_dock()
+    
+    side_docs = {
+        create_sesh_dock: sesh_dock,
+        create_seg_dock: seg_dock,
+        create_save_dock: save_dock,
+    }
+
+    def restore_docks():
+        for factory, dock in side_docs.items():
+            if qt_widget_obj_exists(dock):
+                dock.setVisible(True)
+                dock.show()
+                dock.raise_()
+            else:
+                side_docs[factory] = factory()
+
+    restore_action = QAction("Restore AdaptFM Sidewidgets", viewer.window._qt_window)
+    restore_action.triggered.connect(restore_docks)
+    viewer.window.main_menu.addAction(restore_action)
 
 
     # --- NEW: Training ---
