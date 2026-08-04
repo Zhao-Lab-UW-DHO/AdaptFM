@@ -94,7 +94,7 @@ class SegmentationWidget:
                 volume = self.viewer.layers["Original"].data
                 algo = self.current_algo
 
-                run_button.enabled = False # stop spawning multiple threads for 1 action
+                self._set_ui_enabled(False)
                 @thread_worker
                 def _run_in_thread(volume, algo, params):
                     if isinstance(volume, da.Array):
@@ -104,7 +104,7 @@ class SegmentationWidget:
                     return seg
 
                 def _on_success(seg):
-                    run_button.enabled = True
+                    self._set_ui_enabled(True)
                     if seg is None:
                         print(f"Warning: {algo.name} returned None.")
                         return
@@ -119,7 +119,7 @@ class SegmentationWidget:
                         )
 
                 def _on_error(e):
-                    run_button.enabled = True
+                    self._set_ui_enabled(True)
                     print(f"Error running segmentation: {e}")
 
                 worker = _run_in_thread(volume, algo, params)
@@ -260,6 +260,25 @@ class SegmentationWidget:
             prop_btn, reset_obj_btn, reset_all_btn,self._sam2_click_active
         ]
 
+    def _set_ui_enabled(self, enabled: bool):
+        """While threading occurs, the user changing/running other elements (like algorithm selection tearing down SAM variables)
+        should be prevented
+        """
+        self.algo_selector.enabled = enabled
+        
+        if self.run_button is not None:
+            self.run_button.enabled = enabled
+
+        if hasattr(self, "_sam2_init_btn") and self._sam2_init_btn:
+            self._sam2_init_btn.enabled = enabled
+        if hasattr(self, "_sam2_prop_btn") and self._sam2_prop_btn:
+            self._sam2_prop_btn.enabled = enabled
+        if hasattr(self, "_sam3_text_btn") and self._sam3_text_btn:
+            self._sam3_text_btn.enabled = enabled
+            
+        for param_widget in self.param_widgets.values():
+            param_widget.control.enabled = enabled
+
 
     def _sam3_run_text_prompt(self):
         """Called by the 'Segment by text' button."""
@@ -305,7 +324,7 @@ class SegmentationWidget:
         volume = self.viewer.layers["Original"].data
 
         self._sam2_status.value = "Status: encoding slices… (may take a moment)"
-        self._sam2_init_btn.enabled = False
+        self._set_ui_enabled(False)
         self.param_container.native.repaint()  # force UI refresh before blocking call
 
         @thread_worker
@@ -322,7 +341,7 @@ class SegmentationWidget:
                 return
 
         def _on_success(blank):
-            self._sam2_init_btn.enabled = True
+            self._set_ui_enabled(True)
             if self._sam2_labels_layer is not None and self._sam2_labels_layer in self.viewer.layers:
                 self.viewer.layers.remove(self._sam2_labels_layer)
 
@@ -334,7 +353,7 @@ class SegmentationWidget:
             self._sam2_connect_clicks()
 
         def _on_error(e):
-            self._sam2_init_btn.enabled = True
+            self._set_ui_enabled(True)
             self._sam2_status.value = f"Status: ERROR — {e}"
             print(f"Error running segmentation: {e}")
 
@@ -454,7 +473,7 @@ class SegmentationWidget:
 
         # No longer need obj_id — propagates everything at once
         self._sam2_status.value = f"Status: propagating all objects ({direction})…"
-        self._sam2_prop_btn.enabled = False
+        self._set_ui_enabled(False)
         self.param_container.native.repaint()  # force UI refresh before blocking call
 
         @thread_worker
@@ -469,14 +488,14 @@ class SegmentationWidget:
                 return None
 
         def _on_success(result):
-            self._sam2_prop_btn.enabled = True
+            self._set_ui_enabled(True)
             
             if result is not None:
                 self._sam2_refresh_labels()
                 self._sam2_status.value = "Status: propagation done"
 
         def _on_error(e):
-            self._sam2_prop_btn.enabled = True
+            self._set_ui_enabled(True)
             self._sam2_status.value = f"Status: ERROR — {e}"
             print(f"Error running propagation: {e}")
 
