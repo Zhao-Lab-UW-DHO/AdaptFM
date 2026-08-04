@@ -1,6 +1,7 @@
 from qtpy.QtWidgets import QWidget, QVBoxLayout
 from magicgui import magicgui
 from qtpy.QtWidgets import QFileDialog
+from napari.layers import Image
 import os
 from glob import glob
 from AdaptFM.gui.napari_utils import update_or_create_image,  update_or_create_labels
@@ -12,11 +13,15 @@ class SessionWidget:
         self.vm = vm
         self.sm = sm
 
+        self._internal_layer_names = {"Original", "auto_seg"}
+
         self.widget = QWidget()
         layout = QVBoxLayout()
         self.widget.setLayout(layout)
 
         self._build(layout)
+
+        self.viewer.layers.events.inserted.connect(self._on_layer_inserted)
 
     def _load_path(self, path):
         self._clear_auto_seg()
@@ -28,6 +33,26 @@ class SessionWidget:
             img,
             colormap="gray",
         )
+    def _on_layer_inserted(self, event):
+        layer = event.value
+        if not isinstance(layer, Image):
+            return
+        if layer.name in self._internal_layer_names:
+            return  # created by our own update_or_create_image / auto-seg flow
+
+        path = layer.source.path if layer.source is not None else None
+        if not path:
+            return  # not backed by a readable file (e.g. pasted/generated array)
+
+        # Sync VolumeManager to this file, same as the button path.
+        self._clear_auto_seg()
+        self.vm.load_image(path)
+        self.session.set_images([path])
+
+        # Keep the existing "current image" convention working for any other
+        # widget that looks up viewer.layers["Original"].
+        layer.name = "Original"
+
 
     def _build(self, layout):
         @magicgui(call_button="Open image")
