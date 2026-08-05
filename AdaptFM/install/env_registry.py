@@ -167,11 +167,11 @@ ENV_REGISTRY: list[EnvironmentSpec] = [
 
 
 
-    EnvironmentSpec(
+EnvironmentSpec(
         key="Merlin-nnUNet",
         display_name='Merlin nnUNet',
         description="3D Ct Segmentation using fine-tuned Merlin",
-        conda_env_name="Merlin_nnUNet_adapt",
+        conda_env_name="Merlin_adapt",
         install_command="adaptfm-install-merlin",
         uninstall_command="adaptfm-uninstall",
         requires_gpu=True,
@@ -181,10 +181,10 @@ ENV_REGISTRY: list[EnvironmentSpec] = [
                            update_source="github",
                            github_repo="git+https://github.com/ashwinkumargb/Merlin-nnUNet.git")
         ],
-        docs_url="https://github.com/StanfordMIMI/Merlin"
-        ),
+        docs_url="https://github.com/ashwinkumargb/Merlin-nnUNet.git"
+        )
 
-    EnvironmentSpec(
+EnvironmentSpec(
         key="CT-FM",
         display_name='CT-FM',
         description="A 3D Image-Based Foundation Model for Radiological Tasks",
@@ -197,7 +197,7 @@ ENV_REGISTRY: list[EnvironmentSpec] = [
                            display_name="CT-FM",
                            update_source="pypi")        ],
         docs_url="https://project-lighter.github.io/CT-FM/"
-        ),  
+        ),
 
     # ------------------------------------------------------------------ #
 ]

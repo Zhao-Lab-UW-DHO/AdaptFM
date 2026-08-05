@@ -633,4 +633,3 @@ class CellSAMSpec(FoundationModelSpec):
             start_new_session=True,
             env=env
         )
-

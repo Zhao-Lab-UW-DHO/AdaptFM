@@ -79,7 +79,7 @@ MODEL_REGISTRY = {
         training_function="launch_training"
 
     ),
-    
+
     "Merlin nnUNet" : MerlinNNUNetV2ModelSpec(
         conda_env = _read_prefix("Merlin_nnUNet_adapt"),
         transform_path = "AdaptFM.model.foundation_models.merlin.transforms"
