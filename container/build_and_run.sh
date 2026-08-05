@@ -1,3 +1,20 @@
+#!/bin/bash
+set -e
 cd "$(dirname "$(readlink -f "$0")")"
 
-apptainer build --fakeroot AdaptFM.sif AdaptFM_apptainer.def
+IMAGE="AdaptFM.sif"
+
+if [ ! -f "$IMAGE" ]; then
+    # possible env vars that fix errors: APPTAINER_TMPDIR, APPTAINER_CACHEDIR
+    apptainer build --fakeroot "$IMAGE" AdaptFM_apptainer.def
+fi
+
+apptainer run \
+    --nv \
+    --bind /mnt:/mnt \
+    --bind $HOME:$HOME \
+    --bind $XAUTHORITY:/tmp/.Xauthority-container \
+    "${WAYLAND_ARGS[@]}" \
+    --env XAUTHORITY=/tmp/.Xauthority-container \
+    --env DISPLAY=$DISPLAY \
+    "$IMAGE"

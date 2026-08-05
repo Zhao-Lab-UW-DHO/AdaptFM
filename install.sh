@@ -9,7 +9,8 @@ if ! command -v nvidia-smi &> /dev/null; then
     echo "Could not install AdaptFM"
     exit 1
 fi
-CUDA_VERSION=$(nvidia-smi | grep -o "CUDA Version: [0-9.]*" | awk '{print $3}')
+NVIDIA_SMI_OUT=$(nvidia-smi)
+CUDA_VERSION=$(echo "$NVIDIA_SMI_OUT" | grep -oP "(?:CUDA Version|CUDA UMD Version):\K\s*[0-9.]*" | xargs)
 CUDA_MAJOR=$(echo "${CUDA_VERSION}" | cut -d. -f1)
 CUDA_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f2)
 
