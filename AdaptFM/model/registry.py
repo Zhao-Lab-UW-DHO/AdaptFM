@@ -17,6 +17,7 @@ def _conda_prefix(env: str) -> str:
     )
     return result.stdout.strip()
 
+ADAPTFM_MODEL_PATH = Path(__file__).resolve().parent
 
 MODEL_REGISTRY = {
     "nnUNetv2": NNUNetV2ModelSpec(
@@ -27,8 +28,8 @@ MODEL_REGISTRY = {
         name="microSAM",
         conda_env=_read_prefix("micro-sam_adapt"),
         module_path="micro_sam.training",
-        training_wrapper_path = "AdaptFM.model.foundation_models.microSAM.train_wrapper",
-        inference_wrapper_path = "AdaptFM.model.foundation_models.microSAM.inference_wrapper",
+        training_wrapper_path = str(ADAPTFM_MODEL_PATH / "foundation_models" / "microSAM" / "train_wrapper.py"),
+        inference_wrapper_path = str(ADAPTFM_MODEL_PATH / "foundation_models" / "microSAM" / "inference_wrapper.py"),
         training_function = 'train_sam'
     ),
 
@@ -36,27 +37,26 @@ MODEL_REGISTRY = {
         name="CellposeSAM",
         conda_env=_read_prefix("cellpose_adapt"),
         module_path="cellpose.train",
-        training_wrapper_path ="AdaptFM.model.foundation_models.cellposeSAM.train_wrapper",
-        inference_wrapper_path = "AdaptFM.model.foundation_models.cellposeSAM.inference_wrapper",
+        training_wrapper_path = str(ADAPTFM_MODEL_PATH / "foundation_models" / "cellposeSAM" / "train_wrapper.py"),
+        inference_wrapper_path = str(ADAPTFM_MODEL_PATH / "foundation_models" / "cellposeSAM" / "inference_wrapper.py"),
         training_function = 'train_seg'
     ),
-
 
     "SAMMed3D": Sammed3DSpec(
         name="SAM-Med3D",
         conda_env=_read_prefix("sammed3d_adapt"),
-        module_path="AdaptFM.model.foundation_models.sammed3d.train_wrapper",
-        training_wrapper_path="AdaptFM.model.foundation_models.sammed3d.train_wrapper",
-        inference_wrapper_path="AdaptFM.model.foundation_models.sammed3d.inference_wrapper",
+        module_path= str(ADAPTFM_MODEL_PATH / "foundation_models" / "sammed3d" / "train_wrapper.py"),
+        training_wrapper_path= str(ADAPTFM_MODEL_PATH / "foundation_models" / "sammed3d" / "train_wrapper.py"),
+        inference_wrapper_path= str(ADAPTFM_MODEL_PATH / "foundation_models" / "sammed3d" / "inference_wrapper.py"),
         training_function = 'launch_training'
     ),
 
     "SSVT" : SSVTSpec(
         name = "SSVT",
         conda_env = str(Path(sys.prefix)),
-        module_path  ="AdaptFM.model.foundation_models.SSVT.train_wrapper",
-        training_wrapper_path="AdaptFM.model.foundation_models.SSVT.train_wrapper",
-        inference_wrapper_path="AdaptFM.model.foundation_models.SSVT.inference_wrapper",
+        module_path = str(ADAPTFM_MODEL_PATH / "foundation_models" / "SSVT" / "train_wrapper.py"),
+        training_wrapper_path= str(ADAPTFM_MODEL_PATH / "foundation_models" / "SSVT" / "train_wrapper.py"),
+        inference_wrapper_path= str(ADAPTFM_MODEL_PATH / "foundation_models" / "SSVT" / "inference_wrapper.py"),
         training_function = 'train_SSVT'
     ),
 

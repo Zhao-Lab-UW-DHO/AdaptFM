@@ -8,6 +8,9 @@ AdaptFM/segmentation/sam*
 /nnUNetTrainerMerlin__nnUNetPlans__3d_fullres/
 *.pt
 
+# remove vscode settings
+.vscode
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

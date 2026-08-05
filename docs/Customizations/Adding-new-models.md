@@ -79,7 +79,7 @@ There are two parts to defining training: Creating a new model specification cla
         """
         return [
             "python",
-            "-m", f"{self.training_wrapper_path}",
+            f"{self.training_wrapper_path}",
             "--train_dir", str(dataset_info["train_dir"]),
             "--test_dir", str(dataset_info["test_dir"]),
             "--params", json.dumps(params),
@@ -95,7 +95,7 @@ There are two parts to defining training: Creating a new model specification cla
         name="CellposeSAM",
         conda_env="/path/to/conda_envs/cellpose",
         module_path="cellpose.train",
-        training_wrapper_path ="AdaptFM.model.foundation_models.cellposeSAM.train_wrapper",
-        inference_wrapper_path = "AdaptFM.model.foundation_models.cellposeSAM.inference_wrapper"
+        training_wrapper_path = str(ADAPTFM_MODEL_PATH / "foundation_models" / "cellposeSAM" / "train_wrapper.py"),
+        inference_wrapper_path = str(ADAPTFM_MODEL_PATH / "foundation_models" / "cellposeSAM" / "inference_wrapper.py"),
     ),
 ```
