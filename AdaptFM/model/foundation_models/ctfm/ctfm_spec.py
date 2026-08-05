@@ -63,13 +63,14 @@ class CTFMSpec(FoundationModelSpec):
         csv_path = output_dir / "dataset.csv"
         pd.DataFrame(rows).to_csv(csv_path, index=False)
 
-        return csv_path
+        return {"csv_path": csv_path,
+                "dataset_dir": dataset_manager.folder}
 
     # -------------------------
     # override yaml builder
     # -------------------------
 
-    def build_override_yaml(self, params, run_dir, dataset_csv=None):
+    def build_override_yaml(self, params, run_dir, dataset_csv=None,dataset_dir=None):
 
             override = {}
 
@@ -257,9 +258,9 @@ class CTFMSpec(FoundationModelSpec):
                 "batch_size":       params.get("batch_size", 2),
                 "init_LR":          params.get("learning_rate", 0.0002),
                 "num_workers":      params.get("num_workers", 8),
-                "dataset_dir":      params.get("dataset_dir", ""),
+                "dataset_dir":      str(dataset_dir),
                 "cache_dir":        params.get("cache_dir", ""),
-                "save_dir":         params.get("save_dir", ""),
+                "save_dir":         str(run_dir),
                 "out_channels":     out_channels,
 
                 # Required by system — not user-facing, hardcoded to lighter/CT-FM defaults
@@ -494,7 +495,12 @@ class CTFMSpec(FoundationModelSpec):
         if gpu is not None:
             env["CUDA_VISIBLE_DEVICES"] = str(gpu)
 
-        self.build_override_yaml(params, run_dir,dataset_csv=dataset_info)
+
+        dataset_csv = dataset_info['csv_path']
+        dataset_dir = dataset_info['dataset_dir']
+
+        self.build_override_yaml(params, run_dir,dataset_csv=dataset_csv,
+                                 dataset_dir=dataset_dir)
 
         training_cmd = self.training_command(dataset_info, params, run_dir)
 

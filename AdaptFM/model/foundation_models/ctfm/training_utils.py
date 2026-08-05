@@ -71,9 +71,7 @@ def launch_training(
         max_epochs:int =300,
         learning_rate:float =0.0002,
         num_workers:int=8,
-        dataset_dir:str=str(Path.cwd() / "dataset_dir"),
-        cache_dir:str=str(Path.cwd() / "cache_dir"),
-        save_dir:str=str(Path.cwd() / "save_dir"),
+        cache_dir:str=str(Path.cwd() / "cache_dir")
         
 ):
 
