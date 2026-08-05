@@ -133,6 +133,8 @@ class ModelWorkflowWidget:
         self.dataset_dir: Optional[Path] = None
         self.output_dir:  Optional[Path] = None
         self.param_widgets: dict         = {}
+        self.registry=MODEL_REGISTRY
+        self.registry_title = "MODEL"
 
         self._process: Optional[QProcess]       = None
         self._param_thread: Optional[QThread]   = None
@@ -185,9 +187,9 @@ class ModelWorkflowWidget:
         ctrl.setSpacing(8)
 
         # Model
-        ctrl.addWidget(_section_label("Model"))
+        ctrl.addWidget(_section_label(self.registry_title))
         self._model_combo = QComboBox()
-        self._model_combo.addItems(list(MODEL_REGISTRY.keys()))
+        self._model_combo.addItems(list(self.registry.keys()))
         self._model_combo.setStyleSheet(_combo_style())
         # Connect AFTER build so the QTimer below is the only initial trigger
         ctrl.addWidget(self._model_combo)
