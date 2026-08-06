@@ -328,7 +328,7 @@ def main():
     )
 
     loader_args = Namespace(
-        data_dir=args.data_dir,
+        data_dir=args.output_dir,
         json_list=json_list,
         batch_size=args.batch_size,
         workers=args.num_workers,
