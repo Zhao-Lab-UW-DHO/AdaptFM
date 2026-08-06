@@ -60,7 +60,6 @@ MODEL_REGISTRY = {
         inference_wrapper_path="AdaptFM.model.foundation_models.SSVT.inference_wrapper",
         training_function = 'train_SSVT'
     ),
-
     "CellSAM": CellSAMSpec(
     name = "CellSAM",
     conda_env = _read_prefix("cellsam_adapt"),
