@@ -182,7 +182,7 @@ EnvironmentSpec(
                            github_repo="git+https://github.com/ashwinkumargb/Merlin-nnUNet.git")
         ],
         docs_url="https://github.com/ashwinkumargb/Merlin-nnUNet.git"
-        )
+        ),
 
 EnvironmentSpec(
         key="CT-FM",
