@@ -1,6 +1,10 @@
 from magicgui import magicgui
 from pathlib import Path
 from napari.layers import Labels
+from napari.utils.notifications import (
+    show_info,
+    show_error,
+)
 
 class SaveWidget:
     def __init__(self, viewer, segmentation_manager):
@@ -48,11 +52,20 @@ class SaveWidget:
             ]) == 0:
                 raise RuntimeError("No segmentation layer found")
 
-            self.sm.save_for_training(
-                save_dir=str(save_dir),
-                filename_base=filename_base or None,
-                manual_seg=segmentation_layer.data,
-                save_image=save_image
-            )
+            try:
+                _, seg_path = self.sm.save_for_training(
+                                save_dir=str(save_dir),
+                                filename_base=filename_base or None,
+                                manual_seg=segmentation_layer.data,
+                                save_image=save_image
+                        )
+
+                show_info(
+                    f"Saved successfully!\nSegmentation: {Path(seg_path).name}"
+                )
+
+            except Exception as e:
+                show_error(f"Save failed:\n{e}")
+            
 
         self.widget = widget
