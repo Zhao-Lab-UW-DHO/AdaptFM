@@ -39,7 +39,7 @@ class BenchmarkWidget(QWidget):
         self.layout.addWidget(self.models_list)
 
                 # Remove selected model button
-        self.remove_model_button = QPushButton("Remove Selected Model")
+        self.remove_model_button = QPushButton("Remove Selected Predictions")
         self.remove_model_button.clicked.connect(self.remove_model)
         self.layout.addWidget(self.remove_model_button)
 

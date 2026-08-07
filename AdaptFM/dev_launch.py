@@ -9,8 +9,21 @@ from AdaptFM.session.annotation_session import AnnotationSession
 from AdaptFM.gui.widgets.inference_widget import InferenceWidget
 from AdaptFM.gui.widgets.training_widget import TrainingWidget
 from AdaptFM.gui.widgets.benchmark_widget import BenchmarkWidget
+from AdaptFM.gui.widgets.env_manager_dialog import EnvironmentManagerDialog
 from AdaptFM.model.registry import MODEL_REGISTRY
 from qtpy.QtWidgets import QAction
+from qtpy.QtWidgets import QScrollArea
+from qtpy.QtCore import Qt
+
+def make_scrollable(widget):
+    """Wraps a QWidget or magicgui widget in a Qt scroll area."""
+    native_widget = widget.native if hasattr(widget, "native") else widget
+    
+    scroll = QScrollArea()
+    scroll.setWidget(native_widget)
+    scroll.setWidgetResizable(True)
+    scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+    return scroll
 
 
 def main():
@@ -26,17 +39,17 @@ def main():
     # Model registry (shared by training + inference)
     model_registry = MODEL_REGISTRY
     # or: model_registry = MODEL_REGISTRY
-    viewer.window.add_dock_widget(
+    dock_sesh = viewer.window.add_dock_widget(
     SessionWidget(viewer, session, vm, sm).widget,
     area="right",name ='AdaptFM Image Manager'
     )
     # Existing widgets
-    viewer.window.add_dock_widget(
-        SegmentationWidget(viewer, sm).widget,
+    dock_seg = viewer.window.add_dock_widget(
+        make_scrollable(SegmentationWidget(viewer, sm).widget),
         area="right",name = 'AdaptFM Annotation'
     )
 
-    viewer.window.add_dock_widget(
+    dock_save = viewer.window.add_dock_widget(
         SaveWidget(viewer, sm).widget,
         area="right",name = 'AdaptFM Save Image'
     )
@@ -68,6 +81,26 @@ def main():
 
     # Show widget when menu action triggered
     benchmark_action.triggered.connect(benchmark_widget.show)
+
+    # ------------------------------------------------------------------ #
+    # Environments menu  ← NEW
+    # ------------------------------------------------------------------ #
+    env_menu = viewer.window._qt_window.menuBar().addMenu("Environments")
+    env_action = QAction("Manage Environments…", viewer.window._qt_window)
+    env_menu.addAction(env_action)
+ 
+    # Lazy-create: dialog is parented to the main window so it stays on top
+    _env_dialog: list[EnvironmentManagerDialog] = []   # mutable cell
+ 
+    def _open_env_manager():
+        if not _env_dialog:
+            dlg = EnvironmentManagerDialog(parent=viewer.window._qt_window)
+            _env_dialog.append(dlg)
+        _env_dialog[0].show()
+        _env_dialog[0].raise_()
+        _env_dialog[0].activateWindow()
+ 
+    env_action.triggered.connect(_open_env_manager)
 
 
     napari.run()

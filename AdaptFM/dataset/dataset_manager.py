@@ -4,6 +4,7 @@ import random
 import tifffile as tiff
 import shutil
 from pathlib import Path
+import SimpleITK as sitk
 from AdaptFM.dataset.dataset_utils import construct_nnUNet_folders, write_nnUNet_json
 
 class DatasetManager:
@@ -16,24 +17,43 @@ class DatasetManager:
             self.load_from_folder(folder)
 
     def load_from_folder(self, folder):
-        self.folder = folder
-        image_paths = sorted(glob.glob(os.path.join(folder, "*.tif*")))
-        for img_path in image_paths:
-            if img_path.endswith("_seg.tiff"):
-                continue
+            self.folder = folder
 
-            base = os.path.splitext(img_path)[0]
-            mask_path = base + "_seg.tiff"
+            # Supported image extensions
+            exts = ["*.tif", "*.tiff", "*.nii", "*.nii.gz"]
 
+            # Collect all matching files
+            image_paths = []
+            for ext in exts:
+                image_paths.extend(glob.glob(os.path.join(folder, ext)))
 
-            if not (os.path.exists(mask_path)):
-                continue
+            image_paths = sorted(image_paths)
 
-            self.samples.append({
-                "id": os.path.basename(base),
-                "image": img_path,
-                "mask": mask_path
-            })
+            for img_path in image_paths:
+                # Skip mask files
+                if img_path.endswith("_seg.tif") or img_path.endswith("_seg.tiff") or \
+                img_path.endswith("_seg.nii") or img_path.endswith("_seg.nii.gz"):
+                    continue
+
+                # Determine extension
+                base, ext = os.path.splitext(img_path)
+
+                # Handle .nii.gz (double extension)
+                if ext == ".gz" and base.endswith(".nii"):
+                    base = base[:-4]   # remove ".nii"
+                    ext = ".nii.gz"
+
+                # Construct mask path
+                mask_path = base + "_seg" + ext
+
+                if not os.path.exists(mask_path):
+                    continue
+
+                self.samples.append({
+                    "id": os.path.basename(base),
+                    "image": img_path,
+                    "mask": mask_path
+                })
 
     def iter_samples(self, shuffle=True):
         samples = self.samples.copy()
@@ -59,7 +79,7 @@ class DatasetManager:
     def _export_nnunet(self,out_folder,file_ending='.tiff',channel=0,params=None):
 
         print(params)
-        setID = params['Set ID']
+        setID = int(params['Set ID'])
         setName = params['Set Name']
 
         paths = construct_nnUNet_folders(
@@ -71,7 +91,7 @@ class DatasetManager:
 
         for idx, s in enumerate(self.samples):
 
-            case_id = f"Organoids_{idx:03d}"
+            case_id = f"{setName}_{idx:03d}"
 
             img_dst = os.path.join(imagesTr, f"{case_id}_0000.tiff")
             lbl_dst = os.path.join(labelsTr, f"{case_id}.tiff")
@@ -88,7 +108,7 @@ class DatasetManager:
             
         )
 
-        return out_folder / f"nnUNet_raw/Dataset{setID:03}_{setName}"
+        return out_folder 
 
 
     def _export_simple_pairs(self, out_folder, framework):
