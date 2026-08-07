@@ -606,7 +606,7 @@ class CellSAMSpec(FoundationModelSpec):
     def inference_command(self, dataset_dir, checkpoint, output_dir):
         return [
             "python",
-            "-m", f"{self.inference_wrapper_path}",
+            f"{self.inference_wrapper_path}",
             "--test_dir",str(dataset_dir),
             "--output_path",str(output_dir),
         ]
@@ -728,7 +728,7 @@ class BMEXSpec(FoundationModelSpec):
         """
         return [
             "python",
-            "-m", f"{self.training_wrapper_path}",
+            f"{self.training_wrapper_path}",
             "--params", json.dumps(params),
             "--output_dir",run_dir,
             '--data_dir', dataset_info['dataset_dir']
@@ -762,7 +762,7 @@ class BMEXSpec(FoundationModelSpec):
     def inference_command(self, dataset_dir, checkpoint, output_dir):
         return [
             "python",
-            "-m", f"{self.inference_wrapper_path}",
+            f"{self.inference_wrapper_path}",
             "--test_dir",str(dataset_dir),
             "--checkpoint",str(checkpoint),
             "--output_path",str(output_dir),
