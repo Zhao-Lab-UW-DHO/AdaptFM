@@ -1,5 +1,15 @@
 # Ignore the autodownloaded segment-anything repositories
 AdaptFM/segmentation/sam*
+*.tiff
+
+# Ignore built containers
+*.sif
+#ignore merlin checkpoints
+nnUNetTrainerMerlin__nnUNetPlans__3d_fullres/
+# remove vscode settings
+.vscode
+# ignore checkpoints
+*.pt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

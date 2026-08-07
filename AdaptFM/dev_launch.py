@@ -13,6 +13,18 @@ from AdaptFM.gui.widgets.preprocessing_widget import PreprocessingWidget
 from AdaptFM.gui.widgets.env_manager_dialog import EnvironmentManagerDialog
 from AdaptFM.model.registry import MODEL_REGISTRY
 from qtpy.QtWidgets import QAction
+from qtpy.QtWidgets import QScrollArea
+from qtpy.QtCore import Qt
+
+def make_scrollable(widget):
+    """Wraps a QWidget or magicgui widget in a Qt scroll area."""
+    native_widget = widget.native if hasattr(widget, "native") else widget
+    
+    scroll = QScrollArea()
+    scroll.setWidget(native_widget)
+    scroll.setWidgetResizable(True)
+    scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+    return scroll
 
 
 
@@ -29,17 +41,17 @@ def main():
     # Model registry (shared by training + inference)
     model_registry = MODEL_REGISTRY
     # or: model_registry = MODEL_REGISTRY
-    viewer.window.add_dock_widget(
+    dock_sesh = viewer.window.add_dock_widget(
     SessionWidget(viewer, session, vm, sm).widget,
     area="right",name ='AdaptFM Image Manager'
     )
     # Existing widgets
-    viewer.window.add_dock_widget(
-        SegmentationWidget(viewer, sm).widget,
+    dock_seg = viewer.window.add_dock_widget(
+        make_scrollable(SegmentationWidget(viewer, sm).widget),
         area="right",name = 'AdaptFM Annotation'
     )
 
-    viewer.window.add_dock_widget(
+    dock_save = viewer.window.add_dock_widget(
         SaveWidget(viewer, sm).widget,
         area="right",name = 'AdaptFM Save Image'
     )

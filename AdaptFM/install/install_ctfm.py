@@ -1,36 +1,36 @@
 """
-install-CellSAM: creates the CellSAM conda environment, installs CellSAM,
+install_ctfm: creates the CTFM conda environment, installs CTFM,
 then swaps in the user's custom PyTorch build.
 
 Usage (after `pip install -e .`):
-    install-Cellsam
+    install-CTFM
 
-CellSAM pulls in a default PyTorch (often CUDA 13 / latest) that most users
-don't have.  This script removes it immediately after install and replaces it
-with the build specified in ~/.adaptfm/pytorch_cmd.txt.
-Run `adaptfm-set-pytorch` first if that file does not exist yet.
+
 """
 
 import subprocess
 import sys
 from pathlib import Path
 import shlex
-import os
-from AdaptFM.model.registry import _conda_prefix,_read_prefix
+from AdaptFM.model.registry import _conda_prefix
 
-ENV_NAME = "cellsam_adapt"
-PYTHON_VERSION = "3.10"
+ENV_NAME = "CTFM_adapt"
+PYTHON_VERSION = "3.10" #guessting that this wroks
 PYTORCH_CMD_FILE = Path.home() / ".adaptfm" / "pytorch_cmd.txt"
+CTFM_REPO = "https://github.com/project-lighter/CT-FM.git"
 
+ACTIVATE_SCRIPT = """\
+export CTFM_ROOT={ctfm_root}
+export ADAPTFM_ROOT={adaptfm_root}
+export PYTHONPATH=$CTFM_ROOT:$ADAPTFM_ROOT:$PYTHONPATH
+"""
 
-def _wrap_with_conda(conda_env, cmd: list[str]) -> list[str]:
-    python_bin = os.path.join(conda_env, "bin", "python")
-    # cmd is typically ["python", "script.py", ...args]
-    # replace the "python" at the front with the env's absolute python binary
-    if cmd[0] == "python":
-        return [python_bin, *cmd[1:]]
-    else:
-        return [python_bin, *cmd]
+DEACTIVATE_SCRIPT = """\
+unset CTFM_ROOT
+unset ADAPTFM_ROOT
+export PYTHONPATH=$(echo $PYTHONPATH | tr ':' '\\n' | grep -v "AdaptFM\\|CT-FM" | tr '\\n' ':' | sed 's/:$//')
+"""
+
 
 def _run(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
     print(f"  + {' '.join(cmd)}")
@@ -57,8 +57,31 @@ def _read_pytorch_cmd() -> list[str]:
 
 
 
+def _write_conda_hooks(env: str, ctfm_root: Path, adaptfm_root: Path) -> None:
+    prefix = Path(_conda_prefix(env))
+
+    activate_dir = prefix / "etc" / "conda" / "activate.d"
+    deactivate_dir = prefix / "etc" / "conda" / "deactivate.d"
+    activate_dir.mkdir(parents=True, exist_ok=True)
+    deactivate_dir.mkdir(parents=True, exist_ok=True)
+
+    activate_file = activate_dir / "sam_paths.sh"
+    deactivate_file = deactivate_dir / "sam_paths.sh"
+
+    activate_file.write_text(
+        ACTIVATE_SCRIPT.format(
+            ctfm_root=ctfm_root,
+            adaptfm_root=adaptfm_root,
+        )
+    )
+    deactivate_file.write_text(DEACTIVATE_SCRIPT)
+
+    print(f"  Wrote activate hook:   {activate_file}")
+    print(f"  Wrote deactivate hook: {deactivate_file}")
+
+
 def main() -> None:
-    print(f"\n=== Installing CellSAM environment: {ENV_NAME} ===\n")
+    print(f"\n=== Installing CT-FM environment: {ENV_NAME} ===\n")
 
     # Check that conda is available
     result = subprocess.run(
@@ -79,8 +102,15 @@ def main() -> None:
     )
     if ENV_NAME in env_check.stdout:
         print(f"Environment '{ENV_NAME}' already exists — skipping creation.")
-        print("To reinstall from scratch, run:  conda env remove -n CellSAM_adapt")
+        print("To reinstall from scratch, run:  conda env remove -n CTFM_adapt")
         sys.exit(0)
+
+    cwd = Path.cwd()
+
+    ctfm_root = (cwd.parent / "CT-FM")
+    adaptfm_root: Path =cwd
+    ctfm_root = ctfm_root.expanduser().resolve()
+    adaptfm_root = adaptfm_root.expanduser().resolve()
 
     # Read user's custom PyTorch command
     pytorch_cmd = _read_pytorch_cmd()
@@ -99,14 +129,12 @@ def main() -> None:
     config_path.write_text(prefix + "\n")
     print(f"  Wrote env prefix to {config_path}")   
 
-    # Install CellSAM (this drags in a default torch/torchvision)
-    print("\n--- Installing CellSAM ---")
-    _conda_run(
-        ENV_NAME,
-        ["python", "-m", "pip", "install", "git+https://github.com/vanvalenlab/cellSAM.git"]
-    )
+    # Install CTFM_adapt 
+    print("\n--- Installing CTFM_adapt ---")
+    _conda_run(ENV_NAME, ["python", "-m", "pip", "install", "lighter-zoo", "-U"])
 
-    # Remove the default torch/torchvision that CellSAM bundled
+
+        # Remove the default torch/torchvision that cellpose bundled
     print("\n--- Removing default torch/torchvision ---")
     _conda_run(
         ENV_NAME,
@@ -114,50 +142,29 @@ def main() -> None:
         check=False,   # OK if they were never installed under these names
     )
 
+
     # Install the user's preferred PyTorch build
     print("\n--- Installing user-specified PyTorch ---")
     _conda_run(ENV_NAME, pytorch_cmd)
 
-    print("\n--- Installing usegment3D for CellSAM ---")
-    _conda_run(
-        ENV_NAME,
-        ["python", "-m", "pip", "install", "u-Segment3D"]
-    )
+    print("\n--- Cloning CT-FM ---")
+    if (ctfm_root / ".git").exists():
+        print(f" CT-FM already cloned at {ctfm_root} — skipping.")
+    else:
+        ctfm_root.mkdir(parents=True, exist_ok=True)
+        _run(["git", "clone", CTFM_REPO, str(ctfm_root)])
 
-    print(f"\n✓ CellSAM environment '{ENV_NAME}' created successfully.")
+    print("\n--- Installing dependencies ---")
+    _conda_run(ENV_NAME, ["python", "-m", "pip", "install", "-r", str(ctfm_root / "requirements.txt")])
+
+    
+    # Write conda activate/deactivate hooks
+    print("\n--- Writing conda environment hooks ---")
+    _write_conda_hooks(ENV_NAME, ctfm_root, adaptfm_root)
+
+    print(f"\n✓ CTFM_adapt environment '{ENV_NAME}' created successfully.")
     print(f"  Activate with:  conda activate {ENV_NAME}\n")
 
-    access_token = os.environ.get("DEEPCELL_ACCESS_TOKEN", "").strip()
-
-    if not access_token:
-        while True:
-            access_token = input("DeepCell Access Token: ").strip()
-            if not access_token:
-                print("  Access token cannot be empty. Reference the CellSAM github on how to get a token.")
-                continue
-            break
-
-    cmd = ["python","-m","AdaptFM.model.foundation_models.cellSAM.get_model_first","--access_token",access_token]
-
-    env = os.environ.copy()
-    working_dir = os.getcwd()
-    env["PYTHONPATH"] = working_dir
-
-
-    get_model_cmd = [
-            "conda", "run", "-p", _read_prefix(ENV_NAME),
-            "--no-capture-output",
-            *cmd
-        ]
-    results = subprocess.Popen(
-        get_model_cmd,
-        env=env
-    )
-    print(results.stdout)
-    print(results.stderr)
-
-
-    print('CellSAM successfully installed')
 
 if __name__ == "__main__":
     main()
