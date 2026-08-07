@@ -114,3 +114,72 @@ def apply_organoidseg(input_dir: Path, output_dir: Path, progress_callback, mini
         if progress_callback:
             percent_complete = int(((i + 1) / total_files) * 100)
             progress_callback(percent_complete)
+
+
+
+def conv_to_uint8(input_dir: Path, output_dir: Path, progress_callback=None):
+    """
+    Converts TIFF arrays in input_dir to uint8 by dynamically rescaling float values 
+    from their actual min/max range to [0, 255] to avoid clamping or underflow.
+    """
+    exts = {".tiff", ".tif"}
+    tiff_filepaths = sorted([x for x in input_dir.glob("*") if x.suffix.lower() in exts])
+    total_files = len(tiff_filepaths)
+
+    if total_files == 0:
+        raise ValueError(f"No tiff files found in {input_dir}")
+
+    for i, tiff_filepath in enumerate(tiff_filepaths):
+        array = tifffile.imread(tiff_filepath)
+        
+        if np.issubdtype(array.dtype, np.floating):
+            arr_min = np.min(array)
+            arr_max = np.max(array)
+            
+            # Dynamic min-max scaling to [0, 255]
+            if arr_max > arr_min:
+                norm = (array - arr_min) / (arr_max - arr_min)
+                uint8_array = (norm * 255.0).astype(np.uint8)
+            else:
+                uint8_array = np.zeros_like(array, dtype=np.uint8)
+        else:
+            # Safely clip and convert non-float arrays
+            uint8_array = np.clip(array, 0, 255).astype(np.uint8)
+
+        tifffile.imwrite(output_dir / tiff_filepath.name, uint8_array)
+        
+        if progress_callback:
+            percent_complete = int(((i + 1) / total_files) * 100)
+            progress_callback(percent_complete)
+
+
+def conv_to_bmask(input_dir: Path, output_dir: Path, progress_callback=None):
+    """
+    Converts object ID or multi-class uint8 segmentation masks into a unified 
+    binary mask (0 and 1) stored as uint8. Expects input arrays to be uint8.
+    """
+    exts = {".tiff", ".tif"}
+    tiff_filepaths = sorted([x for x in input_dir.glob("*") if x.suffix.lower() in exts])
+    total_files = len(tiff_filepaths)
+
+    if total_files == 0:
+        raise ValueError(f"No tiff files found in {input_dir}")
+
+    for i, tiff_filepath in enumerate(tiff_filepaths):
+        array = tifffile.imread(tiff_filepath)
+        
+        # Enforce uint8 input contract
+        if array.dtype != np.uint8:
+            raise TypeError(
+                f"Expected uint8 array for binary mask conversion, but got {array.dtype} in {tiff_filepath.name}. "
+                "Run 'Convert dtype to uint8' first."
+            )
+
+        # Map any foreground label/ID (> 0) to 1
+        bmask = (array > 0).astype(np.uint8)
+
+        tifffile.imwrite(output_dir / tiff_filepath.name, bmask)
+        
+        if progress_callback:
+            percent_complete = int(((i + 1) / total_files) * 100)
+            progress_callback(percent_complete)
