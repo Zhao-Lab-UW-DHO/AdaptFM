@@ -4,6 +4,7 @@ import random
 import tifffile as tiff
 import shutil
 from pathlib import Path
+import SimpleITK as sitk
 from AdaptFM.dataset.dataset_utils import construct_nnUNet_folders, write_nnUNet_json
 
 class DatasetManager:
@@ -16,19 +17,39 @@ class DatasetManager:
             self.load_from_folder(folder)
 
     def load_from_folder(self, folder):
-        self.folder = folder
-        image_paths = sorted(Path(folder).glob("*.tif*"))
-        for img_path in image_paths:
-            if img_path.name.endswith("_seg.tiff"):
-                continue
+        self.folder = Path(folder)
 
-            mask_path = img_path.with_name(f"{img_path.stem}_seg.tiff")
+        # Supported image extensions
+        exts = ["*.tif", "*.tiff", "*.nii", "*.nii.gz"]
+
+        # Collect all matching files
+        image_paths = []
+        for ext in exts:
+            image_paths.extend(self.folder.glob(ext))
+
+        image_paths = sorted(image_paths)
+
+        for img_path in image_paths:
+            filename = img_path.name
+
+            # Handle multi-dot extensions
+            if filename.endswith(".nii.gz"):
+                ext = ".nii.gz"
+                stem = filename[:-7]
+            else:
+                ext = img_path.suffix
+                stem = img_path.stem
+
+            if stem.endswith("_seg"):
+                continue
+                
+            mask_path = img_path.with_name(f"{stem}_seg{ext}")
 
             if not mask_path.exists():
                 continue
 
             self.samples.append({
-                "id": img_path.stem,
+                "id": stem,
                 "image": str(img_path),
                 "mask": str(mask_path)
             })
