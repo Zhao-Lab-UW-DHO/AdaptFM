@@ -14,7 +14,6 @@ apptainer run \
     --bind /mnt:/mnt \
     --bind $HOME:$HOME \
     --bind $XAUTHORITY:/tmp/.Xauthority-container \
-    "${WAYLAND_ARGS[@]}" \
     --env XAUTHORITY=/tmp/.Xauthority-container \
     --env DISPLAY=$DISPLAY \
     "$IMAGE"

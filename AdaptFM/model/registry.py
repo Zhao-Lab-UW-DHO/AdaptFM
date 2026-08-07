@@ -65,7 +65,7 @@ MODEL_REGISTRY = {
     conda_env = _read_prefix("cellsam_adapt"),
     module_path= "",#does not support training/finetuning
     training_wrapper_path = "",
-    inference_wrapper_path = "AdaptFM.model.foundation_models.cellSAM.inference_wrapper",
+    inference_wrapper_path = str(ADAPTFM_MODEL_PATH / "foundation_models" / "cellSAM" / "inference_wrapper.py"),
     training_function=""#does not support training/finetuning
     ),
     
@@ -73,25 +73,25 @@ MODEL_REGISTRY = {
     "BMEX": BMEXSpec(
     name = "BME-X",
     conda_env = _read_prefix("BME-X_adapt"),
-    module_path= "AdaptFM.model.foundation_models.bmex.train_wrapper",
-    training_wrapper_path = "AdaptFM.model.foundation_models.bmex.train_wrapper",
-    inference_wrapper_path = "AdaptFM.model.foundation_models.bmex.inference_wrapper",
+    module_path= str(ADAPTFM_MODEL_PATH / "foundation_models" / "bmex" / "train_wrapper.py"),
+    training_wrapper_path = str(ADAPTFM_MODEL_PATH / "foundation_models" / "bmex" / "train_wrapper.py"),
+    inference_wrapper_path = str(ADAPTFM_MODEL_PATH / "foundation_models" / "bmex" / "inference_wrapper.py"),
     training_function="launch_training"#does not support training/finetuning
     ),
     
     "CT FM": CTFMSpec(
         name="CTFM",
         conda_env = _read_prefix("CTFM_adapt"),
-        module_path = "AdaptFM.model.foundation_models.ctfm.training_utils", 
+        module_path = str(ADAPTFM_MODEL_PATH / "foundation_models" / "ctfm" / "training_utils.py"),
         training_wrapper_path = "",
-        inference_wrapper_path = "AdaptFM.model.foundation_models.ctfm.inference_wrapper",
+        inference_wrapper_path = str(ADAPTFM_MODEL_PATH / "foundation_models" / "ctfm" / "inference_wrapper.py"),
         training_function="launch_training"
 
     ),
 
     "Merlin nnUNet" : MerlinNNUNetV2ModelSpec(
         conda_env = _read_prefix("Merlin_nnUNet_adapt"),
-        transform_path = "AdaptFM.model.foundation_models.merlin.transforms"
+        transform_path = str(ADAPTFM_MODEL_PATH / "foundation_models" / "merlin" / "transforms.py"),
     )
     
 }
