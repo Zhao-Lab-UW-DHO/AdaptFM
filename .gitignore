@@ -4,12 +4,12 @@ AdaptFM/segmentation/sam*
 
 # Ignore built containers
 *.sif
-
-/nnUNetTrainerMerlin__nnUNetPlans__3d_fullres/
-*.pt
-
+#ignore merlin checkpoints
+nnUNetTrainerMerlin__nnUNetPlans__3d_fullres/
 # remove vscode settings
 .vscode
+# ignore checkpoints
+*.pt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

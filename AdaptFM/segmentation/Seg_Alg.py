@@ -830,6 +830,9 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
         self._session_id = response["session_id"]
         self._initialized = True
 
+    def reset_inference_state(self) -> None:
+        pass # sam3 doesn't manage an _inf_state but have this hear to capture propagate logic in seg widget
+
     # ------------------------------------------------------------------
     # Point prompt (click-based)
     # ------------------------------------------------------------------
@@ -1077,46 +1080,46 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
         # Use all detected obj_ids if available, otherwise just the requested one
         obj_ids_to_propagate = self._active_obj_ids if self._active_obj_ids else [obj_id]
         print(f"Propagating obj_ids: {obj_ids_to_propagate}")
-
-        for frame_output in self._predictor.handle_stream_request(
-            request=dict(
-                type="propagate_in_video",
-                session_id=self._session_id,
-                propagation_direction=direction,
-            )
-        ):
-            frame_idx = frame_output["frame_index"]
-            outputs   = frame_output.get("outputs", {})
-
-            binary_masks = outputs.get("out_binary_masks", [])
-            probs        = outputs.get("out_probs", [])
-            out_obj_ids  = outputs.get("out_obj_ids", [])
-
-            if len(binary_masks) == 0:
-                continue
-
-            for i, oid in enumerate(out_obj_ids):
-                oid_val = oid.item() if hasattr(oid, "item") else int(oid)
-
-                # Propagate any object SAM3 is tracking
-                if oid_val not in obj_ids_to_propagate:
-                    continue
-
-                prob = probs[i].item() if hasattr(probs[i], "item") else float(probs[i])
-                if prob < conf_thresh:
-                    continue
-
-                mask = binary_masks[i]
-                mask_np = mask.cpu().numpy() if hasattr(mask, "cpu") else np.array(mask)
-
-                existing = self._label_vol[frame_idx]
-                # All detected instances get the same label_id for display
-                # (since they all came from the same text prompt)
-                self._label_vol[frame_idx] = np.where(
-                    mask_np.astype(bool) & (existing == 0),
-                    oid_val,  # keep same label for all instances of this concept
-                    existing,
+        with torch.inference_mode(), torch.autocast(device_type="cuda"):
+            for frame_output in self._predictor.handle_stream_request(
+                request=dict(
+                    type="propagate_in_video",
+                    session_id=self._session_id,
+                    propagation_direction=direction,
                 )
+            ):
+                frame_idx = frame_output["frame_index"]
+                outputs   = frame_output.get("outputs", {})
+
+                binary_masks = outputs.get("out_binary_masks", [])
+                probs        = outputs.get("out_probs", [])
+                out_obj_ids  = outputs.get("out_obj_ids", [])
+
+                if len(binary_masks) == 0:
+                    continue
+
+                for i, oid in enumerate(out_obj_ids):
+                    oid_val = oid.item() if hasattr(oid, "item") else int(oid)
+
+                    # Propagate any object SAM3 is tracking
+                    if oid_val not in obj_ids_to_propagate:
+                        continue
+
+                    prob = probs[i].item() if hasattr(probs[i], "item") else float(probs[i])
+                    if prob < conf_thresh:
+                        continue
+
+                    mask = binary_masks[i]
+                    mask_np = mask.cpu().numpy() if hasattr(mask, "cpu") else np.array(mask)
+
+                    existing = self._label_vol[frame_idx]
+                    # All detected instances get the same label_id for display
+                    # (since they all came from the same text prompt)
+                    self._label_vol[frame_idx] = np.where(
+                        mask_np.astype(bool) & (existing == 0),
+                        oid_val,  # keep same label for all instances of this concept
+                        existing,
+                    )
 
         return self._label_vol.copy()
 
