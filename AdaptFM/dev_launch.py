@@ -12,6 +12,18 @@ from AdaptFM.gui.widgets.benchmark_widget import BenchmarkWidget
 from AdaptFM.gui.widgets.env_manager_dialog import EnvironmentManagerDialog
 from AdaptFM.model.registry import MODEL_REGISTRY
 from qtpy.QtWidgets import QAction
+from qtpy.QtWidgets import QScrollArea
+from qtpy.QtCore import Qt
+
+def make_scrollable(widget):
+    """Wraps a QWidget or magicgui widget in a Qt scroll area."""
+    native_widget = widget.native if hasattr(widget, "native") else widget
+    
+    scroll = QScrollArea()
+    scroll.setWidget(native_widget)
+    scroll.setWidgetResizable(True)
+    scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+    return scroll
 
 
 def main():
@@ -44,7 +56,7 @@ def main():
         )
     def create_seg_dock():
         return viewer.window.add_dock_widget(
-            SegmentationWidget(viewer, sm).widget,
+            make_scrollable(SegmentationWidget(viewer, sm).widget),
             area="right", name='AdaptFM Annotation'
         )
     def create_save_dock():
@@ -74,7 +86,6 @@ def main():
 
     restore_action = QAction("Restore AdaptFM Sidewidgets", viewer.window._qt_window)
     restore_action.triggered.connect(restore_docks)
-
 
     # --- NEW: Training ---
     menu = viewer.window._qt_window.menuBar().addMenu("Models")
