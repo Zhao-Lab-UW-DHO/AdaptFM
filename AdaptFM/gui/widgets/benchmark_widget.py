@@ -1,144 +1,3 @@
-# from napari.qt.threading import thread_worker
-# from qtpy.QtWidgets import QWidget, QVBoxLayout, QComboBox, QPushButton, QLabel, QFileDialog, QListWidget
-# from qtpy.QtWidgets import QSpinBox
-# import subprocess
-# import json
-# import multiprocessing
-# import sys
-# from pathlib import Path
-# from AdaptFM.gui.widgets.metrics_widget import MetricRegistry
-# from qtpy.QtCore import Qt
-
-# class BenchmarkWidget(QWidget):
-#     def __init__(self):
-#         super().__init__()
-#         self.layout = QVBoxLayout()
-#         self.setLayout(self.layout)
-
-#         # Metric dropdown
-#         self.metric_dropdown = QComboBox()
-#         self.metric_dropdown.addItems(MetricRegistry.get_metrics())
-#         self.layout.addWidget(QLabel("Select Metric"))
-#         self.layout.addWidget(self.metric_dropdown)
-
-#         # Ground truth selection
-#         self.gt_button = QPushButton("Select Ground Truth")
-#         self.gt_button.clicked.connect(self.select_ground_truth)
-#         self.layout.addWidget(self.gt_button)
-#         self.gt_dir = None
-
-#         # Model selection
-#         self.models_button = QPushButton("Add Model Predictions")
-#         self.models_button.clicked.connect(self.add_model)
-#         self.layout.addWidget(self.models_button)
-#         self.models_dirs = []
-
-#         # List of models added
-#         self.models_list = QListWidget()
-
-#         self.layout.addWidget(self.models_list)
-
-#                 # Remove selected model button
-#         self.remove_model_button = QPushButton("Remove Selected Model")
-#         self.remove_model_button.clicked.connect(self.remove_model)
-#         self.layout.addWidget(self.remove_model_button)
-
-#         # Compute button
-#         self.compute_button = QPushButton("Compute Metric")
-#         self.compute_button.clicked.connect(self.compute_metrics)
-#         self.layout.addWidget(self.compute_button)
-#         self.layout.addWidget(QLabel("Number of Processes"))
-
-#         self.nproc_spinbox = QSpinBox()
-
-#         self.nproc_spinbox.setMinimum(1)
-
-#         self.nproc_spinbox.setMaximum(
-#             multiprocessing.cpu_count()
-#         )
-
-#         self.nproc_spinbox.setValue(
-#            1
-#         )
-
-#         self.layout.addWidget(self.nproc_spinbox)
-
-#         self.setWindowTitle('Benchmarking')
-
-#         self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
-
-
-
-#     def select_ground_truth(self):
-
-#         metric_name = self.metric_dropdown.currentText()
-
-#         if metric_name == 'Compare Counts':
-#             path, _ = QFileDialog.getOpenFileName(None, "Select file")
-#         else:
-#             path = QFileDialog.getExistingDirectory(None, "Select folder")
-
-#         if path:
-#             self.gt_dir = path
-#             self.gt_button.setText(Path(path).name)
-
-#     def add_model(self):
-#         model_dir = QFileDialog.getExistingDirectory(None, "Select model predictions")
-#         if model_dir:
-#             self.models_dirs.append(model_dir)
-#             self.models_list.addItem(model_dir)
-
-#     def remove_model(self):
-#             selected = self.models_list.currentRow()
-#             if selected >= 0:
-#                 self.models_list.takeItem(selected)
-#                 self.models_dirs.pop(selected)
-            
-
-
-#     def compute_metrics(self):
-#         metric_name = self.metric_dropdown.currentText()
-
-#         if not self.gt_dir or not self.models_dirs:
-#             print("Select ground truth and at least one model!")
-#             return
-
-#         models_json = json.dumps(self.models_dirs)
-        
-#         num_processes = str(
-#         self.nproc_spinbox.value()
-#         )
-
-#         cmd = [
-#             sys.executable,
-#             "-m","AdaptFM.gui.run_metric_subprocess",
-#             "--metric", metric_name,
-#             "--gt_dir", self.gt_dir,
-#             "--models_json", models_json,
-#             "--num_processes",num_processes
-#         ]
-
-#         print("Launching metric subprocess...")
-
-#         self.proc = subprocess.Popen(
-#             cmd,
-#             stdout=subprocess.DEVNULL,
-#             stderr=subprocess.DEVNULL
-#         )
-
-"""
-model_widget.py
----------------
-Base class for Training and Inference floating windows.
-
-Design principles
------------------
-- All subprocess execution goes through QProcess (non-blocking, streams to log).
-- tunable_params() is called in a QThread — never blocks the UI.
-- GPU index and output directory are inline fields, not mid-run dialogs.
-- Subclasses implement _run_workflow() and optionally _on_model_changed().
-- The "terminate" button kills the QProcess and, on Unix, its process group.
-"""
 
 from __future__ import annotations
 import json
@@ -147,18 +6,16 @@ import sys
 import signal
 from pathlib import Path
 from typing import Callable, Optional
-from qtpy.QtCore import Qt, QProcess, QProcessEnvironment, QThread, Signal, QObject, QTimer
+from qtpy.QtCore import Qt, QProcess, QProcessEnvironment, QThread, QTimer
 from qtpy.QtGui import QFont, QTextCursor
 from qtpy.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
+    QWidget, QVBoxLayout, QHBoxLayout, 
     QLabel, QPushButton, QSpinBox,
     QListWidget, QFrame, QTextEdit,
     QFileDialog, QSplitter, QProgressBar, QComboBox,
-    QMessageBox,QLineEdit
+    QMessageBox,QTableWidget,QTableWidgetItem
 )
 
-from AdaptFM.model.registry import MODEL_REGISTRY
-from AdaptFM.model.nnUNetV2Spec import NNUNetV2ModelSpec
 from AdaptFM.gui.widgets.metrics_widget import MetricRegistry
 
 # ---------------------------------------------------------------------------
@@ -318,8 +175,14 @@ class BenchmarkWidget:
         processes_row.addStretch()
         ctrl.addLayout(processes_row)
 
-        self._pred_list = QListWidget()
-        self._pred_list.setStyleSheet(_combo_style())
+
+        self._pred_table = QTableWidget()
+        self._pred_table.setColumnCount(2)
+        self._pred_table.setHorizontalHeaderLabels(["Display Name", "Folder Path"])
+        self._pred_table.horizontalHeader().setStretchLastSection(True)
+        self._pred_table.setStyleSheet(_combo_style())
+        self._pred_table.setEditTriggers(QTableWidget.AllEditTriggers)
+
 
 
         self._add_btn = QPushButton("Add Prediction Folder")
@@ -332,7 +195,9 @@ class BenchmarkWidget:
         self._remove_btn.clicked.connect(self._remove_prediction_folder)
 
         ctrl.addWidget(_section_label("Predictions"))
-        ctrl.addWidget(self._pred_list)
+        ctrl.addWidget(self._pred_table)
+        self._pred_table.itemChanged.connect(self._on_pred_item_changed)
+
 
         pred_btn_row = QHBoxLayout()
         pred_btn_row.addWidget(self._add_btn)
@@ -500,23 +365,80 @@ class BenchmarkWidget:
         if not path:
             return
 
+        # Prevent duplicates
         if path in self._predictions.values():
-            self._log_line(f"{path} has already been added")
+            self._log_line(f"⚠ Folder already added: {path}", color=_AMBER)
             return
 
-        self._predictions[path] = path
-        self._pred_list.addItem(path)
+        # Default display name = folder name
+        display_name = os.path.basename(path)
+
+        # Ensure unique display name
+        base = display_name
+        i = 1
+        while display_name in self._predictions:
+            display_name = f"{base} ({i})"
+            i += 1
+
+        # Store mapping
+        self._predictions[display_name] = path
+
+        # Add row to table
+        row = self._pred_table.rowCount()
+        self._pred_table.insertRow(row)
+
+        self._pred_table.setItem(row, 0, QTableWidgetItem(display_name))
+        self._pred_table.setItem(row, 1, QTableWidgetItem(path))
+
 
     def _remove_prediction_folder(self):
-        item = self._pred_list.currentItem()
-        if not item:
+        row = self._pred_table.currentRow()
+        if row < 0:
             return
 
-        name = item.text()
-        del self._predictions[name]
+        display_name = self._pred_table.item(row, 0).text()
 
-        row = self._pred_list.row(item)
-        self._pred_list.takeItem(row)
+        # Remove from dict
+        if display_name in self._predictions:
+            del self._predictions[display_name]
+
+        # Remove from table
+        self._pred_table.removeRow(row)
+
+    def _on_pred_item_changed(self, item):
+        row = item.row()
+        col = item.column()
+
+        # Only handle edits to display name column
+        if col != 0:
+            return
+
+        # Path cell may not exist yet (Qt fires itemChanged too early)
+        path_item = self._pred_table.item(row, 1)
+        if path_item is None:
+            return  # ignore until row is fully populated
+
+        path = path_item.text()
+        new_name = item.text().strip()
+
+        # Find old name
+        old_name = None
+        for name, p in self._predictions.items():
+            if p == path:
+                old_name = name
+                break
+
+        if old_name is None:
+            return
+
+        # Prevent collisions
+        if new_name in self._predictions and new_name != old_name:
+            new_name = f"{new_name}_copy"
+            item.setText(new_name)
+
+        # Update mapping
+        self._predictions.pop(old_name)
+        self._predictions[new_name] = path
 
     # ------------------------------------------------------------------
     # Run / terminate
@@ -543,7 +465,7 @@ class BenchmarkWidget:
             self._log_line("⚠  Please select a ground truth folder or file.", color=_AMBER)
             return
 
-        if self._pred_list.count()==0:
+        if self._pred_table.rowCount() == 0:
             self._log_line("⚠  Please select a set of predictions to analyze", color=_AMBER)
             return
         
@@ -555,7 +477,8 @@ class BenchmarkWidget:
             "--metric",self.metric,
             "--gt_dir",self.ground_truth,
             "--models_json",predictions_json,
-            "--num_processes", num_processes
+            "--num_processes", num_processes,
+            "--output_dir",self.output_dir
         ]
 
         self._start_process(

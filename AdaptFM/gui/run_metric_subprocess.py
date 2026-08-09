@@ -9,6 +9,7 @@ def main():
     parser.add_argument("--gt_dir")
     parser.add_argument("--models_json")
     parser.add_argument("--num_processes",type=int,default=None)
+    parser.add_argument("--output_dir")
 
     args = parser.parse_args()
 
@@ -18,7 +19,8 @@ def main():
 
     metric.compute(
         args.gt_dir,
-        models_dirs    )
+        models_dirs,
+        args.output_dir    )
 
 
 if __name__ == "__main__":
