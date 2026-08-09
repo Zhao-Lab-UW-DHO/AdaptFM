@@ -77,7 +77,7 @@ def main():
     menu.addAction(benchmark_action)
 
     # Lazy-create widget
-    benchmark_widget = BenchmarkWidget()
+    benchmark_widget = BenchmarkWidget().widget
 
     # Show widget when menu action triggered
     benchmark_action.triggered.connect(benchmark_widget.show)
