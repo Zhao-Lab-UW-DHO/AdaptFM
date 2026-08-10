@@ -2,8 +2,10 @@ from qtpy.QtWidgets import QWidget, QVBoxLayout
 from magicgui import magicgui
 from qtpy.QtWidgets import QFileDialog
 from napari.layers import Image
+from napari.layers.image._image_utils import guess_labels
 import os
 from glob import glob
+from pathlib import Path
 from AdaptFM.gui.napari_utils import update_or_create_image,  update_or_create_labels
 
 class SessionWidget:
@@ -27,6 +29,11 @@ class SessionWidget:
         self._clear_auto_seg()
         img, _ = self.vm.load_image(path)
 
+        if guess_labels(img)=="labels":
+            label_name = Path(path).name
+            update_or_create_labels(self.viewer,label_name,img)
+            return
+
         update_or_create_image(
             self.viewer,
             "Original",
@@ -46,6 +53,7 @@ class SessionWidget:
 
         # Sync VolumeManager to this file, same as the button path.
         self._clear_auto_seg()
+        self._clear_original()
         self.vm.load_image(path)
         self.session.set_images([path])
 
@@ -75,3 +83,6 @@ class SessionWidget:
         if "auto_seg" in self.viewer.layers:
             self.viewer.layers.remove("auto_seg")
 
+    def _clear_original(self):
+        if "Original" in self.viewer.layers:
+            self.viewer.layers.remove("Original")
