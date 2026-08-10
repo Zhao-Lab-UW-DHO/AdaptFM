@@ -277,6 +277,28 @@ class BenchmarkWidget:
         if initial:
             QTimer.singleShot(0, lambda: self._on_metric_selected())
 
+        self._pred_table.setStyleSheet(f"""
+            QTableWidget {{
+                background-color: {_BG2};
+                color: {_TEXT};
+                border: 1px solid #444;
+                gridline-color: #333;
+            }}
+            QTableWidget::item {{
+                padding: 4px;
+            }}
+            QTableWidget::item:hover {{
+                background-color: #383838;
+            }}
+            /* Style cell editor when active */
+            QLineEdit {{
+                background-color: #111;
+                color: #fff;
+                border: 1px solid {_BLUE};
+                border-radius: 2px;
+            }}
+        """)
+
     # ------------------------------------------------------------------
     # Helper row for paths (stores button reference on self)
     # ------------------------------------------------------------------
@@ -387,8 +409,13 @@ class BenchmarkWidget:
         row = self._pred_table.rowCount()
         self._pred_table.insertRow(row)
 
-        self._pred_table.setItem(row, 0, QTableWidgetItem(display_name))
-        self._pred_table.setItem(row, 1, QTableWidgetItem(path))
+        name_item = QTableWidgetItem(display_name)
+        name_item.setToolTip("✏️ Double-click to edit display name")
+        self._pred_table.setItem(row, 0, name_item)
+        path_item = QTableWidgetItem(path)
+        path_item.setFlags(path_item.flags() & ~Qt.ItemIsEditable) # Strip editable flag
+        path_item.setToolTip(path)
+        self._pred_table.setItem(row, 1, path_item)
 
 
     def _remove_prediction_folder(self):
