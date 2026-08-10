@@ -383,44 +383,6 @@ class EnvironmentManagerDialog(QDialog):
         scroll_layout.addWidget(self._scroll)
         splitter.addWidget(scroll_outer)
 
-        # Fixed cards — always first, never touched by _clear_cards()
-        self._pytorch_card = PyTorchConfigWidget(
-            log_fn=self._log_line,
-            run_process_fn=self._run_process,
-        )
-        self._pytorch_card.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self._card_layout.addWidget(self._pytorch_card)
-
-        self._sam2_card = SamCard(
-            key="SAM2", display_name="SAM 2",
-            description="Segment Anything Model 2 (Meta). Installs directly into the AdaptFM environment.",
-            import_name="sam2",
-            install_command="adaptfm-install-sam2",
-            uninstall_command="adaptfm-uninstall-sam2",
-            requires_pytorch=True,
-            log_fn=self._log_line,
-            run_process_fn=self._run_process,
-        )
-        self._sam3_card = SamCard(
-            key="SAM3", display_name="SAM 3",
-            description="Segment Anything Model 3 (Meta). Installs directly into the AdaptFM environment.",
-            import_name="sam3",
-            install_command="adaptfm-install-sam3",
-            uninstall_command="adaptfm-uninstall-sam3",
-            requires_pytorch=True,
-            log_fn=self._log_line,
-            run_process_fn=self._run_process,
-        )
-        self._sam2_card.pytorch_config_clicked.connect(self._focus_pytorch_card)
-        self._sam3_card.pytorch_config_clicked.connect(self._focus_pytorch_card)
-        self._card_layout.addWidget(self._sam2_card)
-        self._card_layout.addWidget(self._sam3_card)
-
-        self._aux_cards = [self._pytorch_card, self._sam2_card, self._sam3_card]
-
-        # Stretch goes last, AFTER every fixed card. Dynamic env cards get
-        # inserted just before it via `idx = self._card_layout.count() - 1`.
-        self._card_layout.addStretch()
 
         # Log panel
         log_outer = QWidget()
@@ -497,6 +459,45 @@ class EnvironmentManagerDialog(QDialog):
             parts.append(f"{updates} update{'s' if updates > 1 else ''} available")
         self._status_lbl.setText(" · ".join(parts))
 
+        self._pytorch_card = PyTorchConfigWidget(
+            log_fn=self._log_line,
+            run_process_fn=self._run_process,
+        )
+        self._pytorch_card.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self._card_layout.addWidget(self._pytorch_card)
+
+        self._sam2_card = SamCard(
+            key="SAM2", display_name="SAM 2",
+            description="Segment Anything Model 2 (Meta). Installs directly into the AdaptFM environment.",
+            import_name="sam2",
+            install_command="adaptfm-install-sam2",
+            uninstall_command="adaptfm-uninstall-sam2",
+            requires_pytorch=True,
+            log_fn=self._log_line,
+            run_process_fn=self._run_process,
+        )
+        self._sam3_card = SamCard(
+            key="SAM3", display_name="SAM 3",
+            description="Segment Anything Model 3 (Meta). Installs directly into the AdaptFM environment.",
+            import_name="sam3",
+            install_command="adaptfm-install-sam3",
+            uninstall_command="adaptfm-uninstall-sam3",
+            requires_pytorch=True,
+            log_fn=self._log_line,
+            run_process_fn=self._run_process,
+        )
+        self._sam2_card.pytorch_config_clicked.connect(self._focus_pytorch_card)
+        self._sam3_card.pytorch_config_clicked.connect(self._focus_pytorch_card)
+        self._card_layout.addWidget(self._sam2_card)
+        self._card_layout.addWidget(self._sam3_card)
+
+        self._aux_cards = [self._pytorch_card, self._sam2_card, self._sam3_card]
+
+        # Stretch goes last, AFTER every fixed card. Dynamic env cards get
+        # inserted just before it via `idx = self._card_layout.count() - 1`.
+        self._card_layout.addStretch()
+
+
         for status in statuses:
             card = _EnvCard(status)
             card.action_requested.connect(self._on_action)
@@ -548,7 +549,10 @@ class EnvironmentManagerDialog(QDialog):
         def _done(code, _status):
             self._progress.setVisible(False)
             self._set_all_cards_busy(False)
-            self._pytorch_card.setEnabled(True)
+            
+            for card in getattr(self, "_aux_cards", []):
+                card.setEnabled(True)
+
             if on_done:
                 on_done(code)
 
