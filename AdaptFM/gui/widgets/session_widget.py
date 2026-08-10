@@ -7,6 +7,7 @@ import os
 from glob import glob
 from pathlib import Path
 from AdaptFM.gui.napari_utils import update_or_create_image,  update_or_create_labels
+from qtpy.QtWidgets import QVBoxLayout, QSizePolicy
 
 class SessionWidget:
     def __init__(self, viewer, session, vm, sm):
@@ -15,15 +16,12 @@ class SessionWidget:
         self.vm = vm
         self.sm = sm
 
-        self._internal_layer_names = {"Original", "auto_seg"}
-
         self.widget = QWidget()
         layout = QVBoxLayout()
         self.widget.setLayout(layout)
 
         self._build(layout)
-
-        self.viewer.layers.events.inserted.connect(self._on_layer_inserted)
+        self.widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
 
     def _load_path(self, path):
         self._clear_auto_seg()
@@ -32,13 +30,18 @@ class SessionWidget:
         if guess_labels(img)=="labels":
             label_name = Path(path).name
             update_or_create_labels(self.viewer,label_name,img)
+            return
+        
+        layername = 'Original'
 
         update_or_create_image(
             self.viewer,
-            "Original",
+            layername,
             img,
             colormap="gray",
         )
+
+        self.viewer.layers[layername].metadata = {"filename_base": Path(path).stem}
     def _on_layer_inserted(self, event):
         layer = event.value
         if not isinstance(layer, Image):
@@ -79,8 +82,12 @@ class SessionWidget:
         layout.addWidget(open_image.native)
 
     def _clear_auto_seg(self):
-        if "auto_seg" in self.viewer.layers:
-            self.viewer.layers.remove("auto_seg")
+        layers_to_remove = [
+            layer for layer in self.viewer.layers 
+            if layer.name.endswith("_AdaptFMseg")
+        ]
+        for layer in layers_to_remove:
+            self.viewer.layers.remove(layer)
 
     def _clear_original(self):
         if "Original" in self.viewer.layers:
