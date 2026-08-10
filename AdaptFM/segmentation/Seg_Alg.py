@@ -260,12 +260,7 @@ class SAM2ClickAndPropagate(SegmentationAlgorithmSpec):
                 "options": ["forward", "backward", "both"],
                 "description": "Direction to propagate from seed slices",
             },
-            "auto_seed_slice": {
-                "type": "choice",
-                "default": "center",
-                "options": ["center", "first", "last"],
-                "description": "Which slice to auto-click in batch `run()` mode",
-            },
+
             "score_threshold": {
                 "type": "float",
                 "default": 0.0,
@@ -282,36 +277,6 @@ class SAM2ClickAndPropagate(SegmentationAlgorithmSpec):
 
         }
 
-    def run(self, volume: np.ndarray, params: dict) -> np.ndarray:
-        """
-        Batch-compatible entry point required by the registry.
-
-        Initialises the volume, places a single positive point at the
-        geometric centre of the chosen seed slice, then propagates in
-        the requested direction(s).  Returns the full label volume.
-
-        For real interactive use, call initialize() + add_prompt() +
-        propagate() directly from your napari widget.
-        """
-        self.initialize(volume, params)
-
-        direction = params.get("propagation_direction", "both")
-        auto_slice = params.get("auto_seed_slice", "center")
-
-        z_max = volume.shape[0] - 1
-        seed_z = {
-            "center": z_max // 2,
-            "first":  0,
-            "last":   z_max,
-        }[auto_slice]
-
-        cy = volume.shape[1] // 2
-        cx = volume.shape[2] // 2
-
-        self.add_prompt(z=seed_z, x=cx, y=cy, label=1, obj_id=1, params=params)
-        self.propagate(obj_id=1, direction=direction, params=params)
-
-        return self.get_label_volume()
 
     # ------------------------------------------------------------------
     # Interactive API (called from napari widget)
@@ -425,7 +390,15 @@ class SAM2ClickAndPropagate(SegmentationAlgorithmSpec):
         mask = self._logits_to_mask(out_logits, obj_id, out_obj_ids, threshold, multimask)
 
         # Write into label volume immediately so the viewer updates
-        self._label_vol[z] = np.where(mask, obj_id, self._label_vol[z])
+        new_slice = self._label_vol[z].copy()
+
+        # remove only this object's pixels
+        new_slice[self._label_vol[z] == obj_id] = 0
+
+        # add updated mask
+        new_slice[mask] = obj_id
+
+        self._label_vol[z] = new_slice
 
         return mask
 
@@ -739,40 +712,12 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
                 "step": 0.05,
                 "description": "Minimum detection score for text-prompted instances",
             },
-            "auto_seed_slice": {
-                "type": "choice",
-                "default": "center",
-                "options": ["center", "first", "last"],
-                "description": "Seed slice used in batch run() mode",
-            },
+
             
             "GPU": {'type': "int", 'default':0,'min':0,'max':100},
 
         }
 
-    def run(self, volume: np.ndarray, params: dict) -> np.ndarray:
-        """
-        Batch-compatible entry point. Uses the centre-of-volume point as a
-        single foreground click, then propagates. For real interactive use,
-        call initialize() / add_prompt() / add_text_prompt() / propagate()
-        directly from the widget.
-        """
-        self.initialize(volume, params)
-        direction = params.get("propagation_direction", "both")
-        auto_slice = params.get("auto_seed_slice", "center")
-        z_max = volume.shape[0] - 1
-        seed_z = {"center": z_max // 2, "first": 0, "last": z_max}[auto_slice]
-
-        self.add_prompt(
-            z=seed_z,
-            x=volume.shape[2] // 2,
-            y=volume.shape[1] // 2,
-            label=1,
-            obj_id=1,
-            params=params,
-        )
-        self.propagate(obj_id=1, direction=direction, params=params)
-        return self.get_label_volume()
 
     # ------------------------------------------------------------------
     # Lifecycle
@@ -829,6 +774,9 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
         )
         self._session_id = response["session_id"]
         self._initialized = True
+
+    def reset_inference_state(self) -> None:
+        pass # sam3 doesn't manage an _inf_state but have this hear to capture propagate logic in seg widget
 
     # ------------------------------------------------------------------
     # Point prompt (click-based)
@@ -1077,46 +1025,46 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
         # Use all detected obj_ids if available, otherwise just the requested one
         obj_ids_to_propagate = self._active_obj_ids if self._active_obj_ids else [obj_id]
         print(f"Propagating obj_ids: {obj_ids_to_propagate}")
-
-        for frame_output in self._predictor.handle_stream_request(
-            request=dict(
-                type="propagate_in_video",
-                session_id=self._session_id,
-                propagation_direction=direction,
-            )
-        ):
-            frame_idx = frame_output["frame_index"]
-            outputs   = frame_output.get("outputs", {})
-
-            binary_masks = outputs.get("out_binary_masks", [])
-            probs        = outputs.get("out_probs", [])
-            out_obj_ids  = outputs.get("out_obj_ids", [])
-
-            if len(binary_masks) == 0:
-                continue
-
-            for i, oid in enumerate(out_obj_ids):
-                oid_val = oid.item() if hasattr(oid, "item") else int(oid)
-
-                # Propagate any object SAM3 is tracking
-                if oid_val not in obj_ids_to_propagate:
-                    continue
-
-                prob = probs[i].item() if hasattr(probs[i], "item") else float(probs[i])
-                if prob < conf_thresh:
-                    continue
-
-                mask = binary_masks[i]
-                mask_np = mask.cpu().numpy() if hasattr(mask, "cpu") else np.array(mask)
-
-                existing = self._label_vol[frame_idx]
-                # All detected instances get the same label_id for display
-                # (since they all came from the same text prompt)
-                self._label_vol[frame_idx] = np.where(
-                    mask_np.astype(bool) & (existing == 0),
-                    oid_val,  # keep same label for all instances of this concept
-                    existing,
+        with torch.inference_mode(), torch.autocast(device_type="cuda"):
+            for frame_output in self._predictor.handle_stream_request(
+                request=dict(
+                    type="propagate_in_video",
+                    session_id=self._session_id,
+                    propagation_direction=direction,
                 )
+            ):
+                frame_idx = frame_output["frame_index"]
+                outputs   = frame_output.get("outputs", {})
+
+                binary_masks = outputs.get("out_binary_masks", [])
+                probs        = outputs.get("out_probs", [])
+                out_obj_ids  = outputs.get("out_obj_ids", [])
+
+                if len(binary_masks) == 0:
+                    continue
+
+                for i, oid in enumerate(out_obj_ids):
+                    oid_val = oid.item() if hasattr(oid, "item") else int(oid)
+
+                    # Propagate any object SAM3 is tracking
+                    if oid_val not in obj_ids_to_propagate:
+                        continue
+
+                    prob = probs[i].item() if hasattr(probs[i], "item") else float(probs[i])
+                    if prob < conf_thresh:
+                        continue
+
+                    mask = binary_masks[i]
+                    mask_np = mask.cpu().numpy() if hasattr(mask, "cpu") else np.array(mask)
+
+                    existing = self._label_vol[frame_idx]
+                    # All detected instances get the same label_id for display
+                    # (since they all came from the same text prompt)
+                    self._label_vol[frame_idx] = np.where(
+                        mask_np.astype(bool) & (existing == 0),
+                        oid_val,  # keep same label for all instances of this concept
+                        existing,
+                    )
 
         return self._label_vol.copy()
 
