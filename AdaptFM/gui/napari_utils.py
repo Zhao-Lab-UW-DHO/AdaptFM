@@ -84,3 +84,13 @@ def expand_param_grid( user_values):
 
     for combo in product(*values):
         yield dict(zip(keys, combo))
+
+def qt_widget_obj_exists(widget) -> bool:
+    """Check if a Qt widget object still exists and has not been deleted by C++."""
+    if widget is None:
+        return False
+    try:
+        widget.objectName()
+        return True
+    except (RuntimeError, AttributeError):
+        return False
