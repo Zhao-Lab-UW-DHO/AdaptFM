@@ -6,6 +6,7 @@ import subprocess
 import json
 from pathlib import Path
 import shutil
+import re
 
 class NNUNetV2ModelSpec(ModelSpec):
     
@@ -134,24 +135,94 @@ class NNUNetV2ModelSpec(ModelSpec):
             start_new_session=True,
             env=env
         )
-
         
-    def run_inference(self,dataset_dir,checkpoint,output_dir,params):
+    def find_nnUNet_base(self,start_dir):
+        """
+        Walk upward from start_dir until we find a directory containing
+        nnUNet_raw, nnUNet_preprocessed, and nnUNet_results.
+        Return that directory or None.
+        """
+        current = os.path.abspath(start_dir)
 
-        gpu = params['gpu']
+        while True:
+            raw = os.path.join(current, "nnUNet_raw")
+            pre = os.path.join(current, "nnUNet_preprocessed")
+            res = os.path.join(current, "nnUNet_results")
+
+            if all(os.path.isdir(p) for p in [raw, pre, res]):
+                return current
+
+            parent = os.path.dirname(current)
+            if parent == current:  # reached filesystem root
+                return None
+
+            current = parent
+
+    def parse_dataset_name(self,path):
+        """
+        Given a path inside a nnUNet dataset folder, return (dataset_id, dataset_name).
+        Example: /.../Dataset001_TEST/imagesTs → ('001', 'TEST')
+        """
+        path = os.path.abspath(path)
+        parts = path.split(os.sep)
+
+        # Find the folder that matches the nnUNet dataset naming pattern
+        for p in reversed(parts):
+            m = re.match(r"Dataset(\d{3})_(.+)", p)
+            if m:
+                dataset_id = m.group(1)
+                dataset_name = m.group(2)
+                return dataset_id, dataset_name
+
+        raise ValueError(f"No nnUNet dataset folder found in path: {path}")
+
+
+
+    def dataset_is_inside_raw(self,dataset_dir, nnunet_base):
+        """
+        Check that dataset_dir is somewhere inside nnUNet_raw.
+        """
+        raw_dir = os.path.abspath(os.path.join(nnunet_base, "nnUNet_raw"))
+        dataset_dir = os.path.abspath(dataset_dir)
+
+        return os.path.commonpath([dataset_dir, raw_dir]) == raw_dir
+
+
+    def run_inference(self, dataset_dir, checkpoint, output_dir, params):
+
+        gpu = params["gpu"]
         env = os.environ.copy()
 
-        env['nnUNet_raw'] = str(Path(dataset_dir) / 'nnUNet_raw')
-        env['nnUNet_preprocessed'] = str(Path(dataset_dir) / 'nnUNet_preprocessed')
-        env['nnUNet_results'] = str(Path(dataset_dir) / 'nnUNet_results')
+
+        # 1. Find nearest nnUNet base directory
+        nnunet_base = self.find_nnUNet_base(dataset_dir)
+        if nnunet_base is None:
+            raise RuntimeError(
+                f"No nnUNet directory structure found in parent folders of {dataset_dir}"
+            )
+
+        # 2. Verify dataset_dir is inside nnUNet_raw
+        if not self.dataset_is_inside_raw(dataset_dir, nnunet_base):
+            raise RuntimeError(
+                f"dataset_dir={dataset_dir} is not inside nnUNet_raw under {nnunet_base}"
+            )
+
+        params['Set ID'], params['Set Name'] = self.parse_dataset_name(dataset_dir)
+
+
+        # 3. Set environment variables
+        env['nnUNet_raw'] = str(Path(nnunet_base) / 'nnUNet_raw')
+        env['nnUNet_preprocessed'] = str(Path(nnunet_base) / 'nnUNet_preprocessed')
+        env['nnUNet_results'] = str(Path(nnunet_base) / 'nnUNet_results')
+
 
         if gpu is not None:
             env["CUDA_VISIBLE_DEVICES"] = str(gpu)      
 
         inference_cmd = self.inference_command(params = params,
+                                               dataset_dir=dataset_dir,
                                                output_dir=output_dir,
-                                               checkpoint = checkpoint,
-                                               env=env) 
+                                               checkpoint = checkpoint) 
         
         
         cmd = self._wrap_with_conda(inference_cmd)
@@ -165,14 +236,13 @@ class NNUNetV2ModelSpec(ModelSpec):
         )
 
 
-    def inference_command(self, params, output_dir,checkpoint, env):
+    def inference_command(self, params,dataset_dir, output_dir,checkpoint):
         
-        imagesTs = str(Path(env['nnUNet_raw']) / f'Dataset{params['Set ID']}_{params['Set Name']}' / 'imagesTs')
         ckpt_name = Path(checkpoint).name
 
         return [
             'nnUNetv2_predict',
-            '-i',imagesTs,
+            '-i',dataset_dir,
             '-o',output_dir,
             '-d',params['Set ID'],
             '-c',params['config'],
