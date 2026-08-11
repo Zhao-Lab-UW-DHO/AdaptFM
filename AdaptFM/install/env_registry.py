@@ -171,7 +171,7 @@ EnvironmentSpec(
         key="Merlin-nnUNet",
         display_name='Merlin nnUNet',
         description="3D Ct Segmentation using fine-tuned Merlin",
-        conda_env_name="Merlin_adapt",
+        conda_env_name="Merlin_nnUNet_adapt",
         install_command="adaptfm-install-merlin",
         uninstall_command="adaptfm-uninstall",
         requires_gpu=True,
@@ -183,6 +183,28 @@ EnvironmentSpec(
         ],
         docs_url="https://github.com/ashwinkumargb/Merlin-nnUNet.git"
         ),
+
+    EnvironmentSpec(
+        key="bmex",
+        display_name="BME-X",
+        description=(
+            "A foundation model for enhancing magnetic resonance images and downstream segmentation, registration and diagnostic tasks.<br>"
+            "<b>Be sure to download the model using this link:</b><br>"
+            "<a href='https://www.dropbox.com/scl/fo/j55epethu8bhmdsjpv0i1/AEmWksuTfP94M0bDqN3ZHDo?rlkey=zsdcna67uwbajg4pri249jlbh&st=2he9arzw&e=2&dl=0'>"
+            "Download BME‑X Model</a>"
+        ),
+        conda_env_name="BME-X_adapt",
+        install_command="adaptfm-install-bmex",
+        uninstall_command="adaptfm-uninstall",
+        requires_gpu=True,
+        pip_packages=[
+            PipPackageSpec("BME_X",
+                           display_name="BME_X",
+                           update_source="github",
+                           github_repo="https://github.com/DBC-Lab/Brain_MRI_Enhancement.git")
+        ],
+        docs_url="https://brain-mri-enhancement.readthedocs.io/en/latest/"
+    ),
 
 EnvironmentSpec(
         key="CT-FM",
@@ -199,7 +221,6 @@ EnvironmentSpec(
         docs_url="https://project-lighter.github.io/CT-FM/"
         ),
 
-    # ------------------------------------------------------------------ #
 ]
 
 # Quick lookup by key
