@@ -11,9 +11,9 @@ from AdaptFM.gui.widgets.training_widget import TrainingWidget
 from AdaptFM.gui.widgets.benchmark_widget import BenchmarkWidget
 from AdaptFM.gui.widgets.env_manager_dialog import EnvironmentManagerDialog
 from AdaptFM.model.registry import MODEL_REGISTRY
-from qtpy.QtWidgets import QAction
-from qtpy.QtWidgets import QScrollArea
-from qtpy.QtCore import Qt
+from AdaptFM.gui.napari_utils import reorder_docks,restore_or_focus_widget,restore_all_widgets
+from qtpy.QtWidgets import QAction, QScrollArea, QFrame
+from qtpy.QtCore import Qt, QTimer
 
 def make_scrollable(widget):
     """Wraps a QWidget or magicgui widget in a Qt scroll area."""
@@ -28,7 +28,7 @@ def make_scrollable(widget):
 
 def main():
     viewer = napari.Viewer()
-    viewer.title ="AdaptFM"
+    viewer.title = "AdaptFM"
 
     # Core managers
     vm = VolumeManager()
@@ -39,55 +39,55 @@ def main():
     # Model registry (shared by training + inference)
     model_registry = MODEL_REGISTRY
 
-    def qt_widget_obj_exists(dock_obj) -> bool:
-        if dock_obj is None:
-            return False
-        try:
-            dock_obj.objectName()
-            return True
-        except (RuntimeError, AttributeError):
-            return False
-    
 
-    def create_sesh_dock():
-        return viewer.window.add_dock_widget(
-            SessionWidget(viewer, session, vm, sm).widget,
-            area="right", name='AdaptFM Image Manager'
+    # Canonical widget definitions defining the exact top-to-bottom layout order
+    widget_specs = [
+        {
+            "name": "AdaptFM Image Manager",
+            "create_fn": lambda: SessionWidget(viewer, session, vm, sm).widget,
+            "dock": None,
+        },
+        {
+            "name": "AdaptFM Annotation",
+            "create_fn": lambda: make_scrollable(SegmentationWidget(viewer, sm).widget),
+            "dock": None,
+        },
+        {
+            "name": "AdaptFM Save Image",
+            "create_fn": lambda: SaveWidget(viewer, sm).widget,
+            "dock": None,
+        },
+    ]
+
+    # ---------------------------------------------------------
+    # Create the default widgets at application startup
+    # ---------------------------------------------------------
+
+    for spec in widget_specs:
+        spec["dock"] = viewer.window.add_dock_widget(
+            spec["create_fn"](),
+            area="right",
+            name=spec["name"]
         )
-    def create_seg_dock():
-        return viewer.window.add_dock_widget(
-            make_scrollable(SegmentationWidget(viewer, sm).widget),
-            area="right", name='AdaptFM Annotation'
-        )
-    def create_save_dock():
-        return viewer.window.add_dock_widget(
-            SaveWidget(viewer, sm).widget,
-            area="right", name='AdaptFM Save Image'
-        )
-    
-    save_dock = create_save_dock()
-    seg_dock = create_seg_dock()
-    sesh_dock = create_sesh_dock()
 
-    side_docs = {
-        create_sesh_dock: sesh_dock,
-        create_seg_dock: seg_dock,
-        create_save_dock: save_dock,
-    }
+    # Force canonical ordering:
+    # Session -> Annotation -> Save
+    reorder_docks()
 
-    def restore_docks():
-        for factory, dock in side_docs.items():
-            if qt_widget_obj_exists(dock):
-                dock.setVisible(True)
-                dock.show()
-                dock.raise_()
-            else:
-                side_docs[factory] = factory()
+    # --- Restore Widgets Menu ---
+    restore_menu = viewer.window._qt_window.menuBar().addMenu("Restore Widgets")
 
-    restore_action = QAction("Restore AdaptFM Sidewidgets", viewer.window._qt_window)
-    restore_action.triggered.connect(restore_docks)
+    for idx, spec in enumerate(widget_specs):
+        action = QAction(spec["name"], viewer.window._qt_window)
+        action.triggered.connect(lambda checked=False, i=idx: restore_or_focus_widget(i))
+        restore_menu.addAction(action)
 
-    # --- NEW: Training ---
+    restore_menu.addSeparator()
+    restore_all_action = QAction("Restore All Widgets", viewer.window._qt_window)
+    restore_all_action.triggered.connect(restore_all_widgets)
+    restore_menu.addAction(restore_all_action)
+
+    # --- Models Menu ---
     menu = viewer.window._qt_window.menuBar().addMenu("Models")
 
     train_action = QAction("Training", viewer.window._qt_window)
@@ -96,33 +96,26 @@ def main():
     menu.addAction(train_action)
     menu.addAction(infer_action)
 
-    # lazy-create floating widgets
     train_widget = TrainingWidget(dataset_manager=dm).widget
     infer_widget = InferenceWidget(dataset_manager=dm).widget
 
     train_action.triggered.connect(train_widget.show)
     infer_action.triggered.connect(infer_widget.show)
 
-# Add Benchmark menu
-    menu = viewer.window._qt_window.menuBar().addMenu("Benchmark")
+    # --- Benchmark Menu ---
+    benchmark_menu = viewer.window._qt_window.menuBar().addMenu("Benchmark")
     benchmark_action = QAction("Run Benchmark", viewer.window._qt_window)
-    menu.addAction(benchmark_action)
+    benchmark_menu.addAction(benchmark_action)
 
-    # Lazy-create widget
     benchmark_widget = BenchmarkWidget()
-
-    # Show widget when menu action triggered
     benchmark_action.triggered.connect(benchmark_widget.show)
 
-    # ------------------------------------------------------------------ #
-    # Environments menu  ← NEW
-    # ------------------------------------------------------------------ #
+    # --- Environments Menu ---
     env_menu = viewer.window._qt_window.menuBar().addMenu("Environments")
     env_action = QAction("Manage Environments…", viewer.window._qt_window)
     env_menu.addAction(env_action)
  
-    # Lazy-create: dialog is parented to the main window so it stays on top
-    _env_dialog: list[EnvironmentManagerDialog] = []   # mutable cell
+    _env_dialog: list[EnvironmentManagerDialog] = []
  
     def _open_env_manager():
         if not _env_dialog:
@@ -134,7 +127,6 @@ def main():
  
     env_action.triggered.connect(_open_env_manager)
 
-    viewer.window.main_menu.addAction(restore_action)
     napari.run()
 
 
