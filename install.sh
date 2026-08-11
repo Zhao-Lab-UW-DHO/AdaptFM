@@ -54,7 +54,7 @@ esac
 # or numpy (torch then repo) reinstalls to a different version
 pip install -e .
 pip install torch torchvision --index-url "${PYTORCH_INDEX}"
-conda install cuda-toolkit cuda-nvcc "cuda-version=${CONDA_CUDAVER}" -c conda-forge -y
+conda install cuda-toolkit cuda-nvcc "cuda-version=${CONDA_CUDAVER}" ninja -c conda-forge -y
 
 echo "======================================================="
 echo "AdaptFM was sucessfully installed"
