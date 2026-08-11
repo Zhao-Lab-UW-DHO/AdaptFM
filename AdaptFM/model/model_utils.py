@@ -2,6 +2,16 @@ import inspect
 import numpy as np
 from pathlib import Path
 import subprocess, sys
+import site
+import importlib
+
+def _refresh_sam_pkg_after_install(pgk_name):
+    importlib.reload(site)
+    importlib.invalidate_caches()
+    importlib.import_module(pgk_name)
+    if pgk_name in sys.modules:
+        importlib.reload(sys.modules[pgk_name])
+
 
 def extract_tunable_params(func):
     sig = inspect.signature(func)
@@ -83,7 +93,15 @@ def install_sam2():
             check=True,
         )
 
+    subprocess.run(
+        [sys.executable, "setup.py", "build_ext", "--inplace"],
+        cwd=sam2_dir,
+        check=True,
+    )
+    
+    _refresh_sam_pkg_after_install("sam2")
     print(f"Done. SAM2 installed at: {sam2_dir}")
+    
 
 
 
@@ -122,7 +140,8 @@ def install_sam3():
         check=True,
     )
 
-
+    _refresh_sam_pkg_after_install("sam3")
     print(f"Done. SAM3 installed at: {sam3_dir}")
+    
 
 
