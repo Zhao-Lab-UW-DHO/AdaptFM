@@ -156,6 +156,12 @@ class SegmentationWidget:
             control = widgets.CheckBox(
                 value=bool(default),
             )
+
+        elif param_type == "choice":
+            control = widgets.ComboBox(
+                choices=spec.get("options", []),
+                value=default,
+            )
         else:
             control = widgets.LineEdit(
                 value=str(default),
@@ -203,11 +209,29 @@ class SegmentationWidget:
 
         self._sam3_text_input = widgets.LineEdit(
             value="",
-            label="Text concept",
             tooltip='e.g. "nucleus", "organoid", "cell membrane"',
         )
+
+        self._sam3_text_input_row = Container(
+            widgets=[
+                Label(value="Text concept"),
+                self._sam3_text_input,
+            ],
+            layout="horizontal",
+        )
+
         self._sam3_text_obj_spinner = widgets.SpinBox(
-            value=1, min=1, max=99, label="Text obj ID"
+            value=1,
+            min=1,
+            max=99,
+        )
+
+        self._sam3_text_obj_spinner_row = Container(
+            widgets=[
+                Label(value="Text obj ID"),
+                self._sam3_text_obj_spinner,
+            ],
+            layout="horizontal",
         )
 
         @magicgui(call_button="Segment by text (current slice)")
@@ -215,19 +239,30 @@ class SegmentationWidget:
             self._sam3_run_text_prompt()
         self._sam3_text_btn = text_prompt_btn
 
-        for w in [self._sam3_text_input, self._sam3_text_obj_spinner, text_prompt_btn]:
+        for w in [
+            self._sam3_text_input_row,
+            self._sam3_text_obj_spinner_row,
+            text_prompt_btn,
+        ]:
             layout.addWidget(w.native)
-            w.native.setVisible(is_sam3)   # hide entirely for SAM2
+            w.native.setVisible(is_sam3)
 
         # ── Click mode + object ID (shared) ──────────────────────────────
-        self._sam2_click_mode = widgets.ComboBox(
-            choices=["Foreground", "Background"], value="Foreground", label="Click mode"
-        )
         self._sam2_obj_spinner = widgets.SpinBox(
-            value=1, min=1, max=1000, label="Click obj ID"
+            value=1,
+            min=1,
+            max=1000,
         )
-        layout.addWidget(self._sam2_click_mode.native)
-        layout.addWidget(self._sam2_obj_spinner.native)
+
+        self._sam2_obj_spinner_row = Container(
+            widgets=[
+                Label(value="Click Object ID"),
+                self._sam2_obj_spinner,
+            ],
+            layout="horizontal",
+        )
+
+        layout.addWidget(self._sam2_obj_spinner_row.native)
 
         @magicgui(call_button="Propagate through volume")
         def prop_btn():
@@ -256,8 +291,9 @@ class SegmentationWidget:
         self._sam2_extra_widgets = [
             self._sam2_status, init_btn,
             self._sam3_text_input, self._sam3_text_obj_spinner, text_prompt_btn,
-            self._sam2_click_mode, self._sam2_obj_spinner,
-            prop_btn, reset_obj_btn, reset_all_btn,self._sam2_click_active
+            self._sam2_obj_spinner,self._sam2_obj_spinner_row,
+            prop_btn, reset_obj_btn, reset_all_btn,self._sam2_click_active,
+            self._sam3_text_obj_spinner_row,self._sam3_text_input_row
         ]
 
     def _set_ui_enabled(self, enabled: bool):
@@ -433,7 +469,7 @@ class SegmentationWidget:
 
             try:
                 if drag_dist < BOX_MIN_DRAG_PX:
-                    label = 1 if self._sam2_click_mode.value != "Background" else 0
+                    label = 1 
                     self.current_algo.add_prompt(
                         z=z0, x=c0, y=r0, label=label,
                         obj_id=obj_id, params=self._sam2_get_params(),

@@ -1,6 +1,6 @@
 # AdaptFM/models/registry.py
 from AdaptFM.model.nnUNetV2Spec import NNUNetV2ModelSpec,MerlinNNUNetV2ModelSpec
-from AdaptFM.model.fmSpec import FoundationModelSpec, MicroSAMSpec,CellposeSAMSpec,SSVTSpec,Sammed3DSpec,CellSAMSpec
+from AdaptFM.model.fmSpec import FoundationModelSpec, MicroSAMSpec,CellposeSAMSpec,SSVTSpec,Sammed3DSpec,CellSAMSpec,BMEXSpec
 from AdaptFM.model.foundation_models.ctfm.ctfm_spec import CTFMSpec
 import subprocess
 from pathlib import Path
@@ -68,7 +68,17 @@ MODEL_REGISTRY = {
     inference_wrapper_path = "AdaptFM.model.foundation_models.cellSAM.inference_wrapper",
     training_function=""#does not support training/finetuning
     ),
-
+    
+    
+    "BMEX": BMEXSpec(
+    name = "BME-X",
+    conda_env = _read_prefix("BME-X_adapt"),
+    module_path= "AdaptFM.model.foundation_models.bmex.train_wrapper",
+    training_wrapper_path = "AdaptFM.model.foundation_models.bmex.train_wrapper",
+    inference_wrapper_path = "AdaptFM.model.foundation_models.bmex.inference_wrapper",
+    training_function="launch_training"#does not support training/finetuning
+    ),
+    
     "CT FM": CTFMSpec(
         name="CTFM",
         conda_env = _read_prefix("CTFM_adapt"),
