@@ -1,4 +1,6 @@
 from itertools import product
+from qtpy.QtCore import Qt, QTimer
+from qtpy.QtWidgets import QFrame
 
 def update_or_create_image(viewer, name, data, layer_type="image", **kwargs):
     if name in viewer.layers:
@@ -96,7 +98,8 @@ def qt_widget_obj_exists(dock_obj) -> bool:
         return False
 
 # --- FIX 2: Enforce top-to-bottom placement using splitDockWidget ---
-def reorder_docks():
+def reorder_docks(viewer,
+                    widget_specs):
     """Force Session -> Annotation -> Save from top to bottom."""
 
     qt_window = viewer.window._qt_window
@@ -147,13 +150,6 @@ def reorder_docks():
     for dock in active_docks:
         dock.show()
 
-    # Optional but useful: ensure they have reasonable proportions
-    if len(active_docks) > 1:
-        qt_window.resizeDocks(
-            active_docks,
-            [1] * len(active_docks),
-            Qt.Vertical
-        )
 
 
 def highlight_dock(dock):
@@ -215,7 +211,9 @@ def highlight_dock(dock):
     QTimer.singleShot(1200, remove_highlight)
 
 # Master handler for restoring or focusing a specific widget
-def restore_or_focus_widget(spec_idx: int):
+def restore_or_focus_widget(spec_idx: int,
+                            widget_specs :dict,
+                            viewer ):
     spec = widget_specs[spec_idx]
     dock = spec["dock"]
 
@@ -233,7 +231,7 @@ def restore_or_focus_widget(spec_idx: int):
 
         dock = spec["dock"]
 
-    reorder_docks()
+    reorder_docks(viewer,widget_specs)
 
     # Give Qt time to finish the dock layout
     QTimer.singleShot(
@@ -241,7 +239,7 @@ def restore_or_focus_widget(spec_idx: int):
         lambda d=dock: highlight_dock(d)
     )
 
-def restore_all_widgets():
+def restore_all_widgets(viewer,widget_specs):
     # Restore/recreate every widget
     for spec in widget_specs:
         dock = spec["dock"]
@@ -258,7 +256,7 @@ def restore_all_widgets():
             dock.show()
 
     # Rebuild the canonical order
-    reorder_docks()
+    reorder_docks(viewer,widget_specs)
 
     # Highlight all widgets
     for spec in widget_specs:

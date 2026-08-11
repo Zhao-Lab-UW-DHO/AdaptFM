@@ -13,7 +13,7 @@ from AdaptFM.gui.widgets.env_manager_dialog import EnvironmentManagerDialog
 from AdaptFM.model.registry import MODEL_REGISTRY
 from AdaptFM.gui.napari_utils import reorder_docks,restore_or_focus_widget,restore_all_widgets
 from qtpy.QtWidgets import QAction, QScrollArea, QFrame
-from qtpy.QtCore import Qt, QTimer
+from qtpy.QtCore import Qt
 
 def make_scrollable(widget):
     """Wraps a QWidget or magicgui widget in a Qt scroll area."""
@@ -72,19 +72,20 @@ def main():
 
     # Force canonical ordering:
     # Session -> Annotation -> Save
-    reorder_docks()
+    reorder_docks(viewer,
+                    widget_specs)
 
     # --- Restore Widgets Menu ---
     restore_menu = viewer.window._qt_window.menuBar().addMenu("Restore Widgets")
 
     for idx, spec in enumerate(widget_specs):
         action = QAction(spec["name"], viewer.window._qt_window)
-        action.triggered.connect(lambda checked=False, i=idx: restore_or_focus_widget(i))
+        action.triggered.connect(lambda checked=False, i=idx: restore_or_focus_widget(i,widget_specs,viewer))
         restore_menu.addAction(action)
 
     restore_menu.addSeparator()
     restore_all_action = QAction("Restore All Widgets", viewer.window._qt_window)
-    restore_all_action.triggered.connect(restore_all_widgets)
+    restore_all_action.triggered.connect(lambda: restore_all_widgets(viewer,widget_specs))
     restore_menu.addAction(restore_all_action)
 
     # --- Models Menu ---
