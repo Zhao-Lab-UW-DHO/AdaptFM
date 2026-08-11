@@ -164,7 +164,7 @@ class Metric(ABC):
         self.n_processes = n_processes
 
     @abstractmethod
-    def compute(self, gt_dir, pred_dirs,output_dir):
+    def compute(self, gt_dir, pred_dirs,output_dir) -> dict[str, list[float]]:
         """Compute the metric between ground truth and one or more prediction dirs."""
         pass
 
@@ -442,15 +442,15 @@ from skimage.measure import label
 class CountsComparison(Metric):
     name = "Compare Counts"
 
-    def compute(self, gt_csv, model_preds,output_dir):
-
+def compute(self, gt_csv, model_preds, output_dir) -> dict[str, list[float]]:
         gt_data = pd.read_csv(gt_csv)
         colors = plt.cm.tab10.colors
 
         fig, ax = plt.subplots(figsize=(6, 6))
         all_gt = []
+        results = {}
 
-        for i, (display_name,model_dir) in enumerate(model_preds.items()):
+        for i, (display_name, model_dir) in enumerate(model_preds.items()):
             color = colors[i % len(colors)]
 
             gt_counts = []
@@ -464,7 +464,7 @@ class CountsComparison(Metric):
                 if not os.path.exists(pred_path):
                     stem = os.path.splitext(filename)[0]
                     candidates = [f for f in os.listdir(model_dir)
-                                if os.path.splitext(f)[0] == stem]
+                                  if os.path.splitext(f)[0] == stem]
                     if not candidates:
                         print(f"Warning: no prediction found for {filename} in {model_dir}, skipping")
                         continue
@@ -472,7 +472,7 @@ class CountsComparison(Metric):
 
                 pred_img = tifffile.imread(pred_path)
                 labeled = label(pred_img, connectivity=2)
-                pred_count = labeled.max()
+                pred_count = float(labeled.max())
 
                 gt_counts.append(gt_count)
                 pred_counts.append(pred_count)
@@ -480,6 +480,8 @@ class CountsComparison(Metric):
             gt_counts = np.array(gt_counts, dtype=float)
             pred_counts = np.array(pred_counts, dtype=float)
             all_gt.extend(gt_counts)
+            
+            results[display_name] = pred_counts.tolist()
 
             slope = np.sum(gt_counts * pred_counts) / np.sum(gt_counts ** 2)
             r_value = np.corrcoef(gt_counts, pred_counts)[0, 1]
@@ -503,3 +505,4 @@ class CountsComparison(Metric):
         plt.tight_layout()
 
         plt.savefig(os.path.join(output_dir, 'counts_correlation.png'), dpi=300)
+        return results

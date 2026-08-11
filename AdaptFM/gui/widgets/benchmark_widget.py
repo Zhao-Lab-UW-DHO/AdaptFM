@@ -290,12 +290,16 @@ class BenchmarkWidget:
             QTableWidget::item:hover {{
                 background-color: #383838;
             }}
-            /* Style cell editor when active */
             QLineEdit {{
                 background-color: #111;
                 color: #fff;
-                border: 1px solid {_BLUE};
+                border: 1px solid #666; /* Unfocused border */
                 border-radius: 2px;
+                padding: 2px 4px;
+            }}
+            QLineEdit:focus {{
+                border: 1px solid {_BLUE}; /* Focused border */
+                background-color: #000;
             }}
         """)
 
@@ -410,13 +414,14 @@ class BenchmarkWidget:
         self._pred_table.insertRow(row)
 
         name_item = QTableWidgetItem(display_name)
-        name_item.setToolTip("✏️ Double-click to edit display name")
+        name_item.setToolTip("✏️ Edit display name") # Updated tooltip
         self._pred_table.setItem(row, 0, name_item)
         path_item = QTableWidgetItem(path)
         path_item.setFlags(path_item.flags() & ~Qt.ItemIsEditable) # Strip editable flag
         path_item.setToolTip(path)
         self._pred_table.setItem(row, 1, path_item)
 
+        self._pred_table.openPersistentEditor(name_item)
 
     def _remove_prediction_folder(self):
         row = self._pred_table.currentRow()
@@ -531,7 +536,7 @@ class BenchmarkWidget:
             self._kill_process()
 
     def _kill_process(self):
-            if self._process is None:
+            if self._process is None or self._process.state() == QProcess.NotRunning:
                 return
 
             pid = self._process.processId()
