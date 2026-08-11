@@ -32,7 +32,7 @@ def main():
         image_path = os.path.join(test_dir,image_name)
         image = tiff.imread(image_path)
 
-        masks, _, _ = model.eval(image,do_3D=True,channel_axis=3,z_axis=0)
+        masks, _, _ = model.eval(image,do_3D=True,z_axis=0)
 
         image_output_path = os.path.join(output_path,image_name)
         tiff.imwrite(image_output_path,masks)
