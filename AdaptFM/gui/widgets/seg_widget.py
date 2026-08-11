@@ -130,6 +130,13 @@ class SegmentationWidget:
             self.run_button = run_button
             self.param_container.native.layout().addWidget(run_button.native)
 
+        else:
+        # Re-append to layout to guarantee it stays below dynamically added parameter widgets
+            self.param_container.native.layout().removeWidget(self.run_button.native)
+            self.param_container.native.layout().addWidget(self.run_button.native)
+
+        self.param_container.native.show()
+
 
     def _make_param_widget(self, name: str, spec: dict):
         """
@@ -305,11 +312,11 @@ class SegmentationWidget:
         if self.run_button is not None:
             self.run_button.enabled = enabled
 
-        if hasattr(self, "_sam2_init_btn") and self._sam2_init_btn:
+        if getattr(self, "_sam2_init_btn", None) is not None:
             self._sam2_init_btn.enabled = enabled
-        if hasattr(self, "_sam2_prop_btn") and self._sam2_prop_btn:
+        if getattr(self, "_sam2_prop_btn", None) is not None:
             self._sam2_prop_btn.enabled = enabled
-        if hasattr(self, "_sam3_text_btn") and self._sam3_text_btn:
+        if getattr(self, "_sam3_text_btn", None) is not None:
             self._sam3_text_btn.enabled = enabled
             
         for param_widget in self.param_widgets.values():
@@ -561,5 +568,9 @@ class SegmentationWidget:
                 layout.removeWidget(w.native)
                 w.native.deleteLater()
             self._sam2_extra_widgets = []
+
+        self._sam2_init_btn = None
+        self._sam2_prop_btn = None
+        self._sam3_text_btn = None
 
 
