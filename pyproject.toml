@@ -25,7 +25,8 @@ dependencies = ["napari",
                 "pandas",
                 "matplotlib",
                 "zarr",
-                "numpy<2"]
+                "numpy<2",
+                "setuptools<82"]
 
 [project.optional-dependencies]
 sam2 = []   # submodule handles it, this just signals intent
