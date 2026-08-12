@@ -179,11 +179,8 @@ def main() -> None:
     print("\n--- Installing uv ---")
     _conda_run(ENV_NAME, ["pip", "install", "uv"])
 
-    print("\n--- Installing PyTorch via uv ---")
-    _conda_run(ENV_NAME, ["uv", "pip", "install"] + UV_PACKAGES)
-
-    print("\n--- Installing extra dependencies via uv ---")
-    _conda_run(ENV_NAME, ["uv", "pip", "install"] + EXTRA_PACKAGES)
+    print("\n--- Installing PyTorch env via uv ---")
+    _conda_run(ENV_NAME, ["uv", "pip", "install"] + UV_PACKAGES + EXTRA_PACKAGES)
 
     # Clone SAM-Med3D if the directory doesn't already contain the repo
     print("\n--- Cloning SAM-Med3D ---")
