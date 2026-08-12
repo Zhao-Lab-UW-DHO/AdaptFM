@@ -17,7 +17,7 @@ class SessionWidget:
         self.sm = sm
 
         self._working_image_layername = "Original" # the name of the image to do annotation on set by AdaptFM
-        self._seg_layername_identifier = "_AdaptFMseg" # AdaptFM interactive segmentations end in this string
+        self._seg_layername_identifier = "_AdaptFMseg" # AdaptFM interactive segmentations end in this string (but duplicate algs end in [1], [2] etc)
 
         self.widget = QWidget()
         layout = QVBoxLayout()
@@ -51,7 +51,7 @@ class SessionWidget:
         layer = event.value
         if not isinstance(layer, Image):
             return
-        if layer.name.endswith(self._seg_layername_identifier) or layer.name == self._working_image_layername:
+        if self._seg_layername_identifier in layer.name or layer.name == self._working_image_layername:
             return  # created by our own update_or_create_image / auto segmentation annotation dock
 
         path = layer.source.path if layer.source is not None else None
@@ -89,7 +89,7 @@ class SessionWidget:
     def _clear_auto_seg(self):
         layers_to_remove = [
             layer for layer in self.viewer.layers 
-            if layer.name.endswith(self._seg_layername_identifier)
+            if self._seg_layername_identifier in layer.name
         ]
         for layer in layers_to_remove:
             self.viewer.layers.remove(layer)
