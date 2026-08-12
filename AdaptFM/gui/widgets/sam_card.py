@@ -42,6 +42,7 @@ class SamCard(QFrame):
         log_fn: Callable[..., None],
         run_process_fn: Callable[..., None],
         parent=None,
+        source_dir
     ):
         super().__init__(parent)
         self._key = key
@@ -53,6 +54,7 @@ class SamCard(QFrame):
         self._requires_pytorch = requires_pytorch
         self._log = log_fn
         self._run_process = run_process_fn
+        self._source_dir = source_dir
 
         self._pending_op = None  # "install" or "uninstall"
         self._installed = self._probe()
@@ -199,23 +201,68 @@ class SamCard(QFrame):
         self._pending_op = "uninstall"
         self._run_process(exe, [], label=self._display_name, on_done=self._on_op_done)
 
+
+    # def _on_op_done(self, exit_code: int):
+    #     import importlib
+    #     importlib.invalidate_caches()  # Flush Python's module import cache
+
+    #     if exit_code == 0:
+    #         self._log("\n✓ Done (exit 0)", color=_INSTALLED_COLOR, bold=True)
+
+    #         if self._pending_op == "install":
+    #             self._installed = True
+    #         elif self._pending_op == "uninstall":
+    #             self._installed = False
+
+    #     else:
+    #         self._log(f"\n✗ Exited with code {exit_code}", color=_WARNING_COLOR, bold=True)
+
+    #     self._pending_op = None
+    #     self.set_busy(False)  # <--- Re-enable widget interaction
+    #     self._refresh_badge()
+
+    def _resolve_package_root(self) -> Optional[Path]:
+        """Handle both flat (<repo>/sam2/) and src-layout (<repo>/src/sam2/) checkouts."""
+        if self._source_dir is None:
+            return None
+        if (self._source_dir / self._import_name).exists():
+            return self._source_dir
+        src_layout = self._source_dir / "src"
+        if (src_layout / self._import_name).exists():
+            return src_layout
+        return None
+
     def _on_op_done(self, exit_code: int):
-        import importlib
-        importlib.invalidate_caches()  # Flush Python's module import cache
+        self.set_busy(False)
 
         if exit_code == 0:
             self._log("\n✓ Done (exit 0)", color=_INSTALLED_COLOR, bold=True)
+            pkg_root = self._resolve_package_root()
+            path_entry = str(pkg_root) if pkg_root else None
 
-            if self._pending_op == "install":
-                self._installed = True
-            elif self._pending_op == "uninstall":
-                self._installed = False
+            if self._pending_op == "install" and path_entry:
+                if path_entry not in sys.path:
+                    sys.path.insert(0, path_entry)
+            elif self._pending_op == "uninstall" and path_entry:
+                if path_entry in sys.path:
+                    sys.path.remove(path_entry)
+                sys.modules.pop(self._import_name, None)
 
+            importlib.invalidate_caches()
+            # Trust a live probe rather than the exit code, so the badge
+            # reflects whether it's actually importable right now.
+            self._installed = importlib.util.find_spec(self._import_name) is not None
+
+            if self._pending_op == "install" and not self._installed:
+                self._log(
+                    f"[warn] {self._display_name} installed but not yet importable — "
+                    f"a restart of AdaptFM may be required.",
+                    color=_WARNING_COLOR,
+                )
         else:
             self._log(f"\n✗ Exited with code {exit_code}", color=_WARNING_COLOR, bold=True)
 
         self._pending_op = None
-        self.set_busy(False)  # <--- Re-enable widget interaction
         self._refresh_badge()
 
 

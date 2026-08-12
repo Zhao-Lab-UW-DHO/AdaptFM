@@ -43,11 +43,7 @@ def normalize_to_uint8(img: np.ndarray) -> np.ndarray:
 
     return img.astype(np.uint8)
 
-from pathlib import Path
-import subprocess
-import sys
 
-REPO_ROOT = Path(__file__).parent.parent.parent  # AdaptFM repo root
 
 from pathlib import Path
 import subprocess

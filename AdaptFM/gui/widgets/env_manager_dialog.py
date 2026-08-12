@@ -51,7 +51,7 @@ from AdaptFM.install.env_inspector import (
 )
 from AdaptFM.gui.widgets.pytorch_config_widget import PyTorchConfigWidget
 from AdaptFM.gui.widgets.sam_card import SamCard
-
+from AdaptFM.model.model_utils import REPO_ROOT
 
 # ---------------------------------------------------------------------------
 # Colour / style constants (kept minimal so they work on both light & dark Qt)
@@ -475,6 +475,7 @@ class EnvironmentManagerDialog(QDialog):
             requires_pytorch=True,
             log_fn=self._log_line,
             run_process_fn=self._run_process,
+            source_dir = REPO_ROOT/"segmentation"/"sam2"
         )
         self._sam3_card = SamCard(
             key="SAM3", display_name="SAM 3",
@@ -485,6 +486,7 @@ class EnvironmentManagerDialog(QDialog):
             requires_pytorch=True,
             log_fn=self._log_line,
             run_process_fn=self._run_process,
+            source_dir = REPO_ROOT/"segmentation"/"sam3"
         )
         self._sam2_card.pytorch_config_clicked.connect(self._focus_pytorch_card)
         self._sam3_card.pytorch_config_clicked.connect(self._focus_pytorch_card)
