@@ -16,7 +16,8 @@ class SessionWidget:
         self.vm = vm
         self.sm = sm
 
-        self._internal_layer_names = {"Original", "auto_seg"}
+        self._working_image_layername = "Original" # the name of the image to do annotation on set by AdaptFM
+        self._seg_layername_identifier = "_AdaptFMseg" # AdaptFM interactive segmentations end in this string
 
         self.widget = QWidget()
         layout = QVBoxLayout()
@@ -36,23 +37,22 @@ class SessionWidget:
             update_or_create_labels(self.viewer,label_name,img)
             return
         
-        layername = 'Original'
 
         update_or_create_image(
             self.viewer,
-            layername,
+            self._working_image_layername,
             img,
             colormap="gray",
         )
 
-        self.viewer.layers[layername].metadata = {"filename_base": Path(path).stem}
+        self.viewer.layers[self._working_image_layername].metadata = {"filename_base": Path(path).stem}
 
     def _on_layer_inserted(self, event):
         layer = event.value
         if not isinstance(layer, Image):
             return
-        if layer.name in self._internal_layer_names:
-            return  # created by our own update_or_create_image / auto-seg flow
+        if layer.name.endswith(self._seg_layername_identifier) or layer.name == self._working_image_layername:
+            return  # created by our own update_or_create_image / auto segmentation annotation dock
 
         path = layer.source.path if layer.source is not None else None
         if not path:
@@ -66,7 +66,7 @@ class SessionWidget:
 
         # Keep the existing "current image" convention working for any other
         # widget that looks up viewer.layers["Original"].
-        layer.name = "Original"
+        layer.name = self._working_image_layername
 
 
     def _build(self, layout):
@@ -89,11 +89,11 @@ class SessionWidget:
     def _clear_auto_seg(self):
         layers_to_remove = [
             layer for layer in self.viewer.layers 
-            if layer.name.endswith("_AdaptFMseg")
+            if layer.name.endswith(self._seg_layername_identifier)
         ]
         for layer in layers_to_remove:
             self.viewer.layers.remove(layer)
 
     def _clear_original(self):
-        if "Original" in self.viewer.layers:
-            self.viewer.layers.remove("Original")
+        if self._working_image_layername in self.viewer.layers:
+            self.viewer.layers.remove(self._working_image_layername)
