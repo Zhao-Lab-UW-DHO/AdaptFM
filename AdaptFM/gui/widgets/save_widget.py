@@ -11,8 +11,8 @@ class SaveWidget:
         self.viewer = viewer
         self.sm = segmentation_manager
         self.viewer.layers.events.inserted.connect(self._setup_original_listener)
-        self._setup_original_listener()
         self._build_widget()
+        self._setup_original_listener()
 
     def _setup_original_listener(self, event=None):
         if "Original" in self.viewer.layers:

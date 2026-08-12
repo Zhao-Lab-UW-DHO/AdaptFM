@@ -171,7 +171,7 @@ EnvironmentSpec(
         key="Merlin-nnUNet",
         display_name='Merlin nnUNet',
         description="3D Ct Segmentation using fine-tuned Merlin",
-        conda_env_name="Merlin_adapt",
+        conda_env_name="Merlin_nnUNet_adapt",
         install_command="adaptfm-install-merlin",
         uninstall_command="adaptfm-uninstall",
         requires_gpu=True,

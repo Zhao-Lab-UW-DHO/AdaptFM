@@ -16,12 +16,16 @@ class SessionWidget:
         self.vm = vm
         self.sm = sm
 
+        self._internal_layer_names = {"Original", "auto_seg"}
+
         self.widget = QWidget()
         layout = QVBoxLayout()
         self.widget.setLayout(layout)
 
         self._build(layout)
         self.widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
+
+        self.viewer.layers.events.inserted.connect(self._on_layer_inserted)
 
     def _load_path(self, path):
         self._clear_auto_seg()
@@ -42,6 +46,7 @@ class SessionWidget:
         )
 
         self.viewer.layers[layername].metadata = {"filename_base": Path(path).stem}
+
     def _on_layer_inserted(self, event):
         layer = event.value
         if not isinstance(layer, Image):
