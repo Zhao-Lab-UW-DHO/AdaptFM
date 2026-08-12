@@ -8,6 +8,8 @@ from pathlib import Path
 import shutil
 import os
 import random
+import yaml
+import pandas as pd
 
 class FoundationModelSpec(ModelSpec):
     def __init__(self, name, conda_env, module_path,training_wrapper_path=None,inference_wrapper_path=None,training_function=None):
@@ -58,8 +60,6 @@ class FoundationModelSpec(ModelSpec):
 
         out = subprocess.check_output(cmd, text=True).strip() 
 
-                
-        
         return json.loads(out)
 
 
@@ -650,20 +650,27 @@ class BMEXSpec(FoundationModelSpec):
         os.makedirs(labelsTrFolder, exist_ok=True)
         os.makedirs(output_dir, exist_ok=True)
 
-        # assume that all images are tiff at this time
-        tiff_images = [file for file in os.listdir(dataset_manager.folder) if file.endswith(('.tif', '.tiff'))]
-
+        image_files = [
+            f for f in os.listdir(dataset_manager.folder)
+            if f.endswith((".tif", ".tiff", ".nii.gz"))
+        ]
         # base_name -> {"image": ..., "label": ...}
         pairs = {}
 
-        for tiff_file in tiff_images:
-            tiff_image_path = os.path.join(dataset_manager.folder, tiff_file)
-            tiff_image = tiff.imread(tiff_image_path)
-            tiff_image = sitk.GetImageFromArray(tiff_image)
+        for image_file in image_files:
+            input_path = os.path.join(dataset_manager.folder, image_file)
 
-            nii_name = tiff_file.replace('_seg', '').replace('.tiff', '.nii.gz')
-
-            is_label = '_seg.tiff' in tiff_file
+            if image_file.endswith(".nii.gz"):
+                nii_name = image_file.replace("_seg.nii.gz", ".nii.gz")
+                is_label = "_seg.nii.gz" in image_file
+            else:
+                nii_name = (
+                    image_file
+                    .replace("_seg", "")
+                    .replace(".tiff", ".nii.gz")
+                    .replace(".tif", ".nii.gz")
+                )
+                is_label = "_seg.tif" in image_file or "_seg.tiff" in image_file
             base_name = nii_name  # same root for image/label since '_seg' was stripped
 
             if is_label:
@@ -675,8 +682,13 @@ class BMEXSpec(FoundationModelSpec):
                 rel_path = os.path.join('imagesTr', nii_name)
                 pairs.setdefault(base_name, {})['image'] = rel_path
 
-            sitk.WriteImage(tiff_image, nii_path)
-
+            if image_file.endswith(".nii.gz"):
+                shutil.copy2(input_path, nii_path)
+            else:
+                img = tiff.imread(input_path)
+                img = sitk.GetImageFromArray(img)
+                sitk.WriteImage(img, nii_path)
+                
         # only keep complete image/label pairs
         complete_pairs = [
             {"image": entry["image"], "label": entry["label"]}
