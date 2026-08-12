@@ -108,7 +108,10 @@ def main():
     benchmark_action = QAction("Run Benchmark", viewer.window._qt_window)
     benchmark_menu.addAction(benchmark_action)
 
-    benchmark_widget = BenchmarkWidget()
+    # Lazy-create widget
+    benchmark_widget = BenchmarkWidget().widget
+
+    # Show widget when menu action triggered
     benchmark_action.triggered.connect(benchmark_widget.show)
 
     # --- Environments Menu ---
