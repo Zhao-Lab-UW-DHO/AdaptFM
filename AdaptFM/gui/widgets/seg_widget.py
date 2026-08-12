@@ -131,6 +131,13 @@ class SegmentationWidget:
             self.run_button = run_button
             self.param_container.native.layout().addWidget(run_button.native)
 
+        else:
+        # Re-append to layout to guarantee it stays below dynamically added parameter widgets
+            self.param_container.native.layout().removeWidget(self.run_button.native)
+            self.param_container.native.layout().addWidget(self.run_button.native)
+
+        self.param_container.native.show()
+
 
     def _make_param_widget(self, name: str, spec: dict):
         """
@@ -314,7 +321,7 @@ class SegmentationWidget:
 
         for attr_name in sam_buttons:
             btn = getattr(self, attr_name, None)
-            if qt_widget_obj_exists(btn):
+            if qt_widget_obj_exists(btn): # this function will return false on None
                 btn.enabled = enabled
 
         for param_widget in self.param_widgets.values():
@@ -566,5 +573,9 @@ class SegmentationWidget:
                 layout.removeWidget(w.native)
                 w.native.deleteLater()
             self._sam2_extra_widgets = []
+
+        self._sam2_init_btn = None
+        self._sam2_prop_btn = None
+        self._sam3_text_btn = None
 
 
