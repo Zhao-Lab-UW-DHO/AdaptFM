@@ -2,6 +2,7 @@ from magicgui import magicgui
 from magicgui.widgets import Container, Label
 from napari import Viewer
 from AdaptFM.segmentation.registry import SEGMENTATION_REGISTRY
+from AdaptFM.gui.napari_utils import qt_widget_obj_exists
 from magicgui import widgets, magicgui
 import dask.array as da
 import numpy as np
@@ -129,6 +130,13 @@ class SegmentationWidget:
 
             self.run_button = run_button
             self.param_container.native.layout().addWidget(run_button.native)
+
+        else:
+        # Re-append to layout to guarantee it stays below dynamically added parameter widgets
+            self.param_container.native.layout().removeWidget(self.run_button.native)
+            self.param_container.native.layout().addWidget(self.run_button.native)
+
+        self.param_container.native.show()
 
 
     def _make_param_widget(self, name: str, spec: dict):
@@ -297,23 +305,27 @@ class SegmentationWidget:
         ]
 
     def _set_ui_enabled(self, enabled: bool):
-        """While threading occurs, the user changing/running other elements (like algorithm selection tearing down SAM variables)
-        should be prevented
+        """While threading occurs, the user changing/running other elements (like algorithm selection
+        tearing down SAM variables) should be prevented
         """
         self.algo_selector.enabled = enabled
-        
+
         if self.run_button is not None:
             self.run_button.enabled = enabled
 
-        if hasattr(self, "_sam2_init_btn") and self._sam2_init_btn:
-            self._sam2_init_btn.enabled = enabled
-        if hasattr(self, "_sam2_prop_btn") and self._sam2_prop_btn:
-            self._sam2_prop_btn.enabled = enabled
-        if hasattr(self, "_sam3_text_btn") and self._sam3_text_btn:
-            self._sam3_text_btn.enabled = enabled
-            
+        sam_buttons = [
+            "_sam2_init_btn",
+            "_sam2_prop_btn",
+            "_sam3_text_btn",
+        ]
+
+        for attr_name in sam_buttons:
+            btn = getattr(self, attr_name, None)
+            if qt_widget_obj_exists(btn): # this function will return false on None
+                btn.enabled = enabled
+
         for param_widget in self.param_widgets.values():
-            param_widget.control.enabled = enabled
+            param_widget.control.enabled = enabled 
 
 
     def _sam3_run_text_prompt(self):
@@ -561,5 +573,9 @@ class SegmentationWidget:
                 layout.removeWidget(w.native)
                 w.native.deleteLater()
             self._sam2_extra_widgets = []
+
+        self._sam2_init_btn = None
+        self._sam2_prop_btn = None
+        self._sam3_text_btn = None
 
 

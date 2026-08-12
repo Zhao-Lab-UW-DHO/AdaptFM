@@ -129,7 +129,7 @@ class OtsuThreshold3D(SegmentationAlgorithmSpec):
 
         thresh = threshold_otsu(volume)
         mask = volume > thresh
-        mask = remove_small_objects(mask, min_size=params["remove_small_objects"])
+        mask = remove_small_objects(mask, max_size=params["remove_small_objects"])
         return mask.astype(int)
 
 
@@ -152,7 +152,7 @@ class SauvolaThreshold3D(SegmentationAlgorithmSpec):
         for z in range(volume.shape[0]):
             thresh = threshold_sauvola(volume[z], window_size=params["window_size"], k=params["k"])
             mask[z] = volume[z] > thresh
-        mask = remove_small_objects(mask, min_size=params["remove_small_objects"])
+        mask = remove_small_objects(mask, max_size=params["remove_small_objects"])
         return mask.astype(int)
     
 
@@ -199,7 +199,7 @@ class Felzenszwalb3D(SegmentationAlgorithmSpec):
         for z in range(volume.shape[0]):
             slice_labels = felzenszwalb(volume[z], scale=params["scale"], sigma=params["sigma"])
             labels[z] = slice_labels
-        labels = remove_small_objects(labels, min_size=params["min_size"])
+        labels = remove_small_objects(labels, max_size=params["min_size"])
         return labels.astype(int)
 
 
