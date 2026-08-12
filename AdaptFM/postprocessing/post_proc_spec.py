@@ -17,6 +17,10 @@ class PostProcess(ABC):
 
 
     def _wrap_with_conda(self, cmd: list[str]) -> list[str]:
+        if self.conda_env is None:
+            raise RuntimeError(
+                "Could not find conda environment for this post processing option.\n Install with the environment manager\n"
+            )
         return [
             "conda", "run", "-p", self.conda_env,
             "--no-capture-output",
