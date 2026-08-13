@@ -10,6 +10,7 @@ from AdaptFM.gui.widgets.inference_widget import InferenceWidget
 from AdaptFM.gui.widgets.training_widget import TrainingWidget
 from AdaptFM.gui.widgets.benchmark_widget import BenchmarkWidget
 from AdaptFM.gui.widgets.env_manager_dialog import EnvironmentManagerDialog
+from AdaptFM.gui.widgets.post_proc_widget import PostProcessingWidget
 from AdaptFM.model.registry import MODEL_REGISTRY
 from AdaptFM.gui.napari_utils import reorder_docks,restore_or_focus_widget,restore_all_widgets
 from qtpy.QtWidgets import QAction, QScrollArea, QFrame
@@ -102,6 +103,14 @@ def main():
 
     train_action.triggered.connect(train_widget.show)
     infer_action.triggered.connect(infer_widget.show)
+
+    menu = viewer.window._qt_window.menuBar().addMenu("Post Process")
+    post_process_action = QAction("Run Post Processing",viewer.window._qt_window)
+    menu.addAction(post_process_action)
+
+    post_proc_widget = PostProcessingWidget()
+
+    post_process_action.triggered.connect(post_proc_widget.show)
 
     # --- Benchmark Menu ---
     benchmark_menu = viewer.window._qt_window.menuBar().addMenu("Benchmark")
