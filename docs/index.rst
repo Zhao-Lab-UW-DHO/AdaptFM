@@ -5,7 +5,6 @@
 
 AdaptFM Documentation
 =====================
-.. include:: ../README.md
 
 .. toctree::
    :maxdepth: 2
