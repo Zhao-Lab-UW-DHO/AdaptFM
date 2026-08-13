@@ -1,5 +1,6 @@
 import urllib.request
-
+import sys
+import importlib
 
 
 def check_sam2_installed():
@@ -9,11 +10,15 @@ def check_sam2_installed():
 
     except ImportError:
 
-        raise RuntimeError(
-            "SAM2 is not installed.\n"
-            "Install with:\n"
-            "pip install AdaptFM[sam2]"
-        )
+        try:
+            if "sam2" in sys.modules:
+                importlib.reload(sys.modules["sam2"])
+        except:
+            raise RuntimeError(
+                "SAM2 is not installed.\n"
+                "Install with:\n"
+                "the environment manager"
+            )
 
 
 
