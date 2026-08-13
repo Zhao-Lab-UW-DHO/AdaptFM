@@ -26,7 +26,7 @@ dependencies = ["napari",
                 "matplotlib",
                 "zarr",
                 "numpy<2",
-                "setuptools<82",]
+                "setuptools<82",
                 "pandas",]
 
 [project.optional-dependencies]
