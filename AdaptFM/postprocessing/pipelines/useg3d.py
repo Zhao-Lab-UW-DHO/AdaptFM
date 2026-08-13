@@ -70,6 +70,10 @@ def run_postprocessing(input_dir: Path, output_dir: Path):
             indirect_aggregation_params = uSegment3D_params.get_2D_to_3D_aggregation_params()
             indirect_aggregation_params['indirect_method']['dtform_method'] = 'edt'
 
+            assert planes["xy"].ndim == 3, f"Error, 2D predictions must be 3D (a stack of planes), found dimensions: {planes["xy"].ndim}"
+            assert planes["xz"].ndim == 3, f"Error, 2D predictions must be 3D (a stack of planes), found dimensions: {planes["xz"].ndim}"
+            assert planes["yz"].ndim == 3, f"Error, 2D predictions must be 3D (a stack of planes), found dimensions: {planes["yz"].ndim}"
+
             segmentation3D, (probability3D, gradients3D) = (
                 uSegment3D.aggregate_2D_to_3D_segmentation_indirect_method(
                     segmentations=[planes["xy"], planes["xz"], planes["yz"]],
