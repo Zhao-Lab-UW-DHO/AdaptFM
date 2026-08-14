@@ -372,7 +372,7 @@ class MerlinNNUNetV2ModelSpec(NNUNetV2ModelSpec):
         
         return[
             "python",
-            "-m", f"{self.transform_path}",
+            f"{self.transform_path}",
             "--params", json.dumps(params),
             "--folder2transform", str(folder2transform)
 
