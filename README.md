@@ -3,10 +3,20 @@
 An interactive framework for annotating, training, running inference, and benchmarking 3D segmentation models. 
 
 In AdaptFM you can:
-- Test and benchmark 3D segmentation models on your data. We currently support CellposeSAM, MicroSAM, nnUNetv2, SAM-Med-3D, and SSVT.
+- Test and benchmark 3D segmentation models on your data.
 - Create 3D annotations using a number of segmentation algorithms, including SAM2 for click-based segmentation and SAM3 for text-based segmentation
 - Use those annotations to fine-tune/train models on your data
 - Add new models or annotation algorithms
+- AdaptFM currently supports
+    - nnUNetV2
+    - CellposeSAM
+    - MicroSAM
+    - CellSAM
+    - ThreeDCellComposer
+    - CT-FM
+    - nnUNet-Merlin
+    - SAM-Med3D
+    - BME-X
 
 ***Model Versions***
 
@@ -134,13 +144,4 @@ snapshot_download(
 ```
 
 Once downloaded you can follow our [fine-tuning instructions](docs/Standard/Fine-tuning-models.md) to build a model for a specific downstream segmentation task. 
-
-### Versions/Hashes
-
-CellposeSAM Version 3.1  
-MicroSAM Version 1.7.6  
-nnUNet Version 2.7.0  
-SAM2 Version 1.0. Hash 2b90b9f5ceec907a1c18123530e92e794ad901a4  
-SAM3 Hash c3a42ff67487eb489f74dce7a747477324734e44  
-SAM-Med3D Hash f3de1fa10da98e46f49f176773d2b1e306ba131f
 
