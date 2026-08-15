@@ -17,15 +17,16 @@ The general steps of Canny edge detection are:
 ## Parameters
 Canny edge detection has three parameters that control how the algorithm identifies object boundaries: sigma, low threshold, and high threshold. 
 
-1. Sigma - controls how much the image is 'smoothed' or 'blurred' before detecting edges. 
-- Lower sigma - Less smoothing. More fine details and small edges are detected. However, if set too low, noise might also be detected as edges. 
-- Higher sigma - More smoothing. Produces fewer small or noisy edges. However, subtle boundaries might be lost if set too high
+1. **Sigma** – controls how much the image is 'smoothed' or 'blurred' before detecting edges.
+    - Lower sigma – Less smoothing. More fine details and small edges are detected. However, if set too low, noise might also be detected as edges.
+    - Higher sigma – More smoothing. Produces fewer small or noisy edges. However, subtle boundaries might be lost if set too high.
 
-2. Low Threshold - controls how sensitive the algorithm is to relatively weak boundaries
-- Lower low threshold - More weak boundaries are detected, but there might be more unwanted edges
-- Higher low threshold - Only more noticeable boundaries are retained
+2. **Low Threshold** – controls how sensitive the algorithm is to relatively weak boundaries.
+    - Lower low threshold – More weak boundaries are detected, but there might be more unwanted edges.
+    - Higher low threshold – Only more noticeable boundaries are retained.
 
-3. High Threshold - how strong an image boundary must be to be considered an edge. 
-- Lower high threshold - more boundaries are considered edges
-- Higher high threhsold - only very clear, high-contrast boundaries are detected
+3. **High Threshold** – how strong an image boundary must be to be considered an edge.
+    - Lower high threshold – more boundaries are considered edges.
+    - Higher high threshold – only very clear, high‑contrast boundaries are detected.
+
 
