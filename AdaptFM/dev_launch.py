@@ -11,13 +11,15 @@ from AdaptFM.gui.widgets.training_widget import TrainingWidget
 from AdaptFM.gui.widgets.benchmark_widget import BenchmarkWidget
 from AdaptFM.gui.widgets.env_manager_dialog import EnvironmentManagerDialog
 from AdaptFM.gui.widgets.post_proc_widget import PostProcessingWidget
-from AdaptFM.model.registry import MODEL_REGISTRY
+from AdaptFM.gui.napari_utils import ParentWindowWatcher
 from qtpy.QtWidgets import QAction
 
 
 def main():
     viewer = napari.Viewer()
     viewer.title ="AdaptFM"
+    qt_window = viewer.window._qt_window
+
 
     # Core managers
     vm = VolumeManager()
@@ -25,9 +27,7 @@ def main():
     session = AnnotationSession([])
     dm = DatasetManager()
 
-    # Model registry (shared by training + inference)
-    model_registry = MODEL_REGISTRY
-    # or: model_registry = MODEL_REGISTRY
+
     viewer.window.add_dock_widget(
     SessionWidget(viewer, session, vm, sm).widget,
     area="right",name ='AdaptFM Image Manager'
@@ -57,6 +57,9 @@ def main():
     train_widget = TrainingWidget(dataset_manager=dm).widget
     infer_widget = InferenceWidget(dataset_manager=dm).widget
 
+    viewer._train_watcher = ParentWindowWatcher(qt_window,train_widget)
+    viewer._infer_watcher = ParentWindowWatcher(qt_window,infer_widget)
+
     train_action.triggered.connect(train_widget.show)
     infer_action.triggered.connect(infer_widget.show)
 
@@ -65,6 +68,8 @@ def main():
     menu.addAction(post_process_action)
 
     post_proc_widget = PostProcessingWidget(dataset_manager=dm).widget
+
+    viewer._post_proc_watcher = ParentWindowWatcher(qt_window,post_proc_widget)
 
     post_process_action.triggered.connect(post_proc_widget.show)
 

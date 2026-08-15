@@ -100,6 +100,14 @@ class InferenceWidget(ModelWorkflowWidget):
         if self.dataset_dir is None:
             self._log_line("⚠  Please select a dataset folder.", color=_AMBER)
             return
+        
+        conda_env = Path(self.model.conda_env)
+        if not conda_env.exists():
+            raise RuntimeError(
+            f"{self.model.conda_env} not installed. "
+            "You must first install the environment with the environment manager before using."
+            )
+
 
         params = self.collect_params()
         gpu    = self._gpu_spin.value()

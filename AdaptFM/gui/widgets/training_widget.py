@@ -30,6 +30,7 @@ from AdaptFM.gui.widgets.model_widget import (
     ModelWorkflowWidget, _section_label, _RED, _AMBER, _GREEN,
 )
 from AdaptFM.model.nnUNetV2Spec import NNUNetV2ModelSpec
+from AdaptFM.model.registry import MODEL_REGISTRY
 
 
 # ---------------------------------------------------------------------------
@@ -87,11 +88,30 @@ class TrainingWidget(ModelWorkflowWidget):
     # Workflow
     # ------------------------------------------------------------------
 
+    def _build(self):
+        super()._build()
+
+        # Patch model section
+        self._model_combo.clear()
+
+        for model_name, model_spec in MODEL_REGISTRY.items():
+            if model_spec.supports_training:
+                self._model_combo.addItem(model_name)
+
+
     def _run_workflow(self):
         # Already validated by base: model set, output_dir set, no process running
         if self.dataset_dir is None:
             self._log_line("⚠  Please select a dataset folder.", color=_AMBER)
             return
+        
+        conda_env = Path(self.model.conda_env)
+        if not conda_env.exists():
+            raise RuntimeError(
+            f"{self.model.conda_env} not installed. "
+            "You must first install the environment with the environment manager before using."
+            )
+
 
         params  = self.collect_params()
         gpu     = self._gpu_spin.value()

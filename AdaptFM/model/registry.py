@@ -66,7 +66,8 @@ MODEL_REGISTRY = {
     module_path= "",#does not support training/finetuning
     training_wrapper_path = "",
     inference_wrapper_path = "AdaptFM.model.foundation_models.cellSAM.inference_wrapper",
-    training_function=""#does not support training/finetuning
+    training_function="",
+    supports_training=False#does not support training/finetuning
     ),
     
     
@@ -76,7 +77,8 @@ MODEL_REGISTRY = {
 
     "Merlin nnUNet" : MerlinNNUNetV2ModelSpec(
         conda_env = _read_prefix("Merlin_nnUNet_adapt"),
-        transform_path = "AdaptFM.model.foundation_models.merlin.transforms"
+        transform_path = "AdaptFM.model.foundation_models.merlin.transforms",
+        supports_training=False
     )
     
 }

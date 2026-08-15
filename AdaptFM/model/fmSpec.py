@@ -9,13 +9,14 @@ import shutil
 import os
 
 class FoundationModelSpec(ModelSpec):
-    def __init__(self, name, conda_env, module_path,training_wrapper_path=None,inference_wrapper_path=None,training_function=None):
+    def __init__(self, name, conda_env, module_path,training_wrapper_path=None,inference_wrapper_path=None,training_function=None,supports_training=True):
         self.name = name
         self.conda_env = conda_env
         self.module_path = module_path
         self.training_wrapper_path = training_wrapper_path
         self.inference_wrapper_path = inference_wrapper_path
         self.training_function = training_function
+        self.supports_training=supports_training
 
 
     def default_params(self):
@@ -594,8 +595,8 @@ class Sammed3DSpec(FoundationModelSpec):
 
 
 class CellSAMSpec(FoundationModelSpec):
-    def __init__(self, name, conda_env, module_path,training_wrapper_path,inference_wrapper_path,training_function):
-        super().__init__(name, conda_env, module_path,training_wrapper_path,inference_wrapper_path,training_function)
+    def __init__(self, name, conda_env, module_path,training_wrapper_path,inference_wrapper_path,training_function,supports_training):
+        super().__init__(name, conda_env, module_path,training_wrapper_path,inference_wrapper_path,training_function,supports_training)
 
 
 

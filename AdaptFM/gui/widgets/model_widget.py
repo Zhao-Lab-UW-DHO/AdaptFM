@@ -191,7 +191,7 @@ class ModelWorkflowWidget:
         self._model_combo = QComboBox()
         self._model_combo.addItems(list(self.registry.keys()))
         self._model_combo.setStyleSheet(_combo_style())
-        # Connect AFTER build so the QTimer below is the only initial trigger
+        # # Connect AFTER build so the QTimer below is the only initial trigger
         ctrl.addWidget(self._model_combo)
 
         # Dataset
@@ -403,6 +403,16 @@ class ModelWorkflowWidget:
     def _load_tunable_params(self, *args):
             if self.model is None:
                 return
+            
+            conda_env = Path(self.model.conda_env)
+            if not conda_env.is_dir():
+                msg = (
+                    f"{conda_env} not installed. "
+                    "You must first install the environment with the "
+                    "environment manager before using this model."
+                )
+                self._on_params_error(msg, self._param_load_id)
+                return
 
             self._param_load_id += 1
             current_id = self._param_load_id
@@ -459,6 +469,7 @@ class ModelWorkflowWidget:
         if not schema:
             self._param_status_lbl.setText("No tunable parameters for this model.")
             return
+
 
         self._param_status_lbl.setText(f"{len(schema)} parameter(s) loaded.")
         for name, spec in schema.items():
