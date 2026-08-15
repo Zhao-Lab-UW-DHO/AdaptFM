@@ -1,11 +1,11 @@
 """
-install-CellSAM: creates the CellSAM conda environment, installs CellSAM,
+install-useg3d: creates the useg3d conda environment, installs useg3d,
 then swaps in the user's custom PyTorch build.
 
 Usage (after `pip install -e .`):
-    install-Cellsam
+    install-useg3d
 
-CellSAM pulls in a default PyTorch (often CUDA 13 / latest) that most users
+useg3d pulls in a default PyTorch (often CUDA 13 / latest) that most users
 don't have.  This script removes it immediately after install and replaces it
 with the build specified in ~/.adaptfm/pytorch_cmd.txt.
 Run `adaptfm-set-pytorch` first if that file does not exist yet.
@@ -15,22 +15,12 @@ import subprocess
 import sys
 from pathlib import Path
 import shlex
-import os
-from AdaptFM.model.registry import _conda_prefix,_read_prefix
+from AdaptFM.model.registry import _conda_prefix
 
-ENV_NAME = "cellsam_adapt"
-PYTHON_VERSION = "3.10"
+ENV_NAME = "usegment3d_adapt"
+PYTHON_VERSION = "3.9"
 PYTORCH_CMD_FILE = Path.home() / ".adaptfm" / "pytorch_cmd.txt"
 
-
-def _wrap_with_conda(conda_env, cmd: list[str]) -> list[str]:
-    python_bin = os.path.join(conda_env, "bin", "python")
-    # cmd is typically ["python", "script.py", ...args]
-    # replace the "python" at the front with the env's absolute python binary
-    if cmd[0] == "python":
-        return [python_bin, *cmd[1:]]
-    else:
-        return [python_bin, *cmd]
 
 def _run(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
     print(f"  + {' '.join(cmd)}")
@@ -58,7 +48,7 @@ def _read_pytorch_cmd() -> list[str]:
 
 
 def main() -> None:
-    print(f"\n=== Installing CellSAM environment: {ENV_NAME} ===\n")
+    print(f"\n=== Installing u-Segment3D environment: {ENV_NAME} ===\n")
 
     # Check that conda is available
     result = subprocess.run(
@@ -79,7 +69,7 @@ def main() -> None:
     )
     if ENV_NAME in env_check.stdout:
         print(f"Environment '{ENV_NAME}' already exists — skipping creation.")
-        print("To reinstall from scratch, run:  conda env remove -n CellSAM_adapt")
+        print("To reinstall from scratch, run:  conda env remove -n usegment3d_adapt")
         sys.exit(0)
 
     # Read user's custom PyTorch command
@@ -99,14 +89,11 @@ def main() -> None:
     config_path.write_text(prefix + "\n")
     print(f"  Wrote env prefix to {config_path}")   
 
-    # Install CellSAM (this drags in a default torch/torchvision)
-    print("\n--- Installing CellSAM ---")
-    _conda_run(
-        ENV_NAME,
-        ["python", "-m", "pip", "install", "git+https://github.com/vanvalenlab/cellSAM.git"]
-    )
+    # Install u-Segment3D (this drags in a default torch/torchvision)
+    print("\n--- Installing u-Segment3D ---")
+    _conda_run(ENV_NAME, ["python", "-m", "pip", "install", "u-Segment3D"])
 
-    # Remove the default torch/torchvision that CellSAM bundled
+    # Remove the default torch/torchvision that u-Segment3D bundled
     print("\n--- Removing default torch/torchvision ---")
     _conda_run(
         ENV_NAME,
@@ -118,46 +105,9 @@ def main() -> None:
     print("\n--- Installing user-specified PyTorch ---")
     _conda_run(ENV_NAME, pytorch_cmd)
 
-    print("\n--- Installing usegment3D for CellSAM ---")
-    _conda_run(
-        ENV_NAME,
-        ["python", "-m", "pip", "install", "u-Segment3D"]
-    )
-
-    print(f"\n✓ CellSAM environment '{ENV_NAME}' created successfully.")
+    print(f"\n✓ u-Segment3D environment '{ENV_NAME}' created successfully.")
     print(f"  Activate with:  conda activate {ENV_NAME}\n")
 
-    access_token = os.environ.get("DEEPCELL_ACCESS_TOKEN", "").strip()
-
-    if not access_token:
-        while True:
-            access_token = input("DeepCell Access Token: ").strip()
-            if not access_token:
-                print("  Access token cannot be empty. Reference the CellSAM github on how to get a token.")
-                continue
-            break
-
-    cmd = ["python","-m","AdaptFM.model.foundation_models.cellSAM.get_model_first","--access_token",access_token]
-
-    env = os.environ.copy()
-    working_dir = os.getcwd()
-    env["PYTHONPATH"] = working_dir
-
-
-    get_model_cmd = [
-            "conda", "run", "-p", _read_prefix(ENV_NAME),
-            "--no-capture-output",
-            *cmd
-        ]
-    results = subprocess.Popen(
-        get_model_cmd,
-        env=env
-    )
-    print(results.stdout)
-    print(results.stderr)
-
-
-    print('CellSAM successfully installed')
 
 if __name__ == "__main__":
     main()
