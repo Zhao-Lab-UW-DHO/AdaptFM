@@ -29,4 +29,3 @@ Canny edge detection has three parameters that control how the algorithm identif
     - Lower high threshold – more boundaries are considered edges.
     - Higher high threshold – only very clear, high‑contrast boundaries are detected.
 
-
