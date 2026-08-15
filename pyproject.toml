@@ -19,7 +19,7 @@ dependencies = ["napari",
                 "magicgui",
                 "Pillow",
                 "scipy",
-                "scikit-image",
+                "scikit-image>=0.26",
                 "kneed",
                 "joblib",
                 "pandas",
@@ -28,6 +28,7 @@ dependencies = ["napari",
                 "numpy<2",
                 "nd2",
                 "xarray"]
+                "setuptools<82",]
 
 [project.optional-dependencies]
 sam2 = []   # submodule handles it, this just signals intent
@@ -49,6 +50,8 @@ adaptfm-install-merlin ="AdaptFM.install.install_merlin:main"
 adaptfm-install-bmex = "AdaptFM.install.install_bmex:main"
 adaptfm-install-ctfm ="AdaptFM.install.install_ctfm:main"
 adaptfm-uninstall = "AdaptFM.install.uninstall_general:main"
+adaptfm-uninstall-sam2 = "AdaptFM.install.uninstall_sam:uninstall_sam2"
+adaptfm-uninstall-sam3 = "AdaptFM.install.uninstall_sam:uninstall_sam3"
 
 
 [tool.setuptools.packages.find]

@@ -35,6 +35,6 @@ class Watershed3D(SegmentationAlgorithmSpec):
             markers[tuple(coord)] = i
 
         labels = watershed(-distance, markers, mask=volume)
-        labels = remove_small_objects(labels, min_size=params["remove_small_objects"])
+        labels = remove_small_objects(labels, max_size=params["remove_small_objects"])
         return labels.astype(int)
 ```

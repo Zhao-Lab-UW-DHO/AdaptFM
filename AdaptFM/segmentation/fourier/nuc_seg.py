@@ -172,7 +172,13 @@ def run_nuclear_segmentation(volume,
         phase_response.append(np.angle(filtered_img))  # Extract phase 
 
     phase_sum = np.sum(np.exp(1j * np.array(phase_response)), axis=0)
-    phase_congruency_map = np.abs(phase_sum) / len(phase_response)  # Normalize
+
+    if len(phase_response) == 0:
+        phase_congruency_map = np.zeros(volume.shape, dtype=np.float32)
+    else:
+        phase_congruency_map = np.abs(phase_sum) / len(phase_response)  # Normalize
+
+    #phase_congruency_map = np.abs(phase_sum) / len(phase_response)  # Normalize
     threshold = np.percentile(phase_congruency_map,percentile)
     segmented_nuclei = phase_congruency_map > threshold
 

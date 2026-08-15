@@ -32,12 +32,15 @@ case ${CUDA_MAJOR} in
             exit 1
         fi
         PYTORCH_INDEX="https://download.pytorch.org/whl/cu126"
+        CONDA_CUDAVER="12.6"
         ;;
     13)
         if [ "${CUDA_MINOR}" -lt 2 ]; then
             PYTORCH_INDEX="https://download.pytorch.org/whl/cu130"
+            CONDA_CUDAVER="13.0"
         else
             PYTORCH_INDEX="https://download.pytorch.org/whl/cu132"
+            CONDA_CUDAVER="13.2"
         fi
         ;;
     *)
@@ -51,6 +54,12 @@ esac
 # or numpy (torch then repo) reinstalls to a different version
 pip install -e .
 pip install torch torchvision --index-url "${PYTORCH_INDEX}"
+
+# write auto discovered torch install to pytorch_cmd
+mkdir -p "$HOME/.adaptfm"
+echo "pip3 install torch torchvision --index-url ${PYTORCH_INDEX}" > "$HOME/.adaptfm/pytorch_cmd.txt"
+
+conda install cuda-toolkit cuda-nvcc "cuda-version=${CONDA_CUDAVER}" ninja -c conda-forge -y
 
 echo "======================================================="
 echo "AdaptFM was sucessfully installed"
