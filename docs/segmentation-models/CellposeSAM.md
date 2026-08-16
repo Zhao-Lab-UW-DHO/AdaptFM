@@ -16,7 +16,7 @@ Within AdaptFM, you can use CellposeSAM in two ways:
 
 You can use CellposeSAM in AdaptFM to run inference on images in bulk using the following steps:
  
-1. Within AdaptFM navigate to the "Models" menu at the top and select "Inference"
+1. Within AdaptFM navigate to the "Models" menu at the top and select "Inference". Select "CellposeSAM" as the model. 
 2. Under "Dataset" select "Browse" and navigate to the folder containing images you would like to segment.
 3. Under "Output Directory" select the folder where you want to output your final predictions
 4. Using "GPU Index" select the GPU you would like to use for running inference

@@ -14,14 +14,14 @@ In AdaptFM, MicroSAM can be used in two ways:
 
 You can use MicroSAM in AdaptFM to run inference on images in bulk using the following steps:
  
-1. Within AdaptFM navigate to the "Models" menu at the top and select "Inference"
+1. Within AdaptFM navigate to the "Models" menu at the top and select "Inference". Select "MicroSAM" as the model
 2. Under "Dataset" select "Browse" and navigate to the folder containing images you would like to segment.
 3. Under "Output Directory" select the folder where you want to output your final predictions
 4. Using "GPU Index" select the GPU you would like to use for running inference
 5. Under "Model Checkpoint" navigate to the checkpoint you would like to use ***(optional)***. If you would like to use MicroSAM 'out-of-the-box' do not select a model checkpoint
 6. Once ready select 'Run' to start inference. You can monitor outputs in the Output Log and stop inference whenever using the "Terminate" button.
 
-## Using AdaptFM to fine-tune CellposeSAM
+## Using AdaptFM to fine-tune MicroSAM
 
 ### Prepare the data
 
@@ -35,13 +35,13 @@ As with other AdaptFM models, you must first prepare your data using the below s
 ### Fine-tuning the model
 
 1. Within AdaptFM navigate to the "Models" menu at the top and select "Training"
-2. Select the model CellposeSAM
+2. Select the model MicroSAM
 3. In the "Dataset" field select "Browse" and navigate to the folder containing your raw and labeled images. This is the same folder in step 2 from "Prepare your data"
 4. In the "Output Directory" field select "Browse and navigate to the location where you want to output your results. For MicroSAM this will create two folders.
     - "training" - this will contain your raw images used for training
     - "segmentations" - this will contains the labels associated with the raw images used in training.
 5. Using the "GPU Index" field, select the GPU you plan to use for training
-6. **Optionally** you can select "Load Parameters" to further define CellposeSAM fine-tuning. If you do not have programming and/or machine-learning experience, we do not recommend loading parameters or changing from any of the defaults. CellposeSAM has 31 adjustable parameters defined by the authors. Full descriptions can be found [here](https://github.com/computational-cell-analytics/micro-sam/blob/main/micro_sam/training/training.py#L228). We have provided descriptions of some of the most common parameters here:
+6. **Optionally** you can select "Load Parameters" to further define MicroSAM fine-tuning. If you do not have programming and/or machine-learning experience, we do not recommend loading parameters or changing from any of the defaults. MicroSAM has 31 adjustable parameters defined by the authors. Full descriptions can be found [here](https://github.com/computational-cell-analytics/micro-sam/blob/main/micro_sam/training/training.py#L228). We have provided descriptions of some of the most common parameters here:
     - n_epochs - how many times the entire training set is evaluated during training. If training is taking a particularly long time, try decreasing this number. Decreasing this too much can limit model performance
     - n_objects_per_batch - the number of objects required to compute a batch. If your images are very sparse, try decreasing this value.  The default value is 25
     - checkpoint_path - the path to the checkpoint used for training
