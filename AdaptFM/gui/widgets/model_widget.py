@@ -380,8 +380,6 @@ class ModelWorkflowWidget:
 
         # Always enable parameters for nnUNetV2 models, even in InferenceWidget
         should_skip = self.SKIP_PARAMS
-        if isinstance(self.model, NNUNetV2ModelSpec):
-            should_skip = False
 
         if should_skip or self.model is None:
             self._set_param_section_visible(False)
