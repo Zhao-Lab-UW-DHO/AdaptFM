@@ -15,7 +15,23 @@ SAM2 works by following the below steps
 
 ## Parameters
 
-Wthin AdaptFM there are several adjustable parameters when using SAM2: model_size, propagation_direction, score_threshold, multimask_output, and GPU
+Wthin AdaptFM there are several adjustable parameters when using SAM2: 
 
-1. **model_size** - SAM2 has four different base models that users can select, tiny, small, base_plus, and large. Generally speaking, larger models will run slower and use more memory, but should produce better segmentations. **In our experience, it is faster to use a smaller model (i.e. tiny) and manually refine segmentations if needed, rather than using a larger model.**
-2. **propgataion_direction** - 
+1. **Segment click mode** - when checked, clicking on the image will segment objects. Be sure to uncheck if clicking on the image for other reasons. 
+2. **Initialise (encode all slices)** - this will run the image through the SAM2 model. Once the image is encoded you can start segmenting objects in the image. 
+3. **Click Object ID** - the ID of the current object to be segmented 
+4. **Propagate through volume** - once a user is done segmenting objects in a 2D slice, they can select this to extend the segmentation through the volume. This works in coordination with 'propagation_direction' to extend the segmentation 'forward' (higher z layers), 'backward' (lower z layers), or in both directions.
+5. **Reset current object** - Allows users to remove the segmentation with the ID currently in "Click Object ID"
+6. **Reset all** - Allows users to remove all segmentations from the image (across all layers)
+7. **model_size** -  SAM2 has four different base models that users can select, tiny, small, base_plus, and large. Generally speaking, larger models will run slower and use more memory, but should produce better segmentations. **In our experience, it is faster to use a smaller model (i.e. tiny) and manually refine segmentations if needed, rather than using a larger model.**
+8. **propgation_direction** - used with "Propagate through volume". 
+    - Both - the segmentation will be extended across z layers in both directions
+    - Forward - the segmentation will be extended across higher z layers
+    - Backward - the segmentation will only be extended across lower z layers
+9. **score_threshold** - how confident the model should be that a pixel is part of an object. Ranges from -5.0 to 5.0, with a default of 0. 
+    - Higher score_threshold - only pixels the model is very confident are part of the object will be included in the segmentation. Setting this too high might cause the model to miss pixels. 
+    - Lower score_threshold - the model will include less confident pixels as part of the object. Setting this too low might cause the model to include too many pixels in the object. 
+10. **Multimask_output** - whether or not the model should create multiple segmentations and automatically select the one it is most confident with. The default is False.
+    - True - SAM2 will generate multiple candidate masks for an object and select the one it is most confident 
+    - False - SAM2 will only generate one candidate mask. This is the default and recommended value. 
+11. **GPU** - The GPU you plan to run processing on
