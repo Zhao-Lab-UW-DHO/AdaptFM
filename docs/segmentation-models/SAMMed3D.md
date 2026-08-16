@@ -12,7 +12,7 @@ In AdaptFM, SAM-Med3D can be used in two ways:
 
 ## Using AdaptFM to run Inference with SAM-Med3D
 
-***Importantly, SAN-Med3D natively handles all image normalization and preprocessing. This is done by default, and normalizes pixels using a z-score normalization strategy on the entire image volume. The exact implementation can be found [here](https://github.com/uni-medical/SAM-Med3D/blob/main/utils/infer_utils.py#L266). Consequently there is no need to independently normalize your data before running inference***
+***Importantly, SAM-Med3D natively handles all image normalization and preprocessing. This is done by default, and normalizes pixels using a z-score normalization strategy on the entire image volume. The exact implementation can be found [here](https://github.com/uni-medical/SAM-Med3D/blob/main/utils/infer_utils.py#L266). Consequently there is no need to independently normalize your data before running inference***
 
 ### Creating Prompts for Inference 
 
@@ -53,7 +53,7 @@ Once you have generated ground truth mask prompts, you can use SAM-Med3D to segm
 
 ### Prepare the data
 
-***Again, SAN-Med3D natively handles all image normalization and preprocessing. This is done by default, and normalizes pixels using a z-score normalization strategy on the entire image volume. The exact implementation can be found [here](https://github.com/uni-medical/SAM-Med3D/blob/main/train.py#L133). Consequently there is no need to independently normalize your data before running training***
+***Again, SAM-Med3D natively handles all image normalization and preprocessing. This is done by default, and normalizes pixels using a z-score normalization strategy on the entire image volume. The exact implementation can be found [here](https://github.com/uni-medical/SAM-Med3D/blob/main/train.py#L133). Consequently there is no need to independently normalize your data before running training***
 
 As with other AdaptFM models, you must first prepare your data using the below steps
 
