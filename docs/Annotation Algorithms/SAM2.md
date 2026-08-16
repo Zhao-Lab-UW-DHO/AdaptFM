@@ -2,7 +2,7 @@
 
 Segment Anything Model 2 is a foundation model developed by [facebook research](https://github.com/facebookresearch/sam2) used for identifying objects in an image. Users can interactively identify objects by clicking on them in individual image slices. Because of its strong performance across numerous domains, we have incorporated SAM2 into AdaptFM so that users can rapidly generate labeled data for model training. SAM2 was designed to allow segmentation in both images and videos. 
 
-***SAM2 allows users to segment objects by clicking on them. For 3D images, AdaptFM can either propagate that segmentation through the z-axis by treating the slices like frames in a video (using SAM2's video propagation capability), or independently segment each 2D slice.***
+***SAM2 allows users to segment objects in a 2D slice by clicking on them. For 3D images, AdaptFM can either propagate that segmentation through the z-axis by treating the slices like frames in a video (using SAM2's video propagation capability), or independently segment each 2D slice.***
 
 ## How it works
 
