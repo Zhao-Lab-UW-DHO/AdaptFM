@@ -69,4 +69,24 @@ As with other AdaptFM models, you must first prepare your data using the below s
     -imagesTr - contains the original raw images
     -labelsTr - contains the labeled images
 5. Using the "GPU Index" field, select the GPU you plan to use for training
-6. 
+6. You **must** select "Load Parameters" to further define the checkpoint path for SAM-Med3D. All other parameters can be left unchanged. If you don't have experience with machine-learning models we recommend leaving the default values for each (aside from the checkpoitn path which must be updated)
+    - checkpoint - **REQUIRED** you must provide the file path for the SAM-Med3D checkpoint you want to fine-tune
+    - task_name - name used to identify and organize the training task
+    - click_type - Determines how prompts/clicks are generated during training to tell SAM-Med3D which object to segment. 
+    - multi_click - True or False. Whether or not the model should try to identify objects by simulating multiple clicks
+    - model_type - which SAM-Med3D architecture should be used for training
+    - device - **Leave** as 'cuda'
+    - work_dir - Directory where training checkpoints and other training outputs will be saved
+    - num_workers - Number of CPU workers used to load and prepare training data
+    - gpu_ids - **This is overridden by GPU Index**
+    - multi_gpu - Not supported in AdaptFM
+    - resume - True or False. Continues training from a previously saved checkpoint
+    - lr_scheduler - determines how the learning rate chagnes during training
+    - step_size - the training epochs at which the learning rate is reduced
+    - gamma - How much the learning rate is reduced when the scheduler decreases it
+    - num_epochs - number of complete passes through the training data
+    - img_size - size of the 3D iamge region used as input to the model during training
+    - batch_size - Number of 3D image samples processed together before teh model updates its weights
+    - accumulation _steps - Number of training steps whose gradients are accumulated before updating the model, allowing an effectively larger batch size.
+    - lr - Controls how strongly the model's weights are adjusted during each training update.
+    - weight_decay - Regularization that discourages overly complex model weights and can help reduce overfitting.
