@@ -23,7 +23,7 @@ You can use CellposeSAM in AdaptFM to run inference on images in bulk using the 
 5. Under "Model Checkpoint" navigate to the checkpoint you would like to use ***(optional)***. If you would like to use CellposeSAM 'out-of-the-box' do not select a model checkpoint
 6. Once ready select 'Run' to start inference. You can monitor outputs in the Output Log and stop inference whenever using the "Terminate" button.
 
-## Using AdaptFm to fine-tune CellposeSAM
+## Using AdaptFM to fine-tune CellposeSAM
 
 ### Prepare the data
 
