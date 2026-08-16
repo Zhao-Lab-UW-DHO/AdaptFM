@@ -54,6 +54,11 @@ esac
 # or numpy (torch then repo) reinstalls to a different version
 pip install -e .
 pip install torch torchvision --index-url "${PYTORCH_INDEX}"
+
+# write auto discovered torch install to pytorch_cmd
+mkdir -p "$HOME/.adaptfm"
+echo "pip3 install torch torchvision --index-url ${PYTORCH_INDEX}" > "$HOME/.adaptfm/pytorch_cmd.txt"
+
 conda install cuda-toolkit cuda-nvcc "cuda-version=${CONDA_CUDAVER}" ninja -c conda-forge -y
 
 echo "======================================================="
