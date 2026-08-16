@@ -77,4 +77,8 @@ Once you have completed training for nnU-Net. You can use your train model to ru
 
 1. Within AdaptFM navigate to the "Models" menu at the top and select "Inference"
 2. Select the model nnUNetv2
-3. 
+3. Under "Dataset" select "Browse" and navigate to the folder containing images you would like to segment. These images ***must*** be in the ``` nnUNet_raw/Dataset[Set ID]_[Set Name]``` folder and they must have the proper naming format. See the 'imagesTs' folder above as an example
+4. Under "Output Directory" select the folder where you want to output your final predictions
+5. Using "GPU Index" select the GPU you would like to use for running inference
+6. Under "Model Checkpoint" navigate to the checkpoint you would like to use. This ***must*** be in the ``` nnUNet_results/Dataset[Set ID]_[Set Name]/nnUNetTrainer_nnUNet_Plans__[Config] ```. Importantly the 'Set ID' and 'Set Name' must match the 'Set ID' and 'Set Name' of the data you are running inference on
+7. Once ready select 'Run' to start inference. You can monitor outputs in the Output Log and stop inference whenever using the "Terminate" button.
