@@ -46,10 +46,29 @@ Once your data is in the proper format, you can use AdaptFM to run inference usi
 
 ### Prepare the data
 
-***MicroSAM expects all image inputs for training to be values between 0 and 255 and un uint8 format. AdaptFM employs MicroSAM's expected normalization strategy of min-max normalization followed by setting values between 0 and 255.***
+***BME-X normalizes data for training by simply dividing the data by a value of 10,000. This is employed and handled by the model itself***
 
 As with other AdaptFM models, you must first prepare your data using the below steps
 
 1. **Create annotations** - As with training or fine-tuning any model in AdaptFM, the first step is to generate labeled data using our annotation functionality.
 2. **Place original and labeled images in one folder** - once all training images have been annotated, place the original images and labeled version in the same folder. ***The original images and labeled images must have identical names, differing only in their ending (labeled images ending with '_seg.ext')*** Note that if you save your image and its label with the save widget from within AdaptFM, they will the images will already be in this format.
+
+### Fine-tuning the model
+
+1. Within AdaptFM navigate to the "Models" menu at the top and select "Training"
+2. Select the model BMEX
+3. In the "Dataset" field select "Browse" and navigate to the folder containing your raw and labeled images. This is the same folder in step 2 from "Prepare your data"
+4. In the "Output Directory" field select "Browse and navigate to the location where you want to output your results. For BMEX this will create two folders. This is the required format for BME-X training.
+    - "imagesTr" - this will contain your raw images used for training
+    - "labelsTr" - this will contains the labels associated with the raw images used in training.
+5. Using the "GPU Index" field, select the GPU you plan to use for training
+6. **Required** you must select "Load Parameters" to further define the path to the model checkpoint. We have provided descriptions of some of the other parameters here:
+    - chk_path - the path to the BME-X segmentation model checkpoint
+    - max_epochs - number of complete passes through the training data. Default is 100
+    - batch_size - Number of 3D image samples processed together before the model updates its weights. The default is 8. If you get out of memory errors while training, consider lowering this.
+    - num_workers - Number of CPU workers used to load and prepare training data. The default is 16
+    - learning_rate - Controls how strongly the model's weights are adjusted during each training update. Default is 1e-4
+    - weight_decay - Regularization that discourages overly complex model weights and can help reduce overfitting. Default is 1e-4
+7. Once you are ready you can select "Run" to begin training the model. You can monitor output in the "Output Log" section. If at any point you would like to stop training simply click the "Terminate" button.
+
 
