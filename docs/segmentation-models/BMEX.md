@@ -1,6 +1,6 @@
 # BME-X
 
-[BME-X](https://github.com/DBC-Lab/Brain_MRI_Enhancement) is a foundation model designed for magnetic resonance images (MRI). It's base model is used for motion correction, super resolution, and denoising. BME-X additionally has a segmentation model for segmenting brains from MRI images. 
+[BME-X](https://github.com/DBC-Lab/Brain_MRI_Enhancement) is a foundation model designed for magnetic resonance images (MRI). Its base model is used for motion correction, super resolution, and denoising. BME-X additionally has a segmentation model for segmenting brains from MRI images. 
 
 Within AdaptFM you can use BME-X's **segmentation** model to do the following 
     - **Inference** - use the trained BME-X segmentation model to segment MRI brain images in bulk
@@ -70,5 +70,4 @@ As with other AdaptFM models, you must first prepare your data using the below s
     - learning_rate - Controls how strongly the model's weights are adjusted during each training update. Default is 1e-4
     - weight_decay - Regularization that discourages overly complex model weights and can help reduce overfitting. Default is 1e-4
 7. Once you are ready you can select "Run" to begin training the model. You can monitor output in the "Output Log" section. If at any point you would like to stop training simply click the "Terminate" button.
-
 
