@@ -86,7 +86,7 @@ As with other AdaptFM models, you must first prepare your data using the below s
     - gamma - How much the learning rate is reduced when the scheduler decreases it
     - num_epochs - number of complete passes through the training data
     - img_size - size of the 3D iamge region used as input to the model during training
-    - batch_size - Number of 3D image samples processed together before teh model updates its weights
+    - batch_size - Number of 3D image samples processed together before the model updates its weights
     - accumulation _steps - Number of training steps whose gradients are accumulated before updating the model, allowing an effectively larger batch size.
     - lr - Controls how strongly the model's weights are adjusted during each training update.
     - weight_decay - Regularization that discourages overly complex model weights and can help reduce overfitting.
