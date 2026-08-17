@@ -8,7 +8,7 @@
 
 ## Using AdaptFM to run Inference with CellSAM
 
-***Importantly, CellSAM natively handles all image normalization and preprocessing. This is done in a two step process:***
+***Importantly, CellSAM natively handles all image normalization and preprocessing. The exact code can be found [here](https://github.com/vanvalenlab/cellSAM/blob/master/cellSAM/utils.py#L205) This is done in a two step process:***
 1. Percentile thresholding - CellSAM finds the 99.9th percentile intensity. Any pixel brighter than that gets replaced with that percentile value
 2. Contrast Limited Adaptive Histogram Equalization (CLAHE) per channel. Then rescales pixels to values between 0 and 1.
 
