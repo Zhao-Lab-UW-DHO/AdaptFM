@@ -51,6 +51,7 @@ from AdaptFM.install.env_inspector import (
 )
 from AdaptFM.gui.widgets.pytorch_config_widget import PyTorchConfigWidget
 from AdaptFM.gui.widgets.sam_card import SamCard
+from AdaptFM.gui.widgets.ssvt_card import SSVTCard
 from AdaptFM.model.model_utils import REPO_ROOT
 
 # ---------------------------------------------------------------------------
@@ -488,12 +489,27 @@ class EnvironmentManagerDialog(QDialog):
             run_process_fn=self._run_process,
             source_dir = REPO_ROOT/"segmentation"/"sam3"
         )
+
+        self._ssvt_card = SSVTCard(
+            key="SSVT",display_name="SSVT",
+            description = "Downloads the SSVT model from Hugging face",
+            import_name=None,
+            install_command="adaptfm-install-ssvt",
+            uninstall_command="adaptfm-uninstall-ssvt",
+            requires_pytorch=False,
+            log_fn=self._log_line,
+            run_process_fn=self._run_process,
+            source_dir =None
+        )
+
         self._sam2_card.pytorch_config_clicked.connect(self._focus_pytorch_card)
         self._sam3_card.pytorch_config_clicked.connect(self._focus_pytorch_card)
         self._card_layout.addWidget(self._sam2_card)
         self._card_layout.addWidget(self._sam3_card)
+        self._card_layout.addWidget(self._ssvt_card)
 
-        self._aux_cards = [self._pytorch_card, self._sam2_card, self._sam3_card]
+        self._aux_cards = [self._pytorch_card, self._sam2_card, self._sam3_card,
+                           self._ssvt_card]
 
         # Stretch goes last, AFTER every fixed card. Dynamic env cards get
         # inserted just before it via `idx = self._card_layout.count() - 1`.
