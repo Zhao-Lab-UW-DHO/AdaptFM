@@ -1,72 +1,30 @@
+<div align="center">
+
 # AdaptFM
 
-An interactive framework for annotating, training, running inference, and benchmarking 3D segmentation models. 
+**A GUI Framework for 3D Foundation Model Segmentation, Interactive Image Annotation, and Benchmarking**
 
-In AdaptFM you can:
-- Test and benchmark 3D segmentation models on your data. We currently support CellposeSAM, MicroSAM, nnUNetv2, SAM-Med-3D, and SSVT.
-- Create 3D annotations using a number of segmentation algorithms, including SAM2 for click-based segmentation and SAM3 for text-based segmentation
+[Quick Start Guide](docs/quick-start.md) | [User Guide](docs/user-guide/annotations.md) | [Demo on Public Data](docs/testing-adaptfm.md) | [Customize AdaptFM](docs/customizing-adaptfm/index.md) | [Documentation](https://adaptfm.readthedocs.io/)
+
+</div>
+
+---
+
+Built on napari, AdaptFM is a toolkit for running public 3d segmentation models on your data without computational experience. A number of utilities facilitate this:
+- Create 3D annotations interactively using a wide selection of segmentation algorithms, including SAM2 click-based segmentation and SAM3 text-based segmentation
 - Use those annotations to fine-tune/train models on your data
 - Add new models or annotation algorithms
+- Process input and output data 
 
-***Model Versions***
+| SAM3 Text-Based Annotation | SAM2 Click-Based Annotation |
+| :---: | :---: |
+| ![Segmentation Demo](asset/demo_cropped.gif) | ![SAM2 Demo](asset/SAM2_GIF.gif) |
 
-Use the below [install scripts](#main-installation)  to install AdaptFM and associated models. 
+> If you encounter installation errors, broken package dependencies, or other problems please open an [Issue](https://github.com/Zhao-Lab-UW-DHO/AdaptFM/issues).
 
-The installation scripts for CellposeSAM, MicroSAM, SAM2, SAM3, SAM-Med3D, and nnU-Net have been tested with the specific commit [hashes/versions](#versionshashes). These upstream tools change frequently, so we track and update compatibility as needed.
+## <a id="external-model-install"></a> Using Supported External Models with AdaptFM
 
-If you find a newer version that works (or breaks), please open an Issue so we can update the installer
-
-[Installation](#main-installation) | [Get Started](docs/Standard) | [Customizing (Advanced Users)](docs/Customizing_AdaptFM.md) | [Try the Demo](docs/Testing_AdaptFM.md)
-
-![Segmentation Demo](asset/demo_cropped.gif) ![SAM2 Demo](asset/SAM2_GIF.gif)
-
-## <a id="main-installation"></a>Installation
-
-***AdaptFM has only been tested on Ubuntu 22.04.5 LTS***  
-***AdaptFM requires an Nvida GPU, and has only been tested on A100 and H200 GPUs***  
-***All installation requirements for the below models still apply***  
-***Total installation for all dependencies is under 20 minutes***
-
-Clone the repo and install required dependencies
-
-```bash
-conda create --name AdaptFM python=3.12 -y
-conda activate AdaptFM
-git clone https://github.com/Zhao-Lab-UW-DHO/AdaptFM.git
-cd AdaptFM
-pip install -e .
-```
-Then, since PyTorch must be installed based on the Compute Platform of your own system: find [on the PyTorch local installation helper](https://pytorch.org/get-started/locally/) the `pip3 install` command with Linux, Pip, Python, and the Compute Platform of your GPU (typically found by looking at the CUDA Version of `nvidia-smi`) selected. Copy and paste the PyTorch `pip3 install` command when prompted from running:  
-```bash
-adaptfm-set-pytorch
-``` 
-This will install PyTorch into AdaptFM as well as save the hardware specific install for use in automatic [installation of External Models](#external-model-install).
-
-> [!TIP]
-> Support for using [SAM2](https://github.com/facebookresearch/sam2) and [SAM3](https://github.com/facebookresearch/sam3) are optional additions to the AdaptFM environment since these tools have specific system requirements. SAM2 and SAM3 can be installed with below commands. SAM3 comes with additional steps: **To use SAM3 you must request access to their checkpoints through [hugging face](https://huggingface.co/facebook/sam3) (download [here](https://huggingface.co/facebook/sam3/resolve/main/sam3.pt?download=true)) and place the file sam3.pt into** `<AdaptFM-Install-Location>/AdaptFM/AdaptFM/segmentation/sam3/checkpoint/sam3.pt`. AdaptFM will still work if you do not install SAM2 or SAM3.
-> > We have found in testing that SAM3 will not work with the PyTorch Compute Platform CUDA 12.6  
-> > SAM3's repo is installed in AdaptFM. Installing with the wrong CUDA (e.g. 12.6) can cause AdaptFM to break
-
-```bash
-adaptfm-install-sam2
-adaptfm-install-sam3
-```
-
-**Note that SAM3 has an [issue](https://github.com/facebookresearch/sam3/issues/193) with box prompts. There is a proposed workaround, but we are still waiting for a durable solution**
-
-### <a id="launching"></a>Launch after install 
-> [!WARNING]
-> AdaptFM **must** be launched from inside the main AdaptFM folder (the folder containing the `LICENSE` file).
-
-With the AdaptFM conda environment activated use 
-```bash
-python -m AdaptFM.dev_launch
-``` 
-to run AdaptFM.
-
-### <a id="external-model-install"></a> Using Supported External Models with AdaptFM
-
-AdaptFM supports a variety of external models. These are optional; you only need to install the models you plan to use. 
+AdaptFM supports a variety of external foundation models for medical imaging. These are optional; you only need to install the models you plan to use. The supported models are listed:
 
 | Name | Paper | Code | VRAM Recommendations | Original Modality | Pretrained Model Datatype |
 | --- | --- | --- | --- | --- | --- |
@@ -79,81 +37,33 @@ AdaptFM supports a variety of external models. These are optional; you only need
 | BME-X | [Link](https://www.nature.com/articles/s41551-024-01283-7) | [Link](https://github.com/DBC-Lab/Brain_MRI_Enhancement) | None listed | MR Images | Brain |
 | CT-FM | [Link](https://arxiv.org/abs/2501.09001) | [Link](https://github.com/project-lighter/CT-FM) | None listed | CT | Human anatomical structures |
 
-AdaptFM provides a series of automatic install commands to create the conda environments with the necessary packages and expected environment names to run your choice of external model:
-
-[MicroSAM](https://github.com/computational-cell-analytics/micro-sam) 
-```bash
-adaptfm-install-microsam
-```
-[CellposeSAM](https://github.com/mouseland/cellpose)
-```bash
-adaptfm-install-cellposesam
-```
-[nnUNet](https://github.com/MIC-DKFZ/nnUNet/tree/master)
-```bash
-adaptfm-install-nnunet
-```
-Note that nnUNet is currently experiencing [a bug](https://github.com/MIC-DKFZ/nnUNet/issues/3009) that will prevent users from training.  
-
-[SAM-Med3D](https://github.com/uni-medical/sam-med3d)
-```bash
-adaptfm-install-sammed3d
-```
-The installation of SAM-Med3D will prompt you for the location of the AdaptFM and SAM-Med3D folders
-You will also need to download the [model checkpoint](https://github.com/uni-medical/sam-med3d#-checkpoint)
+AdaptFM also provides our own foundation model implementing a self-supervised vision transformer: [SSVT Documentation](docs/using-fms/ssvt.md).
  
-### Testing AdaptFM
+## <a id="testing-adaptfm"></a>Testing AdaptFM
 
-We have provided some test data for AdaptFM on [hugging face](https://huggingface.co/datasets/hbakhtiar/AdaptFM_Testing/tree/main). Descriptions of each dataset are in the hugging face 'README' file. You can download datasets by using the below code-block. Update 'local_dir' to the location you want to download the data (write the folder location in quotes). 
+We have provided test data for AdaptFM on [Hugging Face](https://huggingface.co/datasets/hbakhtiar/AdaptFM_Testing/tree/main). Descriptions for each dataset are in the repository's README file.
 
-Use 'allow_patterns' to specify the dataset you want to download. The folder name should have /* at the end to download all contents in the folder. The folder name should be in quotes as below.  
+### How to Download Data
+Use 'include' to specify the dataset you want to download. The folder name should have /* at the end to download all contents in the folder. The folder name should be in quotes as below.  
 
-You can download the entire dataset at once by removing the 'allow_patterns' line completely. **However, note that the repo is over 100GB so ensure you have enough space before downloading**
+> [!WARNING]
+> The entire test dataset repository is over 100 GB. Make sure you have enough disk space before downloading everything at once, or download only specific dataset folders as needed
 
-You can then test AdaptFM using this [demo script](https://github.com/Zhao-Lab-UW-DHO/AdaptFM/blob/AdaptFM/docs/Testing_AdaptFM.md)
+* **Download a specific dataset folder (e.g., BBBC024):**
+    ```bash
+    hf download hbakhtiar/AdaptFM_Testing --repo-type dataset --include "BBBC024/*" --local-dir "/path/to/your/folder"
+    ```
 
-```bash
-conda activate AdaptFM
-pip install huggingface_hub
+* **Download the entire test dataset (~100 GB):**
+    ```bash
+    hf download hbakhtiar/AdaptFM_Testing --repo-type dataset --local-dir "/path/to/your/folder"
+    ```
 
-python -c "
-from huggingface_hub import snapshot_download
-snapshot_download(
-    repo_id='hbakhtiar/AdaptFM_Testing',
-    repo_type='dataset',
-    allow_patterns='BBBC024/*', #Replace with desired folder
-    local_dir='' #add where you want the download to go
-)
-"
-```
+* **Download the SSVT Organoids model checkpoint:**
+    ```bash
+    hf download hbakhtiar/SSVT_Organoids --local-dir "/path/to/your/folder"
+    ```
 
-### Using SSVT
+## <a id="contributing"></a>Contributing
 
-SSVT is a model pretrained on roughly 180,000 organoid images. The checkpoint is publicly available for download on [hugging face](https://huggingface.co/hbakhtiar/SSVT_Organoids/tree/main). SSVT is supported directly within AdaptFM. You can copy and paste the below code block to download the model. Change the local_dir to the download location for the model (keep quotes).
-
-```bash
-conda activate AdaptFM
-pip install huggingface_hub
-
-python -c "
-from huggingface_hub import snapshot_download
-snapshot_download(
-    repo_id='hbakhtiar/SSVT_Organoids',
-    repo_type='model',
-    allow_patterns='SSVT.pth',  # Only download the checkpoint
-    local_dir=''  # Add destination folder
-)
-"
-```
-
-Once downloaded you can follow our [fine-tuning instructions](docs/Standard/Fine-tuning-models.md) to build a model for a specific downstream segmentation task. 
-
-### Versions/Hashes
-
-CellposeSAM Version 3.1  
-MicroSAM Version 1.7.6  
-nnUNet Version 2.7.0  
-SAM2 Version 1.0. Hash 2b90b9f5ceec907a1c18123530e92e794ad901a4  
-SAM3 Hash c3a42ff67487eb489f74dce7a747477324734e44  
-SAM-Med3D Hash f3de1fa10da98e46f49f176773d2b1e306ba131f
-
+AdaptFM is built to easily integrate new benchmarking metrics, segmentation foundation models, 2D annotation algorithms and more! To contribute these components, check out the [Customizing AdaptFM](docs/customizing-adaptfm/index.md) page which details the kind of contributions that fit seamlessly into AdaptFM. For feature enhancements, bug fixes, and general guidelines, refer to the [Contribution Guide](docs/user-guide/contributing.md).

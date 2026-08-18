@@ -15,7 +15,7 @@ dependencies = ["napari",
                 "dask[array]",
                 "SimpleITK",
                 "qtpy",
-                "PyQt5",
+                "PyQt6",
                 "magicgui",
                 "Pillow",
                 "scipy",
@@ -26,8 +26,9 @@ dependencies = ["napari",
                 "matplotlib",
                 "zarr",
                 "numpy<2",
-                "setuptools<82",]
-                "pandas",]
+                "setuptools<82",
+                "huggingface-hub",
+                ]
 
 [project.optional-dependencies]
 sam2 = []   # submodule handles it, this just signals intent
