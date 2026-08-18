@@ -6,13 +6,6 @@ REPO_ROOT = Path(__file__).parent.parent
 
 def install_ssvt():
 
-    print("Installing Huggingface...")
-
-    subprocess.run(
-    ["python", "-m", "pip", "install", "huggingface_hub"],
-    check=True,
-    )
-
     from huggingface_hub import snapshot_download
 
     ssvt_dir = REPO_ROOT / "SSVT" / "checkpoint"
