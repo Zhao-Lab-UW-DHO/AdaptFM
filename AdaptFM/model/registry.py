@@ -46,7 +46,7 @@ MODEL_REGISTRY = {
     "SAMMed3D": Sammed3DSpec(
         name="SAM-Med3D",
         conda_env=_read_prefix("sammed3d_adapt"),
-        module_path= str(ADAPTFM_MODEL_PATH / "foundation_models" / "sammed3d" / "train_wrapper.py"),
+        module_path="AdaptFM.model.foundation_models.sammed3d.train_wrapper",
         training_wrapper_path= str(ADAPTFM_MODEL_PATH / "foundation_models" / "sammed3d" / "train_wrapper.py"),
         inference_wrapper_path= str(ADAPTFM_MODEL_PATH / "foundation_models" / "sammed3d" / "inference_wrapper.py"),
         training_function = 'launch_training'
@@ -55,7 +55,7 @@ MODEL_REGISTRY = {
     "SSVT" : SSVTSpec(
         name = "SSVT",
         conda_env = str(Path(sys.prefix)),
-        module_path = str(ADAPTFM_MODEL_PATH / "foundation_models" / "SSVT" / "train_wrapper.py"),
+        module_path  ="AdaptFM.model.foundation_models.SSVT.train_wrapper",
         training_wrapper_path= str(ADAPTFM_MODEL_PATH / "foundation_models" / "SSVT" / "train_wrapper.py"),
         inference_wrapper_path= str(ADAPTFM_MODEL_PATH / "foundation_models" / "SSVT" / "inference_wrapper.py"),
         training_function = 'train_SSVT'
@@ -73,7 +73,7 @@ MODEL_REGISTRY = {
     "BMEX": BMEXSpec(
     name = "BME-X",
     conda_env = _read_prefix("BME-X_adapt"),
-    module_path= str(ADAPTFM_MODEL_PATH / "foundation_models" / "bmex" / "train_wrapper.py"),
+    module_path= "AdaptFM.model.foundation_models.bmex.train_wrapper",
     training_wrapper_path = str(ADAPTFM_MODEL_PATH / "foundation_models" / "bmex" / "train_wrapper.py"),
     inference_wrapper_path = str(ADAPTFM_MODEL_PATH / "foundation_models" / "bmex" / "inference_wrapper.py"),
     training_function="launch_training"#does not support training/finetuning
