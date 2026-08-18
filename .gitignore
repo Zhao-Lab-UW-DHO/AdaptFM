@@ -10,6 +10,7 @@ nnUNetTrainerMerlin__nnUNetPlans__3d_fullres/
 .vscode
 # ignore checkpoints
 *.pt
+*.pth
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
