@@ -104,6 +104,7 @@ def install_sam2():
 def install_sam3():
     sam3_dir = REPO_ROOT / "segmentation" / "sam3"
 
+
     # Step 1 — clone if missing
     if not sam3_dir.exists():
         print("Cloning SAM3 repository...")
@@ -120,6 +121,10 @@ def install_sam3():
 
     # Step 2 — install in editable mode
     print("Installing SAM3...")
+
+    ckpt_dir = sam3_dir / "checkpoint"
+
+    ckpt_dir.mkdir(exist_ok=True)
 
     subprocess.run(
         [sys.executable, "-m", "pip", "install", "-e", str(sam3_dir)],

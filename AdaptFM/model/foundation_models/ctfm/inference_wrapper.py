@@ -13,15 +13,30 @@ import os
 
 def main(
         test_dir,
-        output_path
+        output_path,
+        checkpoint =None
 ):
+    if checkpoint == "None":
+        checkpoint = None
 
+    if checkpoint is not None:
+            print(f"Loading checkpoint: {checkpoint}")
+            model = SegResNet()
+            checkpoint_data = torch.load(checkpoint, map_location="cpu")
 
-    model = SegResNet.from_pretrained(
-        "project-lighter/whole_body_segmentation",
-        force_download=True
-    )
-    
+            # Handles checkpoints saved either directly as a state_dict
+            # or inside a "state_dict" key
+            if "state_dict" in checkpoint_data:
+                model.load_state_dict(checkpoint_data["state_dict"])
+            else:
+                model.load_state_dict(checkpoint_data)
+
+    else:
+        print("Loading pretrained whole-body segmentation model...")
+        model = SegResNet.from_pretrained(
+            "project-lighter/whole_body_segmentation",
+            force_download=True
+        )
     print('Model Loaded')
 
 
@@ -86,4 +101,4 @@ if __name__ =='__main__':
 
     args = parser.parse_args()
 
-    main(args.test_dir,args.output_path)
+    main(args.test_dir,args.output_path,args.checkpoint)
