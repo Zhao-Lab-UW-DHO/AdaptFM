@@ -3,6 +3,7 @@ import os
 import random
 import tifffile as tiff
 import shutil
+import json
 from pathlib import Path
 import SimpleITK as sitk
 from AdaptFM.dataset.dataset_utils import construct_nnUNet_folders, write_nnUNet_json
@@ -78,7 +79,7 @@ class DatasetManager:
     
     def _export_nnunet(self,out_folder,file_ending='.tiff',channel=0,params=None):
 
-        print(params)
+        
         setID = int(params['Set ID'])
         setName = params['Set Name']
 
@@ -89,6 +90,8 @@ class DatasetManager:
         imagesTr = paths['imagesTr']
         labelsTr = paths['labelsTr']
 
+        name_mapping= {}
+
         for idx, s in enumerate(self.samples):
 
             case_id = f"{setName}_{idx:03d}"
@@ -98,6 +101,12 @@ class DatasetManager:
 
             shutil.copy(s["image"], img_dst)
             shutil.copy(s["mask"], lbl_dst)
+
+            name_mapping[s["image"]] = img_dst
+
+        json_path = os.path.join(imagesTr, "name_mapping.json")
+        with open(json_path, "w") as f:
+            json.dump(name_mapping, f, indent=4)
 
         write_nnUNet_json(
             base_dir = out_folder,
