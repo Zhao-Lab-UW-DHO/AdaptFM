@@ -324,8 +324,9 @@ class ModelWorkflowWidget:
         # Connect combo AFTER build, then fire initial selection via event loop
         self._model_combo.currentTextChanged.connect(self._on_model_selected)
         initial = self._model_combo.currentText()
+        initial_flag = True
         if initial:
-            QTimer.singleShot(0, lambda: self._on_model_selected(initial))
+            QTimer.singleShot(0, lambda: self._on_model_selected(initial, initial_flag))
 
     # ------------------------------------------------------------------
     # Helper row for paths (stores button reference on self)
@@ -371,7 +372,7 @@ class ModelWorkflowWidget:
             if not visible and hasattr(self, "_param_progress") and self._param_progress:
                 self._param_progress.setVisible(False)
 
-    def _on_model_selected(self, model_name: str):
+    def _on_model_selected(self, model_name: str, init_flag: bool = False):
         self.model = MODEL_REGISTRY.get(model_name)
         self._clear_params()
 
@@ -391,23 +392,37 @@ class ModelWorkflowWidget:
         if isinstance(self.model, NNUNetV2ModelSpec) or self.AUTO_LOAD_PARAMS:
             if hasattr(self, "_load_params_btn"):
                 self._load_params_btn.setVisible(False)
-            self._load_tunable_params()
+            self._load_tunable_params(init_flag)
         else:
             if hasattr(self, "_load_params_btn"):
                 self._load_params_btn.setVisible(True)
                 self._load_params_btn.setEnabled(True)
 
 
-    def _load_tunable_params(self, *args):
+    def _load_tunable_params(self, init_flag: bool = False):
             if self.model is None:
                 return
-            
-            conda_env = Path(self.model.conda_env)
-            if not conda_env.is_dir():
+
+            try:
+                raw_env = getattr(self.model, "conda_env", None)
+                
+                if not raw_env: # if none,
+                    raise ValueError("Model's conda environment was not found (returned None)") # env is None, likely .prefix is undefined
+
+                conda_env = Path(raw_env) # may raise TypeErr
+                
+                if not conda_env.is_dir():
+                    raise ValueError("Model's conda environment failed to be recognized as a directory (or the directory doesn't exist)") # conda env specified isn't a directory or doesn't exist
+
+            except Exception as e:
+                if init_flag:
+                    return # don't give err message on widget build
+                env_str = raw_env if raw_env is not None else "Conda environment"
                 msg = (
-                    f"{conda_env} not installed. "
+                    f"{env_str} not installed or .prefix file missing. "
                     "You must first install the environment with the "
-                    "environment manager before using this model."
+                    "environment manager before using this model. "
+                    f"Error given was: {e}"
                 )
                 self._on_params_error(msg, self._param_load_id)
                 return
