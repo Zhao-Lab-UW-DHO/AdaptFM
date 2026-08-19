@@ -53,7 +53,6 @@ Welcome to the AdaptFM documentation! AdaptFM is a framework designed for segmen
    :maxdepth: 2
    :caption: Customizing AdaptFM
 
-   customizing-adaptfm/index
    customizing-adaptfm/adding-annotation-algorithms
    customizing-adaptfm/adding-models
    customizing-adaptfm/custom-benchmarks
