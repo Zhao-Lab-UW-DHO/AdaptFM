@@ -37,3 +37,44 @@ Wthin AdaptFM there are several adjustable parameters when using SAM3:
     - Lower text_conf_threshold - the model will include more pixels even if they match the text concept with less confidence. Setting this too low might cause the model to include too many pixels in the object.
 11. **GPU** - The GPU you plan to run processing on
 
+## Box Prompts with SAM3
+
+There is currently an [issue](https://github.com/facebookresearch/sam3/issues/193) with box prompts in SAM3. While there is a proposed workaround, **this has not been validated/approved by the SAM3 authors**. Consequently, we have left this out of AdaptFM so as to avoid conflicts with future SAM3 releases. The proposed workaround is below.
+
+In AdaptFM > segmentation > Seg_Alg.py in the SAM3TextAndPropagate class, change _load_predictor to 
+
+```python
+
+    def _load_predictor(self) -> None:
+
+        import sys
+        # print(sys.path)
+        if self._predictor is not None:
+            return
+
+        try:
+            from sam3.model_builder import build_sam3_video_predictor
+        except ImportError as e:
+            raise ImportError(
+                "SAM3 is not installed. "
+                "Clone https://github.com/facebookresearch/sam3 and run `pip install -e .`"
+            ) from e
+
+        try:
+            ckpt_dir  = Path(os.environ["SAM3_CHECKPOINT_DIR"])
+            assert ckpt_dir.exists(), f"{ckpt_dir} does not exist!"
+            # (in future) SAM3 loads checkpoints via HuggingFace by default; pass the dir so it
+            # can find a locally cached copy, or leave empty to trigger HF download.
+            ckpt_path = next(ckpt_dir.glob('*.pt'))
+        except Exception as e:
+            print(e)
+
+        self._predictor  = build_sam3_video_predictor(
+           checkpoint_path=ckpt_path,
+            gpus_to_use=[self.gpu]
+        )
+
+        self._predictor.model.hotstart_delay=0 # --> THIS LINE IS NEW
+```
+
+
