@@ -133,8 +133,8 @@ class ModelWorkflowWidget:
         self.dataset_dir: Optional[Path] = None
         self.output_dir:  Optional[Path] = None
         self.param_widgets: dict         = {}
-        self.registry=MODEL_REGISTRY
-        self.registry_title = "MODEL"
+        self.registry = getattr(self, "registry", MODEL_REGISTRY)
+        self.registry_title = getattr(self, "registry_title", "MODEL")
 
         self._process: Optional[QProcess]       = None
         self._param_thread: Optional[QThread]   = None
@@ -683,11 +683,11 @@ class ModelWorkflowWidget:
             self._prep_thread = None
 
         # 3. Kill active process execution
-        if self._process is not None:
-            try:
-                self._kill_process()
-            except Exception:
-                pass
+        # if self._process is not None:
+        #     try:
+        #         self._kill_process()
+        #     except Exception:
+        #         pass
 
         event.accept()
 

@@ -32,17 +32,16 @@ from qtpy.QtCore import QTimer
 
 class PostProcessingWidget(ModelWorkflowWidget):
     WINDOW_TITLE = "Post Processing"
-    SKIP_PARAMS  = True   # inference widgets don't expose tunable params
+    SKIP_PARAMS = True
 
-    def __init__(self,dataset_manager):
+    def __init__(self, dataset_manager):
+        self.registry = POSTPROC_REGISTRY
+        self.registry_title = "Post Processing"
 
-        super().__init__(dataset_manager)   # ← THIS is the missing piece
+        super().__init__(dataset_manager)
 
         self.output_dir: Optional[Path] = None
         self.dataset_dir: Optional[Path] = None
-
-        self.registry = POSTPROC_REGISTRY
-        self.registry_title = "Post Processing"
 
 
     def _build(self):
@@ -62,7 +61,6 @@ class PostProcessingWidget(ModelWorkflowWidget):
         QTimer.singleShot(0, lambda: self._set_param_section_visible(False))
 
 
-    
     # ------------------------------------------------------------------
     # Workflow
     # ------------------------------------------------------------------
