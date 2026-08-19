@@ -1,0 +1,1 @@
+use `bash run_tests.sh` to run tests

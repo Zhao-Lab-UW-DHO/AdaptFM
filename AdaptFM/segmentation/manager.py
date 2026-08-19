@@ -51,7 +51,7 @@ class SegmentationManager:
 
         return seg
 
-    def save_for_training(self, save_dir, filename_base=None, manual_seg=None):
+    def save_for_training(self, save_dir, filename_base=None, manual_seg=None, save_image: bool = None):
 
             os.makedirs(save_dir, exist_ok=True)
 
@@ -64,11 +64,19 @@ class SegmentationManager:
             seg_path = os.path.join(save_dir, f"{filename_base}_seg.tiff")
 
             # --- get data ---
-            volume = self.vm.get_eager()
+            
             segmentation = manual_seg if manual_seg is not None else self.last_segmentation
 
             # --- save volume & segmentation ---
-            tiff.imwrite(vol_path, volume.astype(volume.dtype))
+            if save_image:
+
+                volume = self.vm.get_eager()
+
+                tiff.imwrite(vol_path, volume.astype(volume.dtype))
+            else:
+                print("Warning: in order to run model training AdaptFM requires a specific organization of files to link labels to data\n" \
+                    "saving the image alongside the segmentation (with the same base name) is recommended."
+                )
             tiff.imwrite(seg_path, segmentation.astype(segmentation.dtype))
 
             # --- save metadata ---

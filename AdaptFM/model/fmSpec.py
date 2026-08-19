@@ -8,6 +8,8 @@ from pathlib import Path
 import shutil
 import os
 import random
+import yaml
+import pandas as pd
 
 class FoundationModelSpec(ModelSpec):
     def __init__(self, name, conda_env, module_path,training_wrapper_path=None,inference_wrapper_path=None,training_function=None):
@@ -58,8 +60,6 @@ class FoundationModelSpec(ModelSpec):
 
         out = subprocess.check_output(cmd, text=True).strip() 
 
-                
-        
         return json.loads(out)
 
 
@@ -71,7 +71,7 @@ class FoundationModelSpec(ModelSpec):
 
     def training_command(self, dataset_dir, params, run_dir):
         return [
-            "python", "-m", self.module_path,
+            "python", self.module_path,
             "--dataset", str(dataset_dir),
             "--out", str(run_dir),
             "--params", json.dumps(params),
@@ -80,7 +80,7 @@ class FoundationModelSpec(ModelSpec):
     def inference_command(self,model_path,images_dir,output_dir):
         return [
             "python",
-            "-m", self.module_path,
+            self.module_path,
             "predict",
             "--model", str(model_path),
             "--images", str(images_dir),
@@ -149,7 +149,7 @@ class MicroSAMSpec(FoundationModelSpec):
         """
         return [
             "python",
-            "-m", f"{self.training_wrapper_path}",
+            f"{self.training_wrapper_path}",
             "--raw_paths", json.dumps(dataset_info["raw_paths"]),
             "--label_paths", json.dumps(dataset_info["label_paths"]),
             "--params", json.dumps(params),
@@ -190,7 +190,7 @@ class MicroSAMSpec(FoundationModelSpec):
 
         return [
             "python",
-            "-m", f"{self.inference_wrapper_path}",
+            f"{self.inference_wrapper_path}",
             "--dataset_dir",str(dataset_dir),
             "--output_path",str(output_dir),
             "--checkpoint", str(checkpoint),
@@ -282,7 +282,7 @@ class CellposeSAMSpec(FoundationModelSpec):
         """
         return [
             "python",
-            "-m", f"{self.training_wrapper_path}",
+            f"{self.training_wrapper_path}",
             "--train_dir", str(dataset_info["train_dir"]),
             "--test_dir", str(dataset_info["test_dir"]),
             "--params", json.dumps(params),
@@ -320,7 +320,7 @@ class CellposeSAMSpec(FoundationModelSpec):
 
         return [
             "python",
-            "-m", f"{self.inference_wrapper_path}",
+            f"{self.inference_wrapper_path}",
             "--test_dir",str(dataset_dir),
             "--output_path",str(output_dir),
             "--checkpoint", str(checkpoint),
@@ -413,7 +413,7 @@ class SSVTSpec(FoundationModelSpec):
             """
             return [
                 "python",
-                "-m", f"{self.training_wrapper_path}",
+                f"{self.training_wrapper_path}",
                 "--train_raw_images", str(dataset_info["train_raw_images"]),
                 "--train_mask_images", str(dataset_info["train_mask_images"]),
                 "--val_raw_images", str(dataset_info["val_raw_images"]),
@@ -454,7 +454,7 @@ class SSVTSpec(FoundationModelSpec):
 
         return [
             "python",
-            "-m", f"{self.inference_wrapper_path}",
+            f"{self.inference_wrapper_path}",
             "--test_dir",str(dataset_dir),
             "--output_path",str(output_dir),
             "--checkpoint", str(checkpoint),
@@ -527,7 +527,7 @@ class Sammed3DSpec(FoundationModelSpec):
         """
         return [
             "python",
-            "-m", f"{self.training_wrapper_path}",
+            f"{self.training_wrapper_path}",
             "--params", json.dumps(params),
             "--output_path",run_dir,
             '--dataset_dir', dataset_info['dataset_dir']
@@ -566,7 +566,7 @@ class Sammed3DSpec(FoundationModelSpec):
 
         return [
             "python",
-            "-m", f"{self.inference_wrapper_path}",
+            f"{self.inference_wrapper_path}",
             "--test_dir",str(dataset_dir),
             "--output_path",str(output_dir),
             "--checkpoint", str(checkpoint),
@@ -606,7 +606,7 @@ class CellSAMSpec(FoundationModelSpec):
     def inference_command(self, dataset_dir, checkpoint, output_dir):
         return [
             "python",
-            "-m", f"{self.inference_wrapper_path}",
+            f"{self.inference_wrapper_path}",
             "--test_dir",str(dataset_dir),
             "--output_path",str(output_dir),
         ]
@@ -650,20 +650,27 @@ class BMEXSpec(FoundationModelSpec):
         os.makedirs(labelsTrFolder, exist_ok=True)
         os.makedirs(output_dir, exist_ok=True)
 
-        # assume that all images are tiff at this time
-        tiff_images = [file for file in os.listdir(dataset_manager.folder) if file.endswith(('.tif', '.tiff'))]
-
+        image_files = [
+            f for f in os.listdir(dataset_manager.folder)
+            if f.endswith((".tif", ".tiff", ".nii.gz"))
+        ]
         # base_name -> {"image": ..., "label": ...}
         pairs = {}
 
-        for tiff_file in tiff_images:
-            tiff_image_path = os.path.join(dataset_manager.folder, tiff_file)
-            tiff_image = tiff.imread(tiff_image_path)
-            tiff_image = sitk.GetImageFromArray(tiff_image)
+        for image_file in image_files:
+            input_path = os.path.join(dataset_manager.folder, image_file)
 
-            nii_name = tiff_file.replace('_seg', '').replace('.tiff', '.nii.gz')
-
-            is_label = '_seg.tiff' in tiff_file
+            if image_file.endswith(".nii.gz"):
+                nii_name = image_file.replace("_seg.nii.gz", ".nii.gz")
+                is_label = "_seg.nii.gz" in image_file
+            else:
+                nii_name = (
+                    image_file
+                    .replace("_seg", "")
+                    .replace(".tiff", ".nii.gz")
+                    .replace(".tif", ".nii.gz")
+                )
+                is_label = "_seg.tif" in image_file or "_seg.tiff" in image_file
             base_name = nii_name  # same root for image/label since '_seg' was stripped
 
             if is_label:
@@ -675,8 +682,13 @@ class BMEXSpec(FoundationModelSpec):
                 rel_path = os.path.join('imagesTr', nii_name)
                 pairs.setdefault(base_name, {})['image'] = rel_path
 
-            sitk.WriteImage(tiff_image, nii_path)
-
+            if image_file.endswith(".nii.gz"):
+                shutil.copy2(input_path, nii_path)
+            else:
+                img = tiff.imread(input_path)
+                img = sitk.GetImageFromArray(img)
+                sitk.WriteImage(img, nii_path)
+                
         # only keep complete image/label pairs
         complete_pairs = [
             {"image": entry["image"], "label": entry["label"]}
@@ -716,7 +728,7 @@ class BMEXSpec(FoundationModelSpec):
         """
         return [
             "python",
-            "-m", f"{self.training_wrapper_path}",
+            f"{self.training_wrapper_path}",
             "--params", json.dumps(params),
             "--output_dir",run_dir,
             '--data_dir', dataset_info['dataset_dir']
@@ -750,7 +762,7 @@ class BMEXSpec(FoundationModelSpec):
     def inference_command(self, dataset_dir, checkpoint, output_dir):
         return [
             "python",
-            "-m", f"{self.inference_wrapper_path}",
+            f"{self.inference_wrapper_path}",
             "--test_dir",str(dataset_dir),
             "--checkpoint",str(checkpoint),
             "--output_path",str(output_dir),

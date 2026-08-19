@@ -4,6 +4,7 @@ import segment3D.usegment3d as uSegment3D
 from pathlib import Path
 import tifffile as tiff
 import numpy as np
+import logging
 
 def get_all_planes(input_dir: Path):
     """
@@ -18,13 +19,30 @@ def get_all_planes(input_dir: Path):
     yz_dir = input_dir / "YZ_planes"
     xz_dir = input_dir / "XZ_planes"
 
-    # Collect filenames (without extension)
-    xy_files = {f.stem: f for f in xy_dir.glob("*.tif")}
-    yz_files = {f.stem: f for f in yz_dir.glob("*.tif")}
-    xz_files = {f.stem: f for f in xz_dir.glob("*.tif")}
+    for d in [xy_dir, yz_dir, xz_dir]:
+        if not d.exists() or not d.is_dir():
+            logging.warning(f"Directory not found: {d}")
+            return {}
+
+    def get_tiff_files(directory: Path):
+        return {
+            f.stem: f 
+            for f in directory.iterdir() 
+            if f.is_file() 
+            and f.suffix.lower() in ('.tif', '.tiff') 
+            and not f.name.startswith('.')  # hidden files
+        }
+
+    xy_files = get_tiff_files(xy_dir)
+    yz_files = get_tiff_files(yz_dir)
+    xz_files = get_tiff_files(xz_dir)
 
     # Only process images present in all three folders
     common = set(xy_files) & set(yz_files) & set(xz_files)
+
+    if len(common) == 0:
+        raise RuntimeError("No files found.")
+    print("Found", len(common), "files.")
 
     results = {}
 
@@ -51,6 +69,10 @@ def run_postprocessing(input_dir: Path, output_dir: Path):
         try:
             indirect_aggregation_params = uSegment3D_params.get_2D_to_3D_aggregation_params()
             indirect_aggregation_params['indirect_method']['dtform_method'] = 'edt'
+
+            assert planes["xy"].ndim == 3, f"Error, 2D predictions must be 3D (a stack of planes), found dimensions: {planes["xy"].ndim}"
+            assert planes["xz"].ndim == 3, f"Error, 2D predictions must be 3D (a stack of planes), found dimensions: {planes["xz"].ndim}"
+            assert planes["yz"].ndim == 3, f"Error, 2D predictions must be 3D (a stack of planes), found dimensions: {planes["yz"].ndim}"
 
             segmentation3D, (probability3D, gradients3D) = (
                 uSegment3D.aggregate_2D_to_3D_segmentation_indirect_method(
