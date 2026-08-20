@@ -9,6 +9,7 @@ from AdaptFM.session.annotation_session import AnnotationSession
 from AdaptFM.gui.widgets.inference_widget import InferenceWidget
 from AdaptFM.gui.widgets.training_widget import TrainingWidget
 from AdaptFM.gui.widgets.benchmark_widget import BenchmarkWidget
+from AdaptFM.gui.widgets.preprocessing_widget import PreprocessingWidget
 from AdaptFM.gui.widgets.env_manager_dialog import EnvironmentManagerDialog
 from AdaptFM.gui.widgets.post_proc_widget import PostProcessingWidget
 from AdaptFM.model.registry import MODEL_REGISTRY
@@ -25,6 +26,7 @@ def make_scrollable(widget):
     scroll.setWidgetResizable(True)
     scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
     return scroll
+
 
 
 def main():
@@ -139,6 +141,15 @@ def main():
         _env_dialog[0].activateWindow()
  
     env_action.triggered.connect(_open_env_manager)
+
+
+    # Add Pre-proccessing menu
+    pre_menu = viewer.window._qt_window.menuBar().addMenu("Preprocessing")
+    preprocess_action = QAction("Run Preprocessing", viewer.window._qt_window)
+    pre_menu.addAction(preprocess_action)
+
+    viewer.window._pre_proc_widget = PreprocessingWidget()
+    preprocess_action.triggered.connect(viewer.window._pre_proc_widget.show)
 
     napari.run()
 
