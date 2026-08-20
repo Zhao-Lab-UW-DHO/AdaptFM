@@ -25,7 +25,7 @@ from qtpy.QtWidgets import (
     QLabel, QPushButton, QSpinBox,
     QScrollArea, QFrame, QTextEdit,
     QFileDialog, QSplitter, QProgressBar, QComboBox,
-    QMessageBox,
+    QMessageBox,QSizePolicy
 )
 
 from AdaptFM.model.registry import MODEL_REGISTRY
@@ -342,7 +342,7 @@ class ModelWorkflowWidget:
         row.addWidget(lbl, stretch=1)
         
         btn = QPushButton("Browse…")
-        btn.setFixedWidth(80)
+        btn.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         btn.setStyleSheet(_secondary_btn_style())
         btn.clicked.connect(slot)
         
@@ -403,29 +403,29 @@ class ModelWorkflowWidget:
             if self.model is None:
                 return
 
-            try:
-                raw_env = getattr(self.model, "conda_env", None)
+            # try:
+            #     raw_env = getattr(self.model, "conda_env", None)
                 
-                if not raw_env: # if none,
-                    raise ValueError("Model's conda environment was not found (returned None)") # env is None, likely .prefix is undefined
+            #     if not raw_env: # if none,
+            #         raise ValueError("Model's conda environment was not found (returned None)") # env is None, likely .prefix is undefined
 
-                conda_env = Path(raw_env) # may raise TypeErr
+            #     conda_env = Path(raw_env) # may raise TypeErr
                 
-                if not conda_env.is_dir():
-                    raise ValueError("Model's conda environment failed to be recognized as a directory (or the directory doesn't exist)") # conda env specified isn't a directory or doesn't exist
+            #     if not conda_env.is_dir():
+            #         raise ValueError("Model's conda environment failed to be recognized as a directory (or the directory doesn't exist)") # conda env specified isn't a directory or doesn't exist
 
-            except Exception as e:
-                if init_flag:
-                    return # don't give err message on widget build
-                env_str = raw_env if raw_env is not None else "Conda environment"
-                msg = (
-                    f"{env_str} not installed or .prefix file missing. "
-                    "You must first install the environment with the "
-                    "environment manager before using this model. "
-                    f"Error given was: {e}"
-                )
-                self._on_params_error(msg, self._param_load_id)
-                return
+            # except Exception as e:
+            #     if init_flag:
+            #         return # don't give err message on widget build
+            #     env_str = raw_env if raw_env is not None else "Conda environment"
+            #     msg = (
+            #         f"{env_str} not installed or .prefix file missing. "
+            #         "You must first install the environment with the "
+            #         "environment manager before using this model. "
+            #         f"Error given was: {e}"
+            #     )
+            #     self._on_params_error(msg, self._param_load_id)
+            #     return
 
             self._param_load_id += 1
             current_id = self._param_load_id

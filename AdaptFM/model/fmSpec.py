@@ -28,6 +28,13 @@ class FoundationModelSpec(ModelSpec):
 
     def tunable_params(self):
         import textwrap, subprocess, json
+        raw_env = getattr(self, "conda_env", None)
+
+        if not raw_env: # if none,
+            raise RuntimeError(
+            f"This model is not installed. "
+            "You must first install the environment with the environment manager before using."
+            )
 
         code = f"""
     import importlib, inspect, json, sys, io
