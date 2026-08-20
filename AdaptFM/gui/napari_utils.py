@@ -87,6 +87,52 @@ def expand_param_grid( user_values):
     for combo in product(*values):
         yield dict(zip(keys, combo))
 
+
+from qtpy.QtCore import QObject, QEvent
+
+
+class ParentWindowWatcher(QObject):
+
+    def __init__(self, parent_window, child_widget):
+        super().__init__(parent_window)
+
+        self.parent_window = parent_window
+        self.child_widget = child_widget
+
+        self._was_visible = False
+
+        self.parent_window.installEventFilter(self)
+
+    def eventFilter(self, obj, event):
+
+        if obj is self.parent_window:
+
+            if event.type() == QEvent.Type.WindowStateChange:
+
+                if self.parent_window.isMinimized():
+
+                    # Remember whether the widget was open
+                    # before Napari was minimized.
+                    self._was_visible = self.child_widget.isVisible()
+
+                    if self._was_visible:
+                        self.child_widget.showMinimized()
+
+                else:
+
+                    # Napari has been restored.
+                    if self._was_visible:
+                        self.child_widget.showNormal()
+                        self.child_widget.raise_()
+                        self.child_widget.activateWindow()
+
+                    self._was_visible = False
+
+            elif event.type() == QEvent.Type.Close:
+                self.child_widget.close()
+
+        return super().eventFilter(obj, event)
+    
 def qt_widget_obj_exists(widget) -> bool:
     """Check if a Qt widget object still exists and has not been deleted by C++."""
     if widget is None:

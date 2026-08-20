@@ -12,9 +12,11 @@ from AdaptFM.gui.widgets.benchmark_widget import BenchmarkWidget
 from AdaptFM.gui.widgets.preprocessing_widget import PreprocessingWidget
 from AdaptFM.gui.widgets.env_manager_dialog import EnvironmentManagerDialog
 from AdaptFM.gui.widgets.post_proc_widget import PostProcessingWidget
+from AdaptFM.gui.napari_utils import ParentWindowWatcher
+from qtpy.QtWidgets import QAction
 from AdaptFM.model.registry import MODEL_REGISTRY
 from AdaptFM.gui.napari_utils import reorder_docks,restore_or_focus_widget,restore_all_widgets
-from qtpy.QtWidgets import QAction, QScrollArea, QFrame
+from qtpy.QtWidgets import QAction, QScrollArea
 from qtpy.QtCore import Qt
 
 def make_scrollable(widget):
@@ -31,7 +33,9 @@ def make_scrollable(widget):
 
 def main():
     viewer = napari.Viewer()
-    viewer.title = "AdaptFM"
+    viewer.title ="AdaptFM"
+    qt_window = viewer.window._qt_window
+
 
     # Core managers
     vm = VolumeManager()
@@ -103,6 +107,9 @@ def main():
     train_widget = TrainingWidget(dataset_manager=dm).widget
     infer_widget = InferenceWidget(dataset_manager=dm).widget
 
+    viewer._train_watcher = ParentWindowWatcher(qt_window,train_widget)
+    viewer._infer_watcher = ParentWindowWatcher(qt_window,infer_widget)
+
     train_action.triggered.connect(train_widget.show)
     infer_action.triggered.connect(infer_widget.show)
 
@@ -110,9 +117,12 @@ def main():
     post_process_action = QAction("Run Post Processing",viewer.window._qt_window)
     menu.addAction(post_process_action)
 
-    post_proc_widget = PostProcessingWidget()
+    post_proc_widget = PostProcessingWidget(dataset_manager=dm).widget
+
+    viewer._post_proc_watcher = ParentWindowWatcher(qt_window,post_proc_widget)
 
     post_process_action.triggered.connect(post_proc_widget.show)
+
 
     # --- Benchmark Menu ---
     benchmark_menu = viewer.window._qt_window.menuBar().addMenu("Benchmark")
@@ -121,6 +131,7 @@ def main():
 
     # Lazy-create widget
     benchmark_widget = BenchmarkWidget().widget
+    viewer._benchmark_watcher = ParentWindowWatcher(qt_window,benchmark_widget)
 
     # Show widget when menu action triggered
     benchmark_action.triggered.connect(benchmark_widget.show)

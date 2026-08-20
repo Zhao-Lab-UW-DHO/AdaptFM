@@ -65,8 +65,9 @@ MODEL_REGISTRY = {
     conda_env = _read_prefix("cellsam_adapt"),
     module_path= "",#does not support training/finetuning
     training_wrapper_path = "",
+    training_function="",
     inference_wrapper_path = str(ADAPTFM_MODEL_PATH / "foundation_models" / "cellSAM" / "inference_wrapper.py"),
-    training_function=""#does not support training/finetuning
+    supports_training=False#does not support training/finetuning
     ),
     
     
@@ -92,6 +93,7 @@ MODEL_REGISTRY = {
     "Merlin nnUNet" : MerlinNNUNetV2ModelSpec(
         conda_env = _read_prefix("Merlin_nnUNet_adapt"),
         transform_path = str(ADAPTFM_MODEL_PATH / "foundation_models" / "merlin" / "transforms.py"),
+        supports_training=False
     )
     
 }

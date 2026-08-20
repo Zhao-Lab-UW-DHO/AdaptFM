@@ -12,13 +12,14 @@ import yaml
 import pandas as pd
 
 class FoundationModelSpec(ModelSpec):
-    def __init__(self, name, conda_env, module_path,training_wrapper_path=None,inference_wrapper_path=None,training_function=None):
+    def __init__(self, name, conda_env, module_path,training_wrapper_path=None,inference_wrapper_path=None,training_function=None,supports_training=True):
         self.name = name
         self.conda_env = conda_env
         self.module_path = module_path
         self.training_wrapper_path = training_wrapper_path
         self.inference_wrapper_path = inference_wrapper_path
         self.training_function = training_function
+        self.supports_training=supports_training
 
 
     def default_params(self):
@@ -27,6 +28,13 @@ class FoundationModelSpec(ModelSpec):
 
     def tunable_params(self):
         import textwrap, subprocess, json
+        raw_env = getattr(self, "conda_env", None)
+
+        if not raw_env: # if none,
+            raise RuntimeError(
+            f"This model is not installed. "
+            "You must first install the environment with the environment manager before using."
+            )
 
         code = f"""
     import importlib, inspect, json, sys, io
@@ -598,8 +606,8 @@ class Sammed3DSpec(FoundationModelSpec):
 
 
 class CellSAMSpec(FoundationModelSpec):
-    def __init__(self, name, conda_env, module_path,training_wrapper_path,inference_wrapper_path,training_function):
-        super().__init__(name, conda_env, module_path,training_wrapper_path,inference_wrapper_path,training_function)
+    def __init__(self, name, conda_env, module_path,training_wrapper_path,inference_wrapper_path,training_function,supports_training):
+        super().__init__(name, conda_env, module_path,training_wrapper_path,inference_wrapper_path,training_function,supports_training)
 
 
 
