@@ -7,7 +7,9 @@ from magicgui import widgets, magicgui
 import dask.array as da
 import numpy as np
 from napari.qt.threading import thread_worker
-from qtpy.QtWidgets import QSizePolicy
+from qtpy.QtWidgets import QSizePolicy,QFileDialog
+from glob import glob
+import os
 
 
 class SegmentationWidget:
@@ -15,6 +17,7 @@ class SegmentationWidget:
         self.viewer = viewer
         self.current_algo = None
         self.run_button = None
+        self.run_folder_button = None
         self.param_widgets = {}
         # SAM2 interactive state
         self._sam2_obj_id = 1
@@ -54,10 +57,12 @@ class SegmentationWidget:
 
             if self.run_button is not None:
                 self.run_button.visible = False
+                self.run_folder_button.visible = False
             self._load_tunable_params()
         else:
             if self.run_button is not None:
-                    self.run_button.visible = True # sadly, unhiding this puts it at the top of the parameter options. not sure how to fix
+                self.run_button.visible = True
+                self.run_folder_button.visible=True # sadly, unhiding this puts it at the top of the parameter options. not sure how to fix
             self._load_tunable_params() 
 
     def _load_tunable_params(self):
@@ -136,7 +141,78 @@ class SegmentationWidget:
             self.param_container.native.layout().removeWidget(self.run_button.native)
             self.param_container.native.layout().addWidget(self.run_button.native)
 
-        self.param_container.native.show()
+        if self.run_folder_button is None:
+            @magicgui(call_button="Run auto-segmentation on folder")
+            def run_folder_button():
+                folder = QFileDialog.getExistingDirectory(
+                    None,
+                    "Select folder containing images",
+                    ""
+                )
+                if not folder:
+                    print("No folder selected.")
+                    return
+
+                # Collect image files
+                image_paths = sorted([
+                    p for p in glob(os.path.join(folder, "*"))
+                    if p.lower().endswith((".tif", ".tiff", ".nii.gz"))
+                ])
+
+                if not image_paths:
+                    print("No images found in folder.")
+                    return
+
+                algo = self.current_algo
+                params = {k: w.control.value for k, w in self.param_widgets.items()}
+
+                self._set_ui_enabled(False)
+
+                @thread_worker
+                def _run_batch(paths, algo, params):
+                    results = []
+                    for path in paths:
+                        try:
+                            img, _ = self.vm.load_image(path)
+
+                            if isinstance(img, da.Array):
+                                img = img.compute()
+
+                            seg = algo.run(img, params)
+                            results.append((path, seg))
+                        except Exception as e:
+                            results.append((path, None))
+                            print(f"Error processing {path}: {e}")
+
+                    return results
+
+                def _on_success(results):
+                    self._set_ui_enabled(True)
+                    print("\nBatch segmentation complete:")
+                    for path, seg in results:
+                        if seg is None:
+                            print(f"Failed: {path}")
+                        else:
+                            print(f"Success: {path}")
+                    print("Done.")
+
+                def _on_error(e):
+                    self._set_ui_enabled(True)
+                    print(f"Batch error: {e}")
+
+                worker = _run_batch(image_paths, algo, params)
+                worker.returned.connect(_on_success)
+                worker.errored.connect(_on_error)
+                worker.start()
+
+            self.run_folder_button = run_folder_button
+            self.param_container.native.layout().addWidget(run_folder_button.native)
+        else:
+            self.param_container.native.layout().removeWidget(self.run_folder_button.native)
+            self.param_container.native.layout().addWidget(self.run_folder_button.native)
+
+
+            self.param_container.native.show()
 
 
     def _make_param_widget(self, name: str, spec: dict):
@@ -312,6 +388,7 @@ class SegmentationWidget:
 
         if self.run_button is not None:
             self.run_button.enabled = enabled
+            self.run_folder_button.enabled=enabled
 
         sam_buttons = [
             "_sam2_init_btn",
