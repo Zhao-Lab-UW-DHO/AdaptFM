@@ -522,9 +522,10 @@ class CTFMSpec(FoundationModelSpec):
     def inference_command(self, dataset_dir, checkpoint, output_dir):
         return [
             "python",
-            "-m", f"{self.inference_wrapper_path}",
+            f"{self.inference_wrapper_path}",
             "--test_dir",str(dataset_dir),
             "--output_path",str(output_dir),
+            "--checkpoint",str(checkpoint)
         ]
 
 

@@ -39,7 +39,7 @@ class NNUNetV2ModelSpec(ModelSpec):
 
             "config": {
                 "type": str,
-                "choices": ["2d", "3d_fullres"],
+                "choices": ["3d_lowres", "3d_fullres","3d_cascade_fullres"],
                 "default": "3d_fullres",
             },
             "fold": {

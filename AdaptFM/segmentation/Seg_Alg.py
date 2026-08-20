@@ -2,7 +2,7 @@ from AdaptFM.segmentation.fourier.nuc_seg import run_nuclear_segmentation
 from AdaptFM.segmentation.fourier.cell_seg import run_single_cell_segmentation
 from AdaptFM.segmentation.fourier.org_seg import run_organoid_segmentation
 from AdaptFM.segmentation.fourier.nuc_seg_gpu import run_nuclear_segmentation_gpu_chunked
-from AdaptFM.segmentation.checkpoint_utils import check_sam2_installed 
+from AdaptFM.segmentation.checkpoint_utils import check_sam2_installed, check_sam3_installed
 from abc import ABC
 
 class SegmentationAlgorithmSpec(ABC):
@@ -739,6 +739,7 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
         Write slices to disk, load the SAM3 video predictor, open a session.
         All subsequent add_prompt / add_text_prompt calls share this session.
         """
+        check_sam3_installed()
         import sam3
         REPO_ROOT = Path(__file__).resolve().parents[1]
         ckpt_dir = REPO_ROOT / 'segmentation'/'sam3'/'checkpoint'
@@ -1130,7 +1131,7 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
         except ImportError as e:
             raise ImportError(
                 "SAM3 is not installed. "
-                "Clone https://github.com/facebookresearch/sam3 and run `pip install -e .`"
+                "You must install using the environment manager`"
             ) from e
 
         try:
