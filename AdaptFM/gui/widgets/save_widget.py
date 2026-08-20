@@ -67,5 +67,18 @@ class SaveWidget:
             except Exception as e:
                 show_error(f"Save failed:\n{e}")
             
-
         self.widget = widget
+
+        # Keep the shared manager in sync so other widgets (e.g. SegmentationWidget)
+        # can read the current selection even after a dock restore recreates this widget
+        widget.save_dir.changed.connect(self._sync_save_state)
+        widget.filename_base.changed.connect(self._sync_save_state)
+        widget.save_image.changed.connect(self._sync_save_state)
+
+        self._sync_save_state()
+
+    def _sync_save_state(self, *_):
+        self.sm.selected_output_folder = str(self.widget.save_dir.value)
+        self.sm.selected_filename_base = self.widget.filename_base.value
+        self.sm.selected_save_image = self.widget.save_image.value
+
