@@ -3,7 +3,6 @@ from AdaptFM.preprocessing.converters import *
 PREPROC_REGISTRY = {
     "ND2 -> TIFF": nd2_to_tiff_converter,
     "Normalize TIFF to range [-1, 1]": normalize_tiff_to_range,
-    "Apply OrganoidSeg to tiff directory": apply_organoidseg,
     "Scale and convert tiff data dtype to uint8": conv_to_uint8,
     "Convert uint8 tiff data to binary mask (0|1)": conv_to_bmask,
 }

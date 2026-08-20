@@ -93,28 +93,6 @@ def normalize_tiff_to_range(input_dir: Path, output_dir: Path, progress_callback
             progress_callback(percent_complete)
 
 
-def apply_organoidseg(input_dir: Path, output_dir: Path, progress_callback, minimum_size=0.0, sigma=0.0):
-    """
-    Applies OrganoidSeg segmentation to TIFF files in input_dir and saves uint8 masks to output_dir
-    """
-    exts = {".tiff", ".tif"}
-    tiff_filepaths = sorted([x for x in input_dir.glob("*") if x.suffix.lower() in exts])
-    total_files = len(tiff_filepaths)
-    
-    if total_files == 0:
-        raise ValueError(f"No tiff files found in {input_dir}")
-
-    for i, tiff_filepath in enumerate(tiff_filepaths):
-        array = tifffile.imread(tiff_filepath)
-            
-        uint8_array = SEGMENTATION_REGISTRY.get('OrganoidSeg').run(array, {"minimum size":minimum_size, "sigma":sigma})
-
-        tifffile.imwrite(output_dir / tiff_filepath.name, uint8_array)
-        
-        if progress_callback:
-            percent_complete = int(((i + 1) / total_files) * 100)
-            progress_callback(percent_complete)
-
 
 
 def conv_to_uint8(input_dir: Path, output_dir: Path, progress_callback=None):
