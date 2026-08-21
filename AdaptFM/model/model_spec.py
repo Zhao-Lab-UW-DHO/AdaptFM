@@ -26,7 +26,6 @@ class ModelSpec(ABC):
     @abstractmethod
     def prepare_dataset(self, dataset_manager, output_dir: Path) -> Path:
         """Return prepared dataset directory."""
-        pass
 
     # -------- Commands --------
     @abstractmethod
@@ -47,14 +46,5 @@ class ModelSpec(ABC):
     ) -> list[str]:
         pass
 
-   
-
     def _wrap_with_conda(self, cmd: list[str]) -> list[str]:
-        return [
-            "conda", "run", "-p", self.conda_env,
-            "--no-capture-output",
-            *cmd
-        ]
-    
-    
-
+        return ["conda", "run", "-p", self.conda_env, "--no-capture-output", *cmd]

@@ -15,28 +15,38 @@ Flow
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
 
 from qtpy.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout,
-    QPushButton, QLabel, QFileDialog,QSizePolicy
+    QFileDialog,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QSizePolicy,
+    QVBoxLayout,
+    QWidget,
 )
 
 from AdaptFM.gui.widgets.model_widget import (
-    ModelWorkflowWidget, _section_label, _secondary_btn_style,
-    _RED, _AMBER, _GREEN, _TEXT, _MUTED,
+    _AMBER,
+    _GREEN,
+    _MUTED,
+    _RED,
+    _TEXT,
+    ModelWorkflowWidget,
+    _secondary_btn_style,
+    _section_label,
 )
 
 
 class InferenceWidget(ModelWorkflowWidget):
     WINDOW_TITLE = "Inference"
-    SKIP_PARAMS  = True   # inference widgets don't expose tunable params
+    SKIP_PARAMS = True  # inference widgets don't expose tunable params
 
     def __init__(self, dataset_manager):
-        self.checkpoint_path: Optional[Path] = None
-        self.output_dir: Optional[Path] = None
+        self.checkpoint_path: Path | None = None
+        self.output_dir: Path | None = None
         # checkpoint label ref — set in _extra_controls, used in _on_model_changed
-        self._checkpoint_lbl: Optional[QLabel] = None
+        self._checkpoint_lbl: QLabel | None = None
         super().__init__(dataset_manager)
 
     # ------------------------------------------------------------------
@@ -53,9 +63,7 @@ class InferenceWidget(ModelWorkflowWidget):
 
         row = QHBoxLayout()
         self._checkpoint_lbl = QLabel("No checkpoint selected")
-        self._checkpoint_lbl.setStyleSheet(
-            f"color: {_MUTED}; font-size: 11px;"
-        )
+        self._checkpoint_lbl.setStyleSheet(f"color: {_MUTED}; font-size: 11px;")
         self._checkpoint_lbl.setWordWrap(True)
         row.addWidget(self._checkpoint_lbl, stretch=1)
 
@@ -73,24 +81,18 @@ class InferenceWidget(ModelWorkflowWidget):
     # ------------------------------------------------------------------
 
     def _select_checkpoint(self):
-        path, _ = QFileDialog.getOpenFileName(
-            self.widget, "Select model checkpoint"
-        )
+        path, _ = QFileDialog.getOpenFileName(self.widget, "Select model checkpoint")
         if path:
             self.checkpoint_path = Path(path)
             self._checkpoint_lbl.setText(str(self.checkpoint_path))
-            self._checkpoint_lbl.setStyleSheet(
-                f"color: {_TEXT}; font-size: 11px;"
-            )
+            self._checkpoint_lbl.setStyleSheet(f"color: {_TEXT}; font-size: 11px;")
 
     def _on_model_changed(self):
         """Clear checkpoint whenever the model changes."""
         self.checkpoint_path = None
         if self._checkpoint_lbl is not None:
             self._checkpoint_lbl.setText("No checkpoint selected")
-            self._checkpoint_lbl.setStyleSheet(
-                f"color: {_MUTED}; font-size: 11px;"
-            )
+            self._checkpoint_lbl.setStyleSheet(f"color: {_MUTED}; font-size: 11px;")
 
     # ------------------------------------------------------------------
     # Workflow
@@ -100,22 +102,25 @@ class InferenceWidget(ModelWorkflowWidget):
         if self.dataset_dir is None:
             self._log_line("⚠  Please select a dataset folder.", color=_AMBER)
             return
-        
-        conda_env = Path(self.model.conda_env) if self.model.conda_env is not None else None
-        if conda_env is None or not conda_env.is_dir(): # none comes first else err on the dircheck
+
+        conda_env = (
+            Path(self.model.conda_env) if self.model.conda_env is not None else None
+        )
+        if (
+            conda_env is None or not conda_env.is_dir()
+        ):  # none comes first else err on the dircheck
             raise RuntimeError(
-            f"{self.model.conda_env} not installed. "
-            "You must first install the environment with the environment manager before using."
+                f"{self.model.conda_env} not installed. "
+                "You must first install the environment with the environment manager before using."
             )
 
-
         params = self.collect_params()
-        gpu    = self._gpu_spin.value()
+        gpu = self._gpu_spin.value()
         params["gpu"] = gpu
 
         env_extra = {"CUDA_VISIBLE_DEVICES": str(gpu)}
 
-        inference_cmd  = self.model.inference_command(
+        inference_cmd = self.model.inference_command(
             dataset_dir=self.dataset_dir,
             checkpoint=self.checkpoint_path,
             output_dir=self.output_dir,
@@ -135,10 +140,12 @@ class InferenceWidget(ModelWorkflowWidget):
         if exit_code == 0:
             self._log_line(
                 f"\n✓  Inference complete. Output: {self.output_dir}",
-                color=_GREEN, bold=True,
+                color=_GREEN,
+                bold=True,
             )
         else:
             self._log_line(
                 f"\n✗  Inference failed (exit {exit_code}).",
-                color=_RED, bold=True,
+                color=_RED,
+                bold=True,
             )

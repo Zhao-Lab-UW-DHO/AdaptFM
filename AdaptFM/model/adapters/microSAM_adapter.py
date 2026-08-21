@@ -1,6 +1,6 @@
 import shutil
 from pathlib import Path
-import os
+
 
 class MicroSAMDatasetAdapter:
     def prepare(self, dataset_manager, output_dir):
@@ -27,17 +27,17 @@ class MicroSAMDatasetAdapter:
         label_paths = [str(f) for f in seg_dir.iterdir() if f.is_file()]
 
         # Map raw filename → full path
-        raw_dict = {
-            Path(p).name: p
-            for p in raw_paths
-        }
+        raw_dict = {Path(p).name: p for p in raw_paths}
 
         # Map *base name* (without _seg) → label path
         label_dict = {}
         for p in label_paths:
             path_obj = Path(p)
             fname = path_obj.name
-            if path_obj.stem.endswith("_seg") and path_obj.suffix.lower() in (".tif", ".tiff"):
+            if path_obj.stem.endswith("_seg") and path_obj.suffix.lower() in (
+                ".tif",
+                ".tiff",
+            ):
                 base_name = path_obj.stem.replace("_seg", "") + ".tiff"
                 label_dict[base_name] = p
 
@@ -50,7 +50,5 @@ class MicroSAMDatasetAdapter:
         for fname in common:
             valid_raw_paths.append(raw_dict[fname])
             valid_label_paths.append(label_dict[fname])
-
-        
 
             return output_dir

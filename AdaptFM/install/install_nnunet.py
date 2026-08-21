@@ -8,12 +8,12 @@ The user's custom PyTorch pip command is read from ~/.adaptfm/pytorch_cmd.txt.
 Run `adaptfm-set-pytorch` first if that file does not exist yet.
 """
 
+import shlex
 import subprocess
 import sys
 from pathlib import Path
-import shlex
-from AdaptFM.model.registry import _conda_prefix
 
+from AdaptFM.model.registry import _conda_prefix
 
 ENV_NAME = "nnUNet_adapt"
 PYTHON_VERSION = "3.10"
@@ -25,7 +25,9 @@ def _run(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, check=check)
 
 
-def _conda_run(env: str, cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
+def _conda_run(
+    env: str, cmd: list[str], check: bool = True
+) -> subprocess.CompletedProcess:
     """Run a command inside a conda environment."""
     full_cmd = ["conda", "run", "-n", env, "--no-capture-output"] + cmd
     return _run(full_cmd, check=check)
@@ -73,12 +75,16 @@ def main() -> None:
     print(f"PyTorch command: {' '.join(pytorch_cmd)}\n")
 
     # Create bare environment
-    _run([
-        "conda", "create",
-        "-n", ENV_NAME,
-        f"python={PYTHON_VERSION}",
-        "-y",
-    ])
+    _run(
+        [
+            "conda",
+            "create",
+            "-n",
+            ENV_NAME,
+            f"python={PYTHON_VERSION}",
+            "-y",
+        ]
+    )
 
     prefix = _conda_prefix(ENV_NAME)
     config_path = Path.home() / ".adaptfm" / f"{ENV_NAME}.prefix"

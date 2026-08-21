@@ -1,9 +1,12 @@
-import inspect
-import numpy as np
-from pathlib import Path
-import subprocess, sys
-import site
 import importlib
+import inspect
+import site
+import subprocess
+import sys
+from pathlib import Path
+
+import numpy as np
+
 
 def _refresh_sam_pkg_after_install(pgk_name):
     importlib.reload(site)
@@ -43,11 +46,6 @@ def normalize_to_uint8(img: np.ndarray) -> np.ndarray:
 
     return img.astype(np.uint8)
 
-
-
-from pathlib import Path
-import subprocess
-import sys
 
 REPO_ROOT = Path(__file__).parent.parent
 
@@ -94,16 +92,13 @@ def install_sam2():
         cwd=sam2_dir,
         check=True,
     )
-    
+
     _refresh_sam_pkg_after_install("sam2")
     print(f"Done. SAM2 installed at: {sam2_dir}")
-    
-
 
 
 def install_sam3():
     sam3_dir = REPO_ROOT / "segmentation" / "sam3"
-
 
     # Step 1 — clone if missing
     if not sam3_dir.exists():
@@ -143,6 +138,3 @@ def install_sam3():
 
     _refresh_sam_pkg_after_install("sam3")
     print(f"Done. SAM3 installed at: {sam3_dir}")
-    
-
-

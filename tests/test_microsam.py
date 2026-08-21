@@ -1,18 +1,18 @@
-import subprocess
 import tempfile
 import unittest
 from pathlib import Path
-import tifffile
+
 import numpy as np
+import tifffile
 
 # def conda_env_exists(env_name: str) -> bool:
 #     """Checks if a specific conda environment exists on the system."""
 #     try:
 #         # Run 'conda env list' and capture the output
 #         result = subprocess.run(
-#             ["conda", "env", "list"], 
-#             capture_output=True, 
-#             text=True, 
+#             ["conda", "env", "list"],
+#             capture_output=True,
+#             text=True,
 #             check=True
 #         )
 #         environments = [line.split()[0] for line in result.stdout.splitlines() if line and not line.startswith('#')]
@@ -21,10 +21,10 @@ import numpy as np
 #     except (subprocess.CalledProcessError, FileNotFoundError):
 #         return False
 
+
 # MICROSAM_ENV_EXISTS = conda_env_exists("micro-sam_adapt")
 # @unittest.skipUnless(MICROSAM_ENV_EXISTS, f"Could not find MicroSAM conda env")
 class TestMicroSAM(unittest.TestCase):
-
     def setUp(self):
 
         self.test_dir = tempfile.TemporaryDirectory()
@@ -54,16 +54,14 @@ class TestMicroSAM(unittest.TestCase):
         # msam_spec = MODEL_REGISTRY['microSAM']
         # print(msam_spec.conda_env)
 
-        from AdaptFM.model.foundation_models.microSAM.inference_wrapper import run_microsam_inference
-        run_microsam_inference(
-            f"{self.input_dir}",
-            f"{self.output_dir}",
-            None
+        from AdaptFM.model.foundation_models.microSAM.inference_wrapper import (
+            run_microsam_inference,
         )
+
+        run_microsam_inference(f"{self.input_dir}", f"{self.output_dir}", None)
         expected_seg = self.output_dir / "sample_01.tif"
         self.assertTrue(expected_seg.exists(), "Segmentation was not generated.")
-        print(list(self.output_dir.glob('*')))
-
+        print(list(self.output_dir.glob("*")))
 
         # the inference wrapper passes: params collected based on the model, and always has the gpu index
         # dataset_dir, checkpoint_path, output_dir
@@ -74,5 +72,3 @@ class TestMicroSAM(unittest.TestCase):
         # actual file is <repo-root>/AdaptFM/model/foundation_models/microSAM/inference_wrapper.py
         # and launches the command wrapped with conda  "conda", "run", "-p", self.conda_env --no-capture-output <python -m ... >
         # where self.conda_env is defined in the registry to be the absolute path of the conda environment (the prefix of the python binary)
-
-        

@@ -1,6 +1,7 @@
 # train_wrapper.py
-import json
 import argparse
+import json
+
 from micro_sam.training import default_sam_loader, train_sam
 
 
@@ -16,7 +17,6 @@ def main():
     label_paths = json.loads(args.label_paths)
     params = json.loads(args.params)
 
-
     # Build dataloaders INSIDE the MicroSAM environment
     train_loader = default_sam_loader(
         raw_paths=raw_paths,
@@ -24,7 +24,7 @@ def main():
         raw_key=None,
         label_key=None,
         with_segmentation_decoder=params["with_segmentation_decoder"],
-        patch_shape=(512,512),
+        patch_shape=(512, 512),
         batch_size=1,
         is_seg_dataset=True,
         shuffle=True,
@@ -38,7 +38,7 @@ def main():
         raw_key=None,
         label_key=None,
         with_segmentation_decoder=params["with_segmentation_decoder"],
-        patch_shape=(512,512),
+        patch_shape=(512, 512),
         batch_size=1,
         is_seg_dataset=True,
         shuffle=False,
@@ -54,9 +54,9 @@ def main():
             return x
         return str(x).lower() in ("1", "true", "yes", "y")
 
-    if params['model_type']== "<class 'inspect._empty'>":
-        print('no model_type provided, defaulting to vit_b_lm')
-        params['model_type']='vit_b_lm'
+    if params["model_type"] == "<class 'inspect._empty'>":
+        print("no model_type provided, defaulting to vit_b_lm")
+        params["model_type"] = "vit_b_lm"
 
     train_sam(
         name=str(params["name"]),
@@ -69,6 +69,7 @@ def main():
         with_segmentation_decoder=as_bool(params["with_segmentation_decoder"]),
         device="cuda",
     )
+
 
 if __name__ == "__main__":
     main()

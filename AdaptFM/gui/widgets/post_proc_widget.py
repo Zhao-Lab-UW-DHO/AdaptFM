@@ -15,19 +15,17 @@ Flow
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
 
+from qtpy.QtCore import QTimer
+from qtpy.QtWidgets import QLabel
 
 from AdaptFM.gui.widgets.model_widget import (
+    _AMBER,
+    _GREEN,
+    _RED,
     ModelWorkflowWidget,
-    _RED, _AMBER, _GREEN, _TEXT, _MUTED,
 )
-
 from AdaptFM.postprocessing.post_proc_registry import POSTPROC_REGISTRY
-from qtpy.QtWidgets import (
-    QLabel
-)
-from qtpy.QtCore import QTimer
 
 
 class PostProcessingWidget(ModelWorkflowWidget):
@@ -40,9 +38,8 @@ class PostProcessingWidget(ModelWorkflowWidget):
 
         super().__init__(dataset_manager)
 
-        self.output_dir: Optional[Path] = None
-        self.dataset_dir: Optional[Path] = None
-
+        self.output_dir: Path | None = None
+        self.dataset_dir: Path | None = None
 
     def _build(self):
         super()._build()
@@ -60,7 +57,6 @@ class PostProcessingWidget(ModelWorkflowWidget):
         # Hide params AFTER base class fires its initial model-selected event
         QTimer.singleShot(0, lambda: self._set_param_section_visible(False))
 
-
     # ------------------------------------------------------------------
     # Workflow
     # ------------------------------------------------------------------
@@ -71,19 +67,20 @@ class PostProcessingWidget(ModelWorkflowWidget):
             return
 
         params = self.collect_params()
-        gpu    = self._gpu_spin.value()
+        gpu = self._gpu_spin.value()
         params["gpu"] = gpu
 
         env_extra = {"CUDA_VISIBLE_DEVICES": str(gpu)}
 
-
-        post_process_cmd =[
+        post_process_cmd = [
             "python",
-            "-m", f"{self.model.module_path}",
-            "--input_dir",self.dataset_dir,
-            '--output_dir', self.output_dir
+            "-m",
+            f"{self.model.module_path}",
+            "--input_dir",
+            self.dataset_dir,
+            "--output_dir",
+            self.output_dir,
         ]
-
 
         full_cmd = self.model._wrap_with_conda(post_process_cmd)
 
@@ -100,10 +97,12 @@ class PostProcessingWidget(ModelWorkflowWidget):
         if exit_code == 0:
             self._log_line(
                 f"\n✓  Post processing complete. Output: {self.output_dir}",
-                color=_GREEN, bold=True,
+                color=_GREEN,
+                bold=True,
             )
         else:
             self._log_line(
                 f"\n✗  Post processing failed (exit {exit_code}).",
-                color=_RED, bold=True,
+                color=_RED,
+                bold=True,
             )

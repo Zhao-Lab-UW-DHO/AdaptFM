@@ -1,14 +1,15 @@
-from pathlib import Path
-import re
 import json
-import os
+import re
+from pathlib import Path
+
+
 # Function to construct required folder structure for nnunetv2
 def construct_nnUNet_folders(base_dir, setID=1, setName="Organoids"):
     base = Path(base_dir)
     dataset_root = base / "nnUNet_raw" / f"Dataset{setID:03}_{setName}"
 
-    (base / 'nnUNet_preprocessed').mkdir(parents=True, exist_ok=True)
-    (base / 'nnUNet_results').mkdir(parents=True, exist_ok=True)
+    (base / "nnUNet_preprocessed").mkdir(parents=True, exist_ok=True)
+    (base / "nnUNet_results").mkdir(parents=True, exist_ok=True)
 
     paths = {
         "dataset_root": str(dataset_root),
@@ -28,19 +29,17 @@ def construct_nnUNet_folders(base_dir, setID=1, setName="Organoids"):
     return paths
 
 
-
-# the .json file for nnunet needs to know the max number of channels that an image can have.                         
+# the .json file for nnunet needs to know the max number of channels that an image can have.
 # for now we assume that all images (training and prediction) all have the same number of channels
 
-def get_channel_dict(directory,setName,channel=0):
-    # Pattern to match the filename convention
-    pattern = fr'{setName}_\d{{3}}_000(\d+)\.tiff'
 
+def get_channel_dict(directory, setName, channel=0):
+    # Pattern to match the filename convention
+    pattern = rf"{setName}_\d{{3}}_000(\d+)\.tiff"
 
     if channel is not None:
-        channel_names = {f'Channel {channel}': f'{channel}'}
+        channel_names = {f"Channel {channel}": f"{channel}"}
         return channel_names
-
 
     num_channels = None
     for file_obj in Path(directory).iterdir():
@@ -53,17 +52,18 @@ def get_channel_dict(directory,setName,channel=0):
                 if num_channels is None or channel_count > num_channels:
                     num_channels = channel_count
 
-
-    channel_names = {f'Channel {i}': f'{i}' for i in range(0, num_channels + 1)}
+    channel_names = {f"Channel {i}": f"{i}" for i in range(num_channels + 1)}
     return channel_names
+
 
 #
 # need to find the number of training cases for the json file
 #
 
-def count_unique_cases(directory,setName):
+
+def count_unique_cases(directory, setName):
     # Pattern to match the filename convention and extract cases
-    pattern = fr'{setName}_0*(\d+)_000\d+'
+    pattern = rf"{setName}_0*(\d+)_000\d+"
 
     unique_cases = set()
 
@@ -75,9 +75,9 @@ def count_unique_cases(directory,setName):
                 case = int(match.group(1))  # Extract the case value
                 unique_cases.add(case)
 
-    return len(unique_cases) #just need to know the number of unique training/testing cases
-
-
+    return len(
+        unique_cases
+    )  # just need to know the number of unique training/testing cases
 
 
 #
@@ -93,34 +93,33 @@ def count_unique_cases(directory,setName):
 #
 #
 
-def write_nnUNet_json(base_dir,setName,setID,file_ending='.tiff',channel=0):
 
-    formatted_setID = f'{int(setID):03d}'
-    nnUNet_directory = str( Path(base_dir) / 'nnUNet_raw' / f'Dataset{formatted_setID}_{setName}' )
-    training_directory = str( Path(nnUNet_directory) / 'imagesTr') + '/'
+def write_nnUNet_json(base_dir, setName, setID, file_ending=".tiff", channel=0):
+
+    formatted_setID = f"{int(setID):03d}"
+    nnUNet_directory = str(
+        Path(base_dir) / "nnUNet_raw" / f"Dataset{formatted_setID}_{setName}"
+    )
+    training_directory = str(Path(nnUNet_directory) / "imagesTr") + "/"
     # Assume for now that we can get this directly from the traiing directory
-    
-    channel_dict = get_channel_dict(training_directory,setName=setName,channel=channel)
-    num_training = count_unique_cases(training_directory,setName=setName)
 
-    # Creating binary, so can hardcode this 
-    
-    labels_dict = {"background" : 0,
-                   "Foreground": 1}
-    
-    # Hard code the file ending for now 
+    channel_dict = get_channel_dict(
+        training_directory, setName=setName, channel=channel
+    )
+    num_training = count_unique_cases(training_directory, setName=setName)
 
+    # Creating binary, so can hardcode this
+
+    labels_dict = {"background": 0, "Foreground": 1}
+
+    # Hard code the file ending for now
 
     dataset_json = {
-        'channel_names': channel_dict,  
-        'labels': labels_dict,
-        'numTraining': num_training,
-        'file_ending': file_ending,
+        "channel_names": channel_dict,
+        "labels": labels_dict,
+        "numTraining": num_training,
+        "file_ending": file_ending,
     }
 
-    with (Path(nnUNet_directory) / 'dataset.json').open('w') as f:
+    with (Path(nnUNet_directory) / "dataset.json").open("w") as f:
         json.dump(dataset_json, f, sort_keys=False, indent=4)
-
-
-
-

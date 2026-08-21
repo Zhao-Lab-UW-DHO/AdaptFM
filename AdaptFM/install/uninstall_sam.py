@@ -4,7 +4,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 _VALID = {"sam2", "sam3"}
 
 
@@ -34,7 +33,6 @@ def uninstall_sam(sam_version: str) -> None:
 
     REPO_ROOT = Path(__file__).parent.parent
 
-
     # 2. Remove the cloned repo, keeping your two safety checks: don't
     #    delete cwd, and only delete something that's actually a git clone.
     repo_dir = (REPO_ROOT / "segmentation" / sam_version).resolve()
@@ -46,8 +44,10 @@ def uninstall_sam(sam_version: str) -> None:
         print(f"  Removing repository: {repo_dir}")
         shutil.rmtree(repo_dir)
     else:
-        print(f"  Warning: {repo_dir} exists but has no .git -- doesn't look "
-              f"like a clone. Leaving it in place; remove manually if needed.")
+        print(
+            f"  Warning: {repo_dir} exists but has no .git -- doesn't look "
+            f"like a clone. Leaving it in place; remove manually if needed."
+        )
 
     print(f"\n✓ Uninstallation of '{sam_version}' complete.\n")
 
@@ -57,6 +57,7 @@ def uninstall_sam(sam_version: str) -> None:
 
 def uninstall_sam2():
     uninstall_sam("sam2")
+
 
 def uninstall_sam3():
     uninstall_sam("sam3")

@@ -7,8 +7,9 @@ Usage (after `pip install -e .`):
 
 import subprocess
 import sys
-from AdaptFM.model.registry import _conda_prefix
 from pathlib import Path
+
+from AdaptFM.model.registry import _conda_prefix
 
 ENV_NAME = "micro-sam_adapt"
 PYTHON_VERSION = "3.10"
@@ -45,14 +46,19 @@ def main() -> None:
         sys.exit(0)
 
     # Create the environment (micro_sam is available on conda-forge)
-    _run([
-        "conda", "create",
-        "-c", "conda-forge",
-        "-n", ENV_NAME,
-        f"python={PYTHON_VERSION}",
-        "micro_sam",
-        "-y",
-    ])
+    _run(
+        [
+            "conda",
+            "create",
+            "-c",
+            "conda-forge",
+            "-n",
+            ENV_NAME,
+            f"python={PYTHON_VERSION}",
+            "micro_sam",
+            "-y",
+        ]
+    )
 
     prefix = _conda_prefix(ENV_NAME)
     config_path = Path.home() / ".adaptfm" / f"{ENV_NAME}.prefix"
