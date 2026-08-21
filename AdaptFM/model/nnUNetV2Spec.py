@@ -8,10 +8,11 @@ import re
 
 class NNUNetV2ModelSpec(ModelSpec):
     
-    def __init__(self,conda_env):
+    def __init__(self,conda_env,supports_training=True):
         super().__init__()
         self.conda_env = conda_env
         self.name = 'nnUNetV2'
+        self.supports_training=supports_training
 
 
     def default_params(self):
@@ -251,8 +252,8 @@ class NNUNetV2ModelSpec(ModelSpec):
     
 
 class MerlinNNUNetV2ModelSpec(NNUNetV2ModelSpec):
-    def __init__(self,conda_env,transform_path):
-        super().__init__(conda_env)
+    def __init__(self,conda_env,transform_path,supports_training):
+        super().__init__(conda_env,supports_training)
         self.name = "Merlin nnUNet"
         self.transform_path = transform_path
 

@@ -737,7 +737,7 @@ class EnvironmentManagerDialog(QDialog):
         self._set_all_cards_busy(False)
 
         if exit_code == 0:
-            self._log_line(f"\n✓ Done (exit 0)", color=_INSTALLED_COLOR, bold=True)
+            self._log_line(f"\n✓ Done. RESTART ADAPTFM TO USE THIS MODEL", color=_INSTALLED_COLOR, bold=True)
         else:
             self._log_line(
                 f"\n✗ Exited with code {exit_code}", color=_WARNING_COLOR, bold=True
