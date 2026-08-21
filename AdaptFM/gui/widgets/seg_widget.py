@@ -8,7 +8,7 @@ from magicgui import widgets, magicgui
 import dask.array as da
 import numpy as np
 from napari.qt.threading import thread_worker
-from qtpy.QtWidgets import QSizePolicy,QFileDialog
+from qtpy.QtWidgets import QSizePolicy,QFileDialog,QMessageBox
 from glob import glob
 import os
 import tifffile as tiff
@@ -155,7 +155,7 @@ class SegmentationWidget:
                     ""
                 )
                 if not folder:
-                    print("No folder selected.")
+                    show_info("No folder selected.")
                     return
                 # Collect image files
                 image_paths = sorted([
@@ -163,7 +163,7 @@ class SegmentationWidget:
                     if p.lower().endswith((".tif", ".tiff", ".nii.gz"))
                 ])
                 if not image_paths:
-                    print("No images found in folder.")
+                    show_info("No images found in folder.")
                     return
                 algo = self.current_algo
                 params = {k: w.control.value for k, w in self.param_widgets.items()}
@@ -171,8 +171,41 @@ class SegmentationWidget:
                 # Use the save widget's chosen output location if one has been set;
                 # otherwise fall back to the old behavior (subfolder inside input folder)
                 out_dir = getattr(self.sm, "selected_output_folder", None)
+
+                if out_dir:
+                    out_dir = os.path.abspath(out_dir)
+
                 if not out_dir or not os.path.isdir(out_dir):
-                    out_dir = os.path.join(folder, f"{algo.name}_AdaptFMseg")
+                    show_info("You must select an output folder")
+                    return
+                save_images = getattr(self.sm, "selected_save_image", True)
+
+                # Build the save-images message
+                if save_images:
+                    save_msg = "Original images will be saved with segmentations."
+                else:
+                    save_msg = "Original images will NOT be saved with segmentations."
+
+                msg = (
+                    f"Images will be processed from:\n"
+                    f"{folder}\n\n"
+                    f"and saved to:\n"
+                    f"{out_dir}\n\n"
+                    f"{save_msg}\n\n"
+                    f"Would you like to proceed?"
+                )
+
+                reply = QMessageBox.question(
+                    None,
+                    "Confirm Batch Processing",
+                    msg,
+                    QMessageBox.Yes | QMessageBox.No
+                )
+
+                if reply != QMessageBox.Yes:
+                    show_info("Batch processing cancelled.")
+                    return
+
 
                 self._set_ui_enabled(False)
                 self.volume_manager = VolumeManager()

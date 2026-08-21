@@ -43,7 +43,7 @@ class SaveWidget:
         ):
             
             if segmentation_layer is None:
-                print("Error: No segmentation layer selected.")
+                show_info("Error: No segmentation layer selected.")
                 return
             
             if len([
