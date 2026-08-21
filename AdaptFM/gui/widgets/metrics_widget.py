@@ -96,11 +96,11 @@ def run_parallel(file_pairs, worker_fn, n_processes=None):
 # Plotting
 # ──────────────────────────────────────────────
 
-def plot_dice_boxplot(results, gt_dir, name):
+def plot_dice_boxplot(results, gt_dir, name,output_dir):
     """
     results: dict {model_name: [scores]}
     """
-    model_names = [Path(k).name for k in results.keys()]
+    model_names = list(results.keys())   # display names directly
     score_values = list(results.values())
 
     plt.figure(figsize=(10, 6))
@@ -110,7 +110,7 @@ def plot_dice_boxplot(results, gt_dir, name):
     plt.title(f"{name} Distribution per Model")
     plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
-    plt.savefig(Path(gt_dir) / f"{name}_boxplot.png", dpi=300)
+    plt.savefig(Path(output_dir) / f"{name}_boxplot.png", dpi=300)
 
 
 # ──────────────────────────────────────────────
@@ -164,7 +164,7 @@ class Metric(ABC):
         self.n_processes = n_processes
 
     @abstractmethod
-    def compute(self, gt_dir, pred_dirs):
+    def compute(self, gt_dir, pred_dirs,output_dir) -> dict[str, list[float]]:
         """Compute the metric between ground truth and one or more prediction dirs."""
         pass
 
@@ -194,12 +194,12 @@ class MetricRegistry:
 class DiceScore(Metric):
     name = "Dice Score"
 
-    def compute(self, gt_dir, models_dirs):
+    def compute(self, gt_dir, models_dirs,output_dir):
         gt_dir   = Path(gt_dir)
         gt_files = glob_masks(gt_dir)
         results  = {}
 
-        for model_dir in models_dirs:
+        for display_name,model_dir in models_dirs.items():
             model_dir   = Path(model_dir)
             model_files = glob_masks(model_dir)
             file_pairs  = list(zip(gt_files, model_files))
@@ -209,9 +209,9 @@ class DiceScore(Metric):
                 self._dice_worker,
                 self.n_processes,
             )
-            results[str(model_dir)] = per_image_dice
+            results[display_name] = per_image_dice
 
-        plot_dice_boxplot(results, gt_dir, self.name)
+        plot_dice_boxplot(results, gt_dir, self.name,output_dir)
         return results
 
     @staticmethod
@@ -235,12 +235,12 @@ class DiceScore(Metric):
 class MeanObjectF1(Metric):
     name = "Mean Object F1"
 
-    def compute(self, gt_dir, models_dirs):
+    def compute(self, gt_dir, models_dirs,output_dir):
         gt_dir   = Path(gt_dir)
         gt_files = glob_masks(gt_dir)
         results  = {}
 
-        for model_dir in models_dirs:
+        for display_name,model_dir in models_dirs.items():
             model_dir   = Path(model_dir)
             model_files = glob_masks(model_dir)
             file_pairs  = list(zip(gt_files, model_files))
@@ -250,9 +250,9 @@ class MeanObjectF1(Metric):
                 self._object_f1_worker,
                 self.n_processes,
             )
-            results[str(model_dir)] = per_image_f1
+            results[display_name] = per_image_f1
 
-        plot_dice_boxplot(results, gt_dir, self.name)
+        plot_dice_boxplot(results, gt_dir, self.name,output_dir)
         return results
 
     @staticmethod
@@ -302,12 +302,12 @@ class MeanObjectF1(Metric):
 class PanopticF1(Metric):
     name = "Panoptic F1"
 
-    def compute(self, gt_dir, models_dirs):
+    def compute(self, gt_dir, models_dirs,output_dir):
         gt_dir   = Path(gt_dir)
         gt_files = glob_masks(gt_dir)
         results  = {}
 
-        for model_dir in models_dirs:
+        for display_name,model_dir in models_dirs.items():
             model_dir   = Path(model_dir)
             model_files = glob_masks(model_dir)
             file_pairs  = list(zip(gt_files, model_files))
@@ -317,9 +317,9 @@ class PanopticF1(Metric):
                 self._panoptic_worker,
                 self.n_processes,
             )
-            results[str(model_dir)] = per_image_pf1
+            results[display_name] = per_image_pf1
 
-        plot_dice_boxplot(results, gt_dir, self.name)
+        plot_dice_boxplot(results, gt_dir, self.name,output_dir)
         return results
 
     @staticmethod
@@ -373,12 +373,12 @@ class PanopticF1(Metric):
 class BoundaryF1(Metric):
     name = "Boundary F1"
 
-    def compute(self, gt_dir, models_dirs):
+    def compute(self, gt_dir, models_dirs,output_dir):
         gt_dir   = Path(gt_dir)
         gt_files = glob_masks(gt_dir)
         results  = {}
 
-        for model_dir in models_dirs:
+        for display_name,model_dir in models_dirs.items():
             model_dir   = Path(model_dir)
             model_files = glob_masks(model_dir)
             file_pairs  = list(zip(gt_files, model_files))
@@ -388,9 +388,9 @@ class BoundaryF1(Metric):
                 self._boundary_worker,
                 self.n_processes,
             )
-            results[str(model_dir)] = per_image_bf1
+            results[display_name] = per_image_bf1
 
-        plot_dice_boxplot(results, gt_dir, self.name)
+        plot_dice_boxplot(results, gt_dir, self.name,output_dir)
         return results
 
     @staticmethod
@@ -442,15 +442,15 @@ from skimage.measure import label
 class CountsComparison(Metric):
     name = "Compare Counts"
 
-    def compute(self, gt_csv, model_preds):
-
+def compute(self, gt_csv, model_preds, output_dir) -> dict[str, list[float]]:
         gt_data = pd.read_csv(gt_csv)
         colors = plt.cm.tab10.colors
 
         fig, ax = plt.subplots(figsize=(6, 6))
         all_gt = []
+        results = {}
 
-        for i, model_dir in enumerate(model_preds):
+        for i, (display_name, model_dir) in enumerate(model_preds.items()):
             color = colors[i % len(colors)]
 
             gt_counts = []
@@ -472,7 +472,7 @@ class CountsComparison(Metric):
 
                 pred_img = tifffile.imread(pred_path)
                 labeled = label(pred_img, connectivity=2)
-                pred_count = labeled.max()
+                pred_count = float(labeled.max())
 
                 gt_counts.append(gt_count)
                 pred_counts.append(pred_count)
@@ -480,13 +480,20 @@ class CountsComparison(Metric):
             gt_counts = np.array(gt_counts, dtype=float)
             pred_counts = np.array(pred_counts, dtype=float)
             all_gt.extend(gt_counts)
+            
+            results[display_name] = pred_counts.tolist()
 
             slope = np.sum(gt_counts * pred_counts) / np.sum(gt_counts ** 2)
             r_value = np.corrcoef(gt_counts, pred_counts)[0, 1]
 
-            model_name = Path(model_dir).name
-            ax.scatter(gt_counts, pred_counts, alpha=0.7, color=color,
-                    edgecolors='k', linewidths=0.5, label=f"{model_name} (S={slope:.2f}, R={r_value:.3f})")
+            ax.scatter(
+                gt_counts, pred_counts,
+                alpha=0.7,
+                color=color,
+                edgecolors='k',
+                linewidths=0.5,
+                label=f"{display_name} (S={slope:.2f}, R={r_value:.3f})"
+            )
 
             x_line = np.linspace(0, max(all_gt) * 1.05, 100)
             ax.plot(x_line, slope * x_line, color=color, linestyle='--')
@@ -497,5 +504,5 @@ class CountsComparison(Metric):
         ax.legend()
         plt.tight_layout()
 
-        save_dir = str(Path(gt_csv).parent) if isinstance(gt_csv, str) else str(Path(model_preds[0]).parent)
-        plt.savefig((Path(save_dir) / 'counts_correlation.png'), dpi=300)
+        plt.savefig((Path(output_dir) / 'counts_correlation.png'), dpi=300)
+        return results

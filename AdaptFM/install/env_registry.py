@@ -206,6 +206,32 @@ EnvironmentSpec(
         docs_url="https://brain-mri-enhancement.readthedocs.io/en/latest/"
     ),
 
+    EnvironmentSpec(
+        key="usegment3d",
+        display_name="USegment3D",
+        description=(
+            "A Python library for generating 3D consensus cell segmentation from 2D segmented stacks"
+        ),
+        conda_env_name="usegment3d_adapt",
+        install_command="adaptfm-install-useg",
+        uninstall_command="adaptfm-uninstall",
+        requires_gpu=True,
+        pip_packages=[
+            PipPackageSpec(
+                import_name="u-Segment3D",
+                display_name="u-Segment3D",
+                update_source="pypi",
+            ),
+            PipPackageSpec(
+                import_name="torch",
+                display_name="PyTorch",
+                update_source="pypi",
+            ),
+        ],
+        docs_url="https://github.com/DanuserLab/u-segment3D"
+
+    ),
+    
 EnvironmentSpec(
         key="CT-FM",
         display_name='CT-FM',

@@ -1,0 +1,9 @@
+Name,Paper,Code,VRAM Recommendations,Original Modality,Pretrained Model Datatype,Code License,Model  License
+nnUNet,https://www.nature.com/articles/s41592-020-01008-z ,https://github.com/MIC-DKFZ/nnUNet ,https://github.com/MIC-DKFZ/nnUNet/blob/master/documentation/resenc_presets.md#how-to-use-the-new-presets,General Biomedical Imaging,N/A,Apache 2.0,N/A
+Merlin nnUnet,https://arxiv.org/abs/2406.06512 ,https://github.com/ashwinkumargb/Merlin-nnUNet,https://github.com/MIC-DKFZ/nnUNet/blob/master/documentation/resenc_presets.md#how-to-use-the-new-presets,CT,CT images with EHR diagnoses and radiology reports,Apache 2.0,MIT 
+CellSAM,https://www.biorxiv.org/content/10.1101/2023.11.17.567630v3 ,https://github.com/vanvalenlab/cellsam ,None listed,General Cell Imaging,"tissue, cell culture, yeast, H&E and bacteria",Apache 2.0,Modified Apache for non-comercial or academic purposes
+SAMMed3D,https://arxiv.org/abs/2310.15161 ,https://github.com/uni-medical/sam-med3d ,None listed,CT and MRI,"organs, tissues, tumors, and blood vessels",Apache 2.0,Apache 2.0
+CellposeSAM,https://www.biorxiv.org/content/10.1101/2025.04.28.651001v1 ,https://github.com/MouseLand/cellpose ,None listed,General Cell Imaging,"Microbes, cultured cells, human tissues, and cell nuclei",BSD-3-Clause license,None listed
+microSAM,https://www.nature.com/articles/s41592-024-02580-4 ,https://github.com/computational-cell-analytics/micro-sam ,https://computational-cell-analytics.github.io/micro-sam/micro_sam.html#usage-questions,"Light, electron, and X-ray microscopy (in various models)","Microbes, cells, organoids, organelles, nuclei, and tissues",MIT ,MIT / CC BY 4.0
+BME-X,https://www.nature.com/articles/s41551-024-01283-7 ,https://github.com/DBC-Lab/Brain_MRI_Enhancement ,None listed,MR Images,Brain,MIT ,None listed
+CT-FM,https://arxiv.org/abs/2501.09001 ,https://github.com/project-lighter/CT-FM ,None listed,CT,Human anatomical structures,MIT ,Apache 2.0

@@ -2,6 +2,16 @@ import inspect
 import numpy as np
 from pathlib import Path
 import subprocess, sys
+import site
+import importlib
+
+def _refresh_sam_pkg_after_install(pgk_name):
+    importlib.reload(site)
+    importlib.invalidate_caches()
+    importlib.import_module(pgk_name)
+    if pgk_name in sys.modules:
+        importlib.reload(sys.modules[pgk_name])
+
 
 def extract_tunable_params(func):
     sig = inspect.signature(func)
@@ -33,11 +43,7 @@ def normalize_to_uint8(img: np.ndarray) -> np.ndarray:
 
     return img.astype(np.uint8)
 
-from pathlib import Path
-import subprocess
-import sys
 
-REPO_ROOT = Path(__file__).parent.parent.parent  # AdaptFM repo root
 
 from pathlib import Path
 import subprocess
@@ -83,12 +89,21 @@ def install_sam2():
             check=True,
         )
 
+    subprocess.run(
+        [sys.executable, "setup.py", "build_ext", "--inplace"],
+        cwd=sam2_dir,
+        check=True,
+    )
+    
+    _refresh_sam_pkg_after_install("sam2")
     print(f"Done. SAM2 installed at: {sam2_dir}")
+    
 
 
 
 def install_sam3():
     sam3_dir = REPO_ROOT / "segmentation" / "sam3"
+
 
     # Step 1 — clone if missing
     if not sam3_dir.exists():
@@ -107,6 +122,10 @@ def install_sam3():
     # Step 2 — install in editable mode
     print("Installing SAM3...")
 
+    ckpt_dir = sam3_dir / "checkpoint"
+
+    ckpt_dir.mkdir(exist_ok=True)
+
     subprocess.run(
         [sys.executable, "-m", "pip", "install", "-e", str(sam3_dir)],
         check=True,
@@ -122,7 +141,8 @@ def install_sam3():
         check=True,
     )
 
-
+    _refresh_sam_pkg_after_install("sam3")
     print(f"Done. SAM3 installed at: {sam3_dir}")
+    
 
 

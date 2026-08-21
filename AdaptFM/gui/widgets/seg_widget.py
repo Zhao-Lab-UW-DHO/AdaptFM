@@ -2,6 +2,7 @@ from magicgui import magicgui
 from magicgui.widgets import Container, Label
 from napari import Viewer
 from AdaptFM.segmentation.registry import SEGMENTATION_REGISTRY
+from AdaptFM.gui.napari_utils import qt_widget_obj_exists
 from magicgui import widgets, magicgui
 import dask.array as da
 import numpy as np
@@ -130,6 +131,13 @@ class SegmentationWidget:
             self.run_button = run_button
             self.param_container.native.layout().addWidget(run_button.native)
 
+        else:
+        # Re-append to layout to guarantee it stays below dynamically added parameter widgets
+            self.param_container.native.layout().removeWidget(self.run_button.native)
+            self.param_container.native.layout().addWidget(self.run_button.native)
+
+        self.param_container.native.show()
+
 
     def _make_param_widget(self, name: str, spec: dict):
         """
@@ -155,6 +163,12 @@ class SegmentationWidget:
         elif param_type == "bool":
             control = widgets.CheckBox(
                 value=bool(default),
+            )
+
+        elif param_type == "choice":
+            control = widgets.ComboBox(
+                choices=spec.get("options", []),
+                value=default,
             )
         else:
             control = widgets.LineEdit(
@@ -203,11 +217,29 @@ class SegmentationWidget:
 
         self._sam3_text_input = widgets.LineEdit(
             value="",
-            label="Text concept",
             tooltip='e.g. "nucleus", "organoid", "cell membrane"',
         )
+
+        self._sam3_text_input_row = Container(
+            widgets=[
+                Label(value="Text concept"),
+                self._sam3_text_input,
+            ],
+            layout="horizontal",
+        )
+
         self._sam3_text_obj_spinner = widgets.SpinBox(
-            value=1, min=1, max=99, label="Text obj ID"
+            value=1,
+            min=1,
+            max=99,
+        )
+
+        self._sam3_text_obj_spinner_row = Container(
+            widgets=[
+                Label(value="Text obj ID"),
+                self._sam3_text_obj_spinner,
+            ],
+            layout="horizontal",
         )
 
         @magicgui(call_button="Segment by text (current slice)")
@@ -215,19 +247,30 @@ class SegmentationWidget:
             self._sam3_run_text_prompt()
         self._sam3_text_btn = text_prompt_btn
 
-        for w in [self._sam3_text_input, self._sam3_text_obj_spinner, text_prompt_btn]:
+        for w in [
+            self._sam3_text_input_row,
+            self._sam3_text_obj_spinner_row,
+            text_prompt_btn,
+        ]:
             layout.addWidget(w.native)
-            w.native.setVisible(is_sam3)   # hide entirely for SAM2
+            w.native.setVisible(is_sam3)
 
         # ── Click mode + object ID (shared) ──────────────────────────────
-        self._sam2_click_mode = widgets.ComboBox(
-            choices=["Foreground", "Background"], value="Foreground", label="Click mode"
-        )
         self._sam2_obj_spinner = widgets.SpinBox(
-            value=1, min=1, max=1000, label="Click obj ID"
+            value=1,
+            min=1,
+            max=1000,
         )
-        layout.addWidget(self._sam2_click_mode.native)
-        layout.addWidget(self._sam2_obj_spinner.native)
+
+        self._sam2_obj_spinner_row = Container(
+            widgets=[
+                Label(value="Click Object ID"),
+                self._sam2_obj_spinner,
+            ],
+            layout="horizontal",
+        )
+
+        layout.addWidget(self._sam2_obj_spinner_row.native)
 
         @magicgui(call_button="Propagate through volume")
         def prop_btn():
@@ -256,28 +299,33 @@ class SegmentationWidget:
         self._sam2_extra_widgets = [
             self._sam2_status, init_btn,
             self._sam3_text_input, self._sam3_text_obj_spinner, text_prompt_btn,
-            self._sam2_click_mode, self._sam2_obj_spinner,
-            prop_btn, reset_obj_btn, reset_all_btn,self._sam2_click_active
+            self._sam2_obj_spinner,self._sam2_obj_spinner_row,
+            prop_btn, reset_obj_btn, reset_all_btn,self._sam2_click_active,
+            self._sam3_text_obj_spinner_row,self._sam3_text_input_row
         ]
 
     def _set_ui_enabled(self, enabled: bool):
-        """While threading occurs, the user changing/running other elements (like algorithm selection tearing down SAM variables)
-        should be prevented
+        """While threading occurs, the user changing/running other elements (like algorithm selection
+        tearing down SAM variables) should be prevented
         """
         self.algo_selector.enabled = enabled
-        
+
         if self.run_button is not None:
             self.run_button.enabled = enabled
 
-        if hasattr(self, "_sam2_init_btn") and self._sam2_init_btn:
-            self._sam2_init_btn.enabled = enabled
-        if hasattr(self, "_sam2_prop_btn") and self._sam2_prop_btn:
-            self._sam2_prop_btn.enabled = enabled
-        if hasattr(self, "_sam3_text_btn") and self._sam3_text_btn:
-            self._sam3_text_btn.enabled = enabled
-            
+        sam_buttons = [
+            "_sam2_init_btn",
+            "_sam2_prop_btn",
+            "_sam3_text_btn",
+        ]
+
+        for attr_name in sam_buttons:
+            btn = getattr(self, attr_name, None)
+            if qt_widget_obj_exists(btn): # this function will return false on None
+                btn.enabled = enabled
+
         for param_widget in self.param_widgets.values():
-            param_widget.control.enabled = enabled
+            param_widget.control.enabled = enabled 
 
 
     def _sam3_run_text_prompt(self):
@@ -433,7 +481,7 @@ class SegmentationWidget:
 
             try:
                 if drag_dist < BOX_MIN_DRAG_PX:
-                    label = 1 if self._sam2_click_mode.value != "Background" else 0
+                    label = 1 
                     self.current_algo.add_prompt(
                         z=z0, x=c0, y=r0, label=label,
                         obj_id=obj_id, params=self._sam2_get_params(),
@@ -525,5 +573,9 @@ class SegmentationWidget:
                 layout.removeWidget(w.native)
                 w.native.deleteLater()
             self._sam2_extra_widgets = []
+
+        self._sam2_init_btn = None
+        self._sam2_prop_btn = None
+        self._sam3_text_btn = None
 
 

@@ -10,10 +10,11 @@ import re
 
 class NNUNetV2ModelSpec(ModelSpec):
     
-    def __init__(self,conda_env):
+    def __init__(self,conda_env,supports_training=True):
         super().__init__()
         self.conda_env = conda_env
         self.name = 'nnUNetV2'
+        self.supports_training=supports_training
 
 
     def default_params(self):
@@ -41,7 +42,7 @@ class NNUNetV2ModelSpec(ModelSpec):
 
             "config": {
                 "type": str,
-                "choices": ["2d", "3d_fullres"],
+                "choices": ["3d_lowres", "3d_fullres","3d_cascade_fullres"],
                 "default": "3d_fullres",
             },
             "fold": {
@@ -254,8 +255,8 @@ class NNUNetV2ModelSpec(ModelSpec):
     
 
 class MerlinNNUNetV2ModelSpec(NNUNetV2ModelSpec):
-    def __init__(self,conda_env,transform_path):
-        super().__init__(conda_env)
+    def __init__(self,conda_env,transform_path,supports_training):
+        super().__init__(conda_env,supports_training)
         self.name = "Merlin nnUNet"
         self.transform_path = transform_path
 
@@ -375,7 +376,7 @@ class MerlinNNUNetV2ModelSpec(NNUNetV2ModelSpec):
         
         return[
             "python",
-            "-m", f"{self.transform_path}",
+            f"{self.transform_path}",
             "--params", json.dumps(params),
             "--folder2transform", str(folder2transform)
 

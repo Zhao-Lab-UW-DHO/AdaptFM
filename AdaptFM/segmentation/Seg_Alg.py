@@ -2,7 +2,7 @@ from AdaptFM.segmentation.fourier.nuc_seg import run_nuclear_segmentation
 from AdaptFM.segmentation.fourier.cell_seg import run_single_cell_segmentation
 from AdaptFM.segmentation.fourier.org_seg import run_organoid_segmentation
 from AdaptFM.segmentation.fourier.nuc_seg_gpu import run_nuclear_segmentation_gpu_chunked
-from AdaptFM.segmentation.checkpoint_utils import check_sam2_installed 
+from AdaptFM.segmentation.checkpoint_utils import check_sam2_installed, check_sam3_installed
 from abc import ABC
 
 class SegmentationAlgorithmSpec(ABC):
@@ -129,7 +129,7 @@ class OtsuThreshold3D(SegmentationAlgorithmSpec):
 
         thresh = threshold_otsu(volume)
         mask = volume > thresh
-        mask = remove_small_objects(mask, min_size=params["remove_small_objects"])
+        mask = remove_small_objects(mask, max_size=params["remove_small_objects"])
         return mask.astype(int)
 
 
@@ -152,7 +152,7 @@ class SauvolaThreshold3D(SegmentationAlgorithmSpec):
         for z in range(volume.shape[0]):
             thresh = threshold_sauvola(volume[z], window_size=params["window_size"], k=params["k"])
             mask[z] = volume[z] > thresh
-        mask = remove_small_objects(mask, min_size=params["remove_small_objects"])
+        mask = remove_small_objects(mask, max_size=params["remove_small_objects"])
         return mask.astype(int)
     
 
@@ -199,7 +199,7 @@ class Felzenszwalb3D(SegmentationAlgorithmSpec):
         for z in range(volume.shape[0]):
             slice_labels = felzenszwalb(volume[z], scale=params["scale"], sigma=params["sigma"])
             labels[z] = slice_labels
-        labels = remove_small_objects(labels, min_size=params["min_size"])
+        labels = remove_small_objects(labels, max_size=params["min_size"])
         return labels.astype(int)
 
 
@@ -260,12 +260,7 @@ class SAM2ClickAndPropagate(SegmentationAlgorithmSpec):
                 "options": ["forward", "backward", "both"],
                 "description": "Direction to propagate from seed slices",
             },
-            "auto_seed_slice": {
-                "type": "choice",
-                "default": "center",
-                "options": ["center", "first", "last"],
-                "description": "Which slice to auto-click in batch `run()` mode",
-            },
+
             "score_threshold": {
                 "type": "float",
                 "default": 0.0,
@@ -282,36 +277,6 @@ class SAM2ClickAndPropagate(SegmentationAlgorithmSpec):
 
         }
 
-    def run(self, volume: np.ndarray, params: dict) -> np.ndarray:
-        """
-        Batch-compatible entry point required by the registry.
-
-        Initialises the volume, places a single positive point at the
-        geometric centre of the chosen seed slice, then propagates in
-        the requested direction(s).  Returns the full label volume.
-
-        For real interactive use, call initialize() + add_prompt() +
-        propagate() directly from your napari widget.
-        """
-        self.initialize(volume, params)
-
-        direction = params.get("propagation_direction", "both")
-        auto_slice = params.get("auto_seed_slice", "center")
-
-        z_max = volume.shape[0] - 1
-        seed_z = {
-            "center": z_max // 2,
-            "first":  0,
-            "last":   z_max,
-        }[auto_slice]
-
-        cy = volume.shape[1] // 2
-        cx = volume.shape[2] // 2
-
-        self.add_prompt(z=seed_z, x=cx, y=cy, label=1, obj_id=1, params=params)
-        self.propagate(obj_id=1, direction=direction, params=params)
-
-        return self.get_label_volume()
 
     # ------------------------------------------------------------------
     # Interactive API (called from napari widget)
@@ -425,7 +390,15 @@ class SAM2ClickAndPropagate(SegmentationAlgorithmSpec):
         mask = self._logits_to_mask(out_logits, obj_id, out_obj_ids, threshold, multimask)
 
         # Write into label volume immediately so the viewer updates
-        self._label_vol[z] = np.where(mask, obj_id, self._label_vol[z])
+        new_slice = self._label_vol[z].copy()
+
+        # remove only this object's pixels
+        new_slice[self._label_vol[z] == obj_id] = 0
+
+        # add updated mask
+        new_slice[mask] = obj_id
+
+        self._label_vol[z] = new_slice
 
         return mask
 
@@ -739,40 +712,12 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
                 "step": 0.05,
                 "description": "Minimum detection score for text-prompted instances",
             },
-            "auto_seed_slice": {
-                "type": "choice",
-                "default": "center",
-                "options": ["center", "first", "last"],
-                "description": "Seed slice used in batch run() mode",
-            },
+
             
             "GPU": {'type': "int", 'default':0,'min':0,'max':100},
 
         }
 
-    def run(self, volume: np.ndarray, params: dict) -> np.ndarray:
-        """
-        Batch-compatible entry point. Uses the centre-of-volume point as a
-        single foreground click, then propagates. For real interactive use,
-        call initialize() / add_prompt() / add_text_prompt() / propagate()
-        directly from the widget.
-        """
-        self.initialize(volume, params)
-        direction = params.get("propagation_direction", "both")
-        auto_slice = params.get("auto_seed_slice", "center")
-        z_max = volume.shape[0] - 1
-        seed_z = {"center": z_max // 2, "first": 0, "last": z_max}[auto_slice]
-
-        self.add_prompt(
-            z=seed_z,
-            x=volume.shape[2] // 2,
-            y=volume.shape[1] // 2,
-            label=1,
-            obj_id=1,
-            params=params,
-        )
-        self.propagate(obj_id=1, direction=direction, params=params)
-        return self.get_label_volume()
 
     # ------------------------------------------------------------------
     # Lifecycle
@@ -794,6 +739,7 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
         Write slices to disk, load the SAM3 video predictor, open a session.
         All subsequent add_prompt / add_text_prompt calls share this session.
         """
+        check_sam3_installed()
         import sam3
         REPO_ROOT = Path(__file__).resolve().parents[1]
         ckpt_dir = REPO_ROOT / 'segmentation'/'sam3'/'checkpoint'
@@ -1185,7 +1131,7 @@ class SAM3TextAndPropagate(SegmentationAlgorithmSpec):
         except ImportError as e:
             raise ImportError(
                 "SAM3 is not installed. "
-                "Clone https://github.com/facebookresearch/sam3 and run `pip install -e .`"
+                "You must install using the environment manager`"
             ) from e
 
         try:

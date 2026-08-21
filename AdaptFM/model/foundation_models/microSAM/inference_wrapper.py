@@ -11,10 +11,14 @@ def main():
     parser.add_argument('--output_path')
     parser.add_argument('--checkpoint')
     args = parser.parse_args()
-    test_dir = args.dataset_dir
-    output_path = args.output_path
-    checkpoint = args.checkpoint
-
+    run_microsam_inference(
+        test_dir = args.dataset_dir,
+        output_path = args.output_path,
+        checkpoint = args.checkpoint
+    )
+    
+def run_microsam_inference(test_dir, output_path, checkpoint):
+    
     if checkpoint == "None":
         checkpoint = None
     

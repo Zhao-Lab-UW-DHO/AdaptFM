@@ -115,7 +115,7 @@ def run_single_cell_segmentation(volume,
 
     labeled_array = label(final_image,connectivity=2)
 
-    labeled_array_filtered = remove_small_objects(labeled_array,min_size =minimum_size)
+    labeled_array_filtered = remove_small_objects(labeled_array,max_size =minimum_size)
     binary_mask = (labeled_array_filtered > 0).astype(np.uint8)
 
     return binary_mask

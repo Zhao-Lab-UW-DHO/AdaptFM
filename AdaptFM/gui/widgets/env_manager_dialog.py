@@ -50,7 +50,9 @@ from AdaptFM.install.env_inspector import (
     EnvStatus, PackageVersionInfo, probe_all,
 )
 from AdaptFM.gui.widgets.pytorch_config_widget import PyTorchConfigWidget
-
+from AdaptFM.gui.widgets.sam_card import SamCard
+from AdaptFM.gui.widgets.ssvt_card import SSVTCard
+from AdaptFM.model.model_utils import REPO_ROOT
 
 # ---------------------------------------------------------------------------
 # Colour / style constants (kept minimal so they work on both light & dark Qt)
@@ -378,23 +380,10 @@ class EnvironmentManagerDialog(QDialog):
         self._card_layout.setContentsMargins(0, 0, 4, 0)
         self._card_layout.setSpacing(8)
 
-
-        self._card_layout.addStretch()
         self._scroll.setWidget(self._card_container)
         scroll_layout.addWidget(self._scroll)
         splitter.addWidget(scroll_outer)
 
-        # PyTorch config card — always first in the scroll area
-        self._pytorch_card = PyTorchConfigWidget(
-            log_fn=self._log_line,
-            run_process_fn=self._run_process,
-        )
-        self._pytorch_card.setSizePolicy(
-            QSizePolicy.Expanding,
-            QSizePolicy.Fixed
-        )
-
-        self._card_layout.addWidget(self._pytorch_card)
 
         # Log panel
         log_outer = QWidget()
@@ -449,11 +438,10 @@ class EnvironmentManagerDialog(QDialog):
         self._probe_thread.start()
 
     def _clear_cards(self):
+        for card in self._cards.values():
+            self._card_layout.removeWidget(card)
+            card.deleteLater()
         self._cards.clear()
-        while self._card_layout.count() > 1:   # keep the trailing stretch
-            item = self._card_layout.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
 
     def _on_probe_done(self, statuses: list):
         self._progress.setVisible(False)
@@ -471,6 +459,62 @@ class EnvironmentManagerDialog(QDialog):
         if updates:
             parts.append(f"{updates} update{'s' if updates > 1 else ''} available")
         self._status_lbl.setText(" · ".join(parts))
+
+        self._pytorch_card = PyTorchConfigWidget(
+            log_fn=self._log_line,
+            run_process_fn=self._run_process,
+        )
+        self._pytorch_card.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self._card_layout.addWidget(self._pytorch_card)
+
+        self._sam2_card = SamCard(
+            key="SAM2", display_name="SAM 2",
+            description="Segment Anything Model 2 (Meta). Installs directly into the AdaptFM environment.",
+            import_name="sam2",
+            install_command="adaptfm-install-sam2",
+            uninstall_command="adaptfm-uninstall-sam2",
+            requires_pytorch=True,
+            log_fn=self._log_line,
+            run_process_fn=self._run_process,
+            source_dir = REPO_ROOT/"segmentation"/"sam2"
+        )
+        self._sam3_card = SamCard(
+            key="SAM3", display_name="SAM 3",
+            description="Segment Anything Model 3 (Meta). Installs directly into the AdaptFM environment.",
+            import_name="sam3",
+            install_command="adaptfm-install-sam3",
+            uninstall_command="adaptfm-uninstall-sam3",
+            requires_pytorch=True,
+            log_fn=self._log_line,
+            run_process_fn=self._run_process,
+            source_dir = REPO_ROOT/"segmentation"/"sam3"
+        )
+
+        self._ssvt_card = SSVTCard(
+            key="SSVT",display_name="SSVT",
+            description = "Downloads the SSVT model from Hugging face",
+            import_name=None,
+            install_command="adaptfm-install-ssvt",
+            uninstall_command="adaptfm-uninstall-ssvt",
+            requires_pytorch=False,
+            log_fn=self._log_line,
+            run_process_fn=self._run_process,
+            source_dir =None
+        )
+
+        self._sam2_card.pytorch_config_clicked.connect(self._focus_pytorch_card)
+        self._sam3_card.pytorch_config_clicked.connect(self._focus_pytorch_card)
+        self._card_layout.addWidget(self._sam2_card)
+        self._card_layout.addWidget(self._sam3_card)
+        self._card_layout.addWidget(self._ssvt_card)
+
+        self._aux_cards = [self._pytorch_card, self._sam2_card, self._sam3_card,
+                           self._ssvt_card]
+
+        # Stretch goes last, AFTER every fixed card. Dynamic env cards get
+        # inserted just before it via `idx = self._card_layout.count() - 1`.
+        self._card_layout.addStretch()
+
 
         for status in statuses:
             card = _EnvCard(status)
@@ -514,8 +558,8 @@ class EnvironmentManagerDialog(QDialog):
 
         self._set_all_cards_busy(True)
         self._progress.setVisible(True)
-        self._pytorch_card.setEnabled(False)
-
+        for card in self._aux_cards:
+            card.setEnabled(False)
         self._process = QProcess(self)
         self._process.setProcessChannelMode(QProcess.MergedChannels)
         self._process.readyRead.connect(self._on_process_output)
@@ -523,7 +567,10 @@ class EnvironmentManagerDialog(QDialog):
         def _done(code, _status):
             self._progress.setVisible(False)
             self._set_all_cards_busy(False)
-            self._pytorch_card.setEnabled(True)
+            
+            for card in getattr(self, "_aux_cards", []):
+                card.setEnabled(True)
+
             if on_done:
                 on_done(code)
 
@@ -690,7 +737,7 @@ class EnvironmentManagerDialog(QDialog):
         self._set_all_cards_busy(False)
 
         if exit_code == 0:
-            self._log_line(f"\n✓ Done (exit 0)", color=_INSTALLED_COLOR, bold=True)
+            self._log_line(f"\n✓ Done. RESTART ADAPTFM TO USE THIS MODEL", color=_INSTALLED_COLOR, bold=True)
         else:
             self._log_line(
                 f"\n✗ Exited with code {exit_code}", color=_WARNING_COLOR, bold=True
