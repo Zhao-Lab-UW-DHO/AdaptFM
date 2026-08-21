@@ -638,8 +638,8 @@ class CellSAMSpec(FoundationModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(Path(output_dir) / "stdout.log").open("w", encoding="utf-8"),
+            stderr=(Path(output_dir) / "stderr.log").open("w", encoding="utf-8"),
             start_new_session=True,
             env=env
         )
@@ -652,22 +652,24 @@ class BMEXSpec(FoundationModelSpec):
 
 
     def prepare_dataset(self, dataset_manager, output_dir, params):
+        out_path = Path(output_dir)
+        images_tr_dir = out_path / "imagesTr"
+        labels_tr_dir = out_path / "labelsTr"
 
-        imagesTrFolder = os.path.join(output_dir, 'imagesTr')
-        labelsTrFolder = os.path.join(output_dir, 'labelsTr')
-        os.makedirs(imagesTrFolder, exist_ok=True)
-        os.makedirs(labelsTrFolder, exist_ok=True)
-        os.makedirs(output_dir, exist_ok=True)
+        images_tr_dir.mkdir(parents=True, exist_ok=True)
+        labels_tr_dir.mkdir(parents=True, exist_ok=True)
 
+        source_dir = Path(dataset_manager.folder)
         image_files = [
-            f for f in os.listdir(dataset_manager.folder)
-            if f.endswith((".tif", ".tiff", ".nii.gz"))
+            p.name for p in source_dir.iterdir()
+            if p.is_file() and p.name.endswith((".tif", ".tiff", ".nii.gz"))
         ]
+
         # base_name -> {"image": ..., "label": ...}
         pairs = {}
 
         for image_file in image_files:
-            input_path = os.path.join(dataset_manager.folder, image_file)
+            input_path = str(source_dir / image_file)
 
             if image_file.endswith(".nii.gz"):
                 nii_name = image_file.replace("_seg.nii.gz", ".nii.gz")
@@ -683,13 +685,13 @@ class BMEXSpec(FoundationModelSpec):
             base_name = nii_name  # same root for image/label since '_seg' was stripped
 
             if is_label:
-                nii_path = os.path.join(labelsTrFolder, nii_name)
-                rel_path = os.path.join('labelsTr', nii_name)
-                pairs.setdefault(base_name, {})['label'] = rel_path
+                nii_path = str(labels_tr_dir / nii_name)
+                rel_path = str(Path("labelsTr") / nii_name)
+                pairs.setdefault(base_name, {})["label"] = rel_path
             else:
-                nii_path = os.path.join(imagesTrFolder, nii_name)
-                rel_path = os.path.join('imagesTr', nii_name)
-                pairs.setdefault(base_name, {})['image'] = rel_path
+                nii_path = str(images_tr_dir / nii_name)
+                rel_path = str(Path("imagesTr") / nii_name)
+                pairs.setdefault(base_name, {})["image"] = rel_path
 
             if image_file.endswith(".nii.gz"):
                 shutil.copy2(input_path, nii_path)
@@ -697,7 +699,7 @@ class BMEXSpec(FoundationModelSpec):
                 img = tiff.imread(input_path)
                 img = sitk.GetImageFromArray(img)
                 sitk.WriteImage(img, nii_path)
-                
+
         # only keep complete image/label pairs
         complete_pairs = [
             {"image": entry["image"], "label": entry["label"]}
@@ -717,12 +719,12 @@ class BMEXSpec(FoundationModelSpec):
 
         dataset_dict = {
             "training": training_pairs,
-            "validation": validation_pairs
+            "validation": validation_pairs,
         }
 
-        dataset_dict_path = os.path.join(output_dir, "json_list.json")
+        dataset_dict_path = str(out_path / "json_list.json")
 
-        with open(dataset_dict_path, "w") as file:
+        with Path(dataset_dict_path).open("w", encoding="utf-8") as file:
             json.dump(dataset_dict, file, indent=4)
 
         dataset_dir = Path(dataset_manager.folder).parent
@@ -747,7 +749,7 @@ class BMEXSpec(FoundationModelSpec):
     def run_training(self, dataset_info, params, run_dir):
         run_dir.mkdir(parents=True, exist_ok=True)
 
-        with open(run_dir / "params.json", "w") as f:
+        with (run_dir / "params.json").open("w", encoding="utf-8") as f:
             json.dump(params, f, indent=4)
 
         gpu = params.pop("gpu", None)
@@ -761,8 +763,8 @@ class BMEXSpec(FoundationModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(run_dir / "stdout.log", "w"),
-            stderr=open(run_dir / "stderr.log", "w"),
+            stdout=(Path(run_dir) / "stdout.log").open("w", encoding="utf-8"),
+            stderr=(Path(run_dir) / "stderr.log").open("w", encoding="utf-8"),
             start_new_session=True,
             env=env
         )
@@ -795,8 +797,8 @@ class BMEXSpec(FoundationModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(Path(output_dir) / "stdout.log").open("w", encoding="utf-8"),
+            stderr=(Path(output_dir) / "stderr.log").open("w", encoding="utf-8"),
             start_new_session=True,
             env=env
         )

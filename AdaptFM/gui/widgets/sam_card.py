@@ -8,8 +8,9 @@ should never be able to reach a `conda env remove` code path.
 from __future__ import annotations
 
 import importlib.util
+from pathlib import Path
 import shutil
-from typing import Callable
+from typing import Callable, Optional
 import sys
 from qtpy.QtCore import Qt, Signal, QProcess
 from qtpy.QtWidgets import (

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import os
+from pathlib import Path
 import subprocess
 
 
@@ -55,8 +56,8 @@ class USegment3DSpec(PostProcess):
 
         subprocess.Popen(
             cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(Path(output_dir) / "stdout.log").open("w", encoding="utf-8"),
+            stderr=(Path(output_dir) / "stderr.log").open("w", encoding="utf-8"),
             start_new_session=True,
             env=env
         )

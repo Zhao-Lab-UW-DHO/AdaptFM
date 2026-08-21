@@ -14,13 +14,13 @@ import torch.nn.functional as F
 from scipy import ndimage
 from scipy.ndimage import label as ndimage_label
 from scipy.ndimage import sum as ndi_sum
+import re
 from pathlib import Path
 
 
 def _nifti_to_sidecar_path(nifti_path: str) -> str:
     # *.nii.gz  →  *.json
-    base = os.path.splitext(os.path.splitext(nifti_path)[0])[0]
-    return base + ".json"
+    return str(Path(nifti_path).with_suffix("").with_suffix(".json"))
 
 def _to_bids_raw(path_on_disk: str, bids_root_dir: str) -> str:
     # make "bids:raw:/sub-xx/ses-xx/..." from absolute path under bids_root_dir
@@ -45,12 +45,12 @@ def write_sidecar_json(nifti_path: str, sources_paths: list, spatial_ref_path: s
     if type_field is not None:         
         payload["Type"] = type_field
         
-    with open(sidecar, "w", encoding="utf-8") as f:
+    with Path(sidecar).open("w", encoding="utf-8") as f:
         json.dump(payload, f, indent=2, ensure_ascii=False)
         
 def read_bids_filter(file_path):
     """Read and parse the BIDS filter file."""
-    with open(file_path, 'r') as f:
+    with Path(file_path).open("r", encoding="utf-8") as f:
         return json.load(f)
 
 def write_dataset_description_json(bids_out_root: str):
@@ -58,8 +58,8 @@ def write_dataset_description_json(bids_out_root: str):
     Write a BIDS-compliant dataset_description.json at the top-level of the output BIDS dir.
     Safe to call multiple times; it won't overwrite if exists.
     """
-    dd_path = os.path.join(bids_out_root, "dataset_description.json")
-    if os.path.exists(dd_path):
+    dd_path = Path(bids_out_root) / "dataset_description.json"
+    if Path(dd_path).exists():
         return
 
     payload = {
@@ -78,22 +78,20 @@ def write_dataset_description_json(bids_out_root: str):
         ]
     }
 
-    os.makedirs(bids_out_root, exist_ok=True)
-    with open(dd_path, "w", encoding="utf-8") as f:
+    Path(bids_out_root).mkdir(exist_ok=True)
+    with Path(dd_path).open("w", encoding="utf-8") as f:
         json.dump(payload, f, indent=2, ensure_ascii=False)
 
-def _load_qi_value(out_dir: str, stem: str):
+def _load_qi_value(out_dir: str, stem: str) -> float | None:
     """
     Try reading {stem}-QI.txt in out_dir; return float or None if unavailable.
     """
-    qi_txt = os.path.join(out_dir, f"{stem}-QI.txt")
-    if os.path.isfile(qi_txt):
+    qi_txt = Path(out_dir) / f"{stem}-QI.txt"
+    if qi_txt.is_file():
         try:
-            with open(qi_txt, "r", encoding="utf-8") as f:
-                import re
-                text = f.read()
-                m = re.search(r"[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?", text)
-                return float(m.group(0)) if m else None
+            text = qi_txt.read_text(encoding="utf-8")
+            m = re.search(r"[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?", text)
+            return float(m.group(0)) if m else None
         except Exception:
             return None
     return None
@@ -131,7 +129,7 @@ def main():
         for t1w_file in t1w_files:
             file_path = t1w_file.path
             
-            file_name = os.path.basename(file_path)
+            file_name = Path(file_path).name
 
             #subject_id 和 session_id
             subject_part = file_name.split("_")[0]
@@ -143,21 +141,19 @@ def main():
             suffix = 'T1w' if ('T1w' in file_name or 'T1w' in file_path) else 'T2w'
 
             # Read and preprocess MRI image
-            img_name = os.path.splitext(os.path.splitext(file_path)[0])[0]
-            stem = os.path.basename(img_name)
+            img_name = str(Path(file_path).with_suffix("").with_suffix(""))
+            stem = Path(img_name).name
             stem_no_suffix = re.sub(r'_(T1w|T2w)$', '', stem)
 
 
             # --- output dirs ---
             out_root = output_path
-            out_dir = os.path.join(out_root, f"sub-{subject_id}", f"ses-{session_id}", "anat")
-            os.makedirs(out_dir, exist_ok=True)
-            dst_path = os.path.join(out_dir, os.path.basename(file_path))
+            out_dir = str(
+                Path(out_root) / f"sub-{subject_id}" / f"ses-{session_id}" / "anat"
+            )
+            Path(out_dir).mkdir(parents=True, exist_ok=True)
+            dst_path = str(Path(out_dir) / file_name)
             shutil.copy2(file_path, dst_path)
-            
-            img_name = os.path.splitext(os.path.splitext(file_path)[0])[0]
-            stem = os.path.basename(img_name)
-            
             
             qi_val = _load_qi_value(out_dir, stem)
 
@@ -172,7 +168,7 @@ def main():
 
             # reorient
 
-            reoriented_base = os.path.join(out_dir, f"{stem}-reorient")
+            reoriented_base = str(Path(out_dir) / f"{stem}-reorient")
 
             T1w_img_reorient = reorient_to_std(file_path, reoriented_base)
 
@@ -275,7 +271,7 @@ def main():
             labeled_array_mask = fill_holes(labeled_array, area_threshold=1)
 
             print("Save brainmask")
-            s_path = os.path.join(out_dir, f"{stem}-reorient-brainmask.nii.gz")
+            s_path = str(Path(out_dir) / f"{stem}-reorient-brainmask.nii.gz")
             out = sitk.GetImageFromArray(labeled_array_mask)
             out.SetOrigin(origin)
             out.SetSpacing(spacing)

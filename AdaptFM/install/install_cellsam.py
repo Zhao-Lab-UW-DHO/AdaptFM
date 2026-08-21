@@ -24,7 +24,7 @@ PYTORCH_CMD_FILE = Path.home() / ".adaptfm" / "pytorch_cmd.txt"
 
 
 def _wrap_with_conda(conda_env, cmd: list[str]) -> list[str]:
-    python_bin = os.path.join(conda_env, "bin", "python")
+    python_bin = str(Path(conda_env) / "bin" / "python")
     # cmd is typically ["python", "script.py", ...args]
     # replace the "python" at the front with the env's absolute python binary
     if cmd[0] == "python":
@@ -140,7 +140,7 @@ def main() -> None:
     cmd = ["python","-m","AdaptFM.model.foundation_models.cellSAM.get_model_first","--access_token",access_token]
 
     env = os.environ.copy()
-    working_dir = os.getcwd()
+    working_dir = str(Path.cwd())
     env["PYTHONPATH"] = working_dir
 
 

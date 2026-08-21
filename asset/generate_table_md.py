@@ -10,7 +10,7 @@ def format_cell(text: str) -> str:
     return text
 
 def generate_markdown_table(csv_path: Path) -> str:
-    with open(csv_path) as f:
+    with Path(csv_path).open() as f:
         reader = csv.reader(f)
         rows = list(reader)
 

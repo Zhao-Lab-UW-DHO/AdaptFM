@@ -1,6 +1,7 @@
 import argparse
 from argparse import Namespace
 import json
+from pathlib import Path
 import torch
 from DUNet3D import DenseUNet3d
 from tensorboardX import SummaryWriter
@@ -269,7 +270,7 @@ def save_checkpoint(model,
         save_dict['optimizer'] = optimizer.state_dict()
     if scheduler is not None:
         save_dict['scheduler'] = scheduler.state_dict()
-    filename = os.path.join(logdir, filename)
+    filename = str(Path(logdir) / filename)
     torch.save(save_dict, filename)
     print('Saving checkpoint', filename)
 
@@ -303,7 +304,7 @@ def main():
     checkpoint= args.chk_path
     max_epochs = args.max_epochs
 
-    json_list = os.path.join(args.output_dir,'json_list.json')
+    json_list = str(Path(args.output_dir) / 'json_list.json')
     
         
     model1 = DenseUNet3d()

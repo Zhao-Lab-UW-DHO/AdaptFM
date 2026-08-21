@@ -104,8 +104,8 @@ class DatasetManager:
 
             name_mapping[s["image"]] = img_dst
 
-        json_path = os.path.join(imagesTr, "name_mapping.json")
-        with open(json_path, "w") as f:
+        json_path = str(Path(imagesTr) / "name_mapping.json")
+        with Path(json_path).open("w", encoding="utf-8") as f:
             json.dump(name_mapping, f, indent=4)
 
         write_nnUNet_json(
