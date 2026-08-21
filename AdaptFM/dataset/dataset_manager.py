@@ -1,12 +1,12 @@
-import glob
-import os
-import random
-import tifffile as tiff
-import shutil
 import json
+import random
+import shutil
 from pathlib import Path
-import SimpleITK as sitk
+
+import tifffile as tiff
+
 from AdaptFM.dataset.dataset_utils import construct_nnUNet_folders, write_nnUNet_json
+
 
 class DatasetManager:
     def __init__(self, folder=None):
@@ -43,17 +43,15 @@ class DatasetManager:
 
             if stem.endswith("_seg"):
                 continue
-                
+
             mask_path = img_path.with_name(f"{stem}_seg{ext}")
 
             if not mask_path.exists():
                 continue
 
-            self.samples.append({
-                "id": stem,
-                "image": str(img_path),
-                "mask": str(mask_path)
-            })
+            self.samples.append(
+                {"id": stem, "image": str(img_path), "mask": str(mask_path)}
+            )
 
     def iter_samples(self, shuffle=True):
         samples = self.samples.copy()
@@ -65,35 +63,30 @@ class DatasetManager:
 
             yield img, mask
 
-    def export_for_framework(self, framework="nnunet", out_folder=None,params=None):
+    def export_for_framework(self, framework="nnunet", out_folder=None, params=None):
         # copy files to nnunet folder structure or return lists of paths
-        
+
         Path(out_folder).mkdir(parents=True, exist_ok=True)
-        
+
         print(params)
-        if framework =='nnunet':
-            return self._export_nnunet(out_folder,params=params)
+        if framework == "nnunet":
+            return self._export_nnunet(out_folder, params=params)
         else:
-            return self._export_simple_pairs(out_folder,framework)
-        
-    
-    def _export_nnunet(self,out_folder,file_ending='.tiff',channel=0,params=None):
+            return self._export_simple_pairs(out_folder, framework)
 
-        
-        setID = int(params['Set ID'])
-        setName = params['Set Name']
+    def _export_nnunet(self, out_folder, file_ending=".tiff", channel=0, params=None):
 
-        paths = construct_nnUNet_folders(
-            out_folder, setID=setID, setName=setName
-        )
+        setID = int(params["Set ID"])
+        setName = params["Set Name"]
 
-        imagesTr = paths['imagesTr']
-        labelsTr = paths['labelsTr']
+        paths = construct_nnUNet_folders(out_folder, setID=setID, setName=setName)
 
-        name_mapping= {}
+        imagesTr = paths["imagesTr"]
+        labelsTr = paths["labelsTr"]
+
+        name_mapping = {}
 
         for idx, s in enumerate(self.samples):
-
             case_id = f"{setName}_{idx:03d}"
 
             img_dst = str(Path(imagesTr) / f"{case_id}_0000.tiff")
@@ -109,16 +102,14 @@ class DatasetManager:
             json.dump(name_mapping, f, indent=4)
 
         write_nnUNet_json(
-            base_dir = out_folder,
+            base_dir=out_folder,
             setName=setName,
-            setID = setID,
+            setID=setID,
             file_ending=file_ending,
-            channel=channel
-            
+            channel=channel,
         )
 
-        return out_folder 
-
+        return out_folder
 
     def _export_simple_pairs(self, out_folder, framework):
         out_folder_path = Path(out_folder)
@@ -133,5 +124,3 @@ class DatasetManager:
             shutil.copy(s["mask"], msk_dir / Path(s["mask"]).name)
 
         return out_folder_path
-
-        

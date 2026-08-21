@@ -4,23 +4,22 @@ Going forward we will only support repos that can be installed as a package
 ===========================================================
 """
 
-import copy
-import os
-import os.path as osp
-from pathlib import Path
-import re
 import argparse
+import copy
+from pathlib import Path
+
+import medim
 import numpy as np
 import SimpleITK as sitk
 import torch
 import torch.nn.functional as F
 import torchio as tio
 from torchio.data.io import sitk_to_nib
-import medim
 
 # =============================================================================
 # CLICK METHOD — identical to training
 # =============================================================================
+
 
 def get_next_click3D_torch_2(prev_seg, gt_semantic_seg):
     """
@@ -32,8 +31,8 @@ def get_next_click3D_torch_2(prev_seg, gt_semantic_seg):
 
     pred_masks = prev_seg > mask_threshold
     true_masks = gt_semantic_seg > 0
-    fn_masks   = torch.logical_and(true_masks, torch.logical_not(pred_masks))
-    fp_masks   = torch.logical_and(torch.logical_not(true_masks), pred_masks)
+    fn_masks = torch.logical_and(true_masks, torch.logical_not(pred_masks))
+    fp_masks = torch.logical_and(torch.logical_not(true_masks), pred_masks)
     to_point_mask = torch.logical_or(fn_masks, fp_masks)
 
     for i in range(gt_semantic_seg.shape[0]):
@@ -42,7 +41,7 @@ def get_next_click3D_torch_2(prev_seg, gt_semantic_seg):
             points = torch.argwhere(true_masks[i])
         if len(points) == 0:
             D, H, W = gt_semantic_seg.shape[-3:]
-            batch_points.append(torch.tensor([[[D//2, H//2, W//2]]]))
+            batch_points.append(torch.tensor([[[D // 2, H // 2, W // 2]]]))
             batch_labels.append(torch.tensor([[1]]))
             continue
 
@@ -58,9 +57,14 @@ def get_next_click3D_torch_2(prev_seg, gt_semantic_seg):
 # CORE INFERENCE — single 128^3 patch
 # =============================================================================
 
-def sam_model_infer(model, roi_image, roi_gt=None,
-                    prompt_generator=get_next_click3D_torch_2,
-                    num_clicks=5):
+
+def sam_model_infer(
+    model,
+    roi_image,
+    roi_gt=None,
+    prompt_generator=get_next_click3D_torch_2,
+    num_clicks=5,
+):
     """
     roi_image : (1, 1, D, H, W) float tensor, ZNorm-ed
     roi_gt    : (1, 1, D, H, W) int tensor
@@ -76,22 +80,26 @@ def sam_model_infer(model, roi_image, roi_gt=None,
         input_tensor = roi_image.to(device).float()
         image_embeddings = model.image_encoder(input_tensor)
 
-        img_shape  = input_tensor.shape[-3:]
+        img_shape = input_tensor.shape[-3:]
         low_res_sz = tuple(s // 4 for s in img_shape)
 
-        prev_masks    = torch.zeros(1, 1, *img_shape,   device=device)
-        low_res_masks = torch.zeros(1, 1, *low_res_sz,  device=device)
+        prev_masks = torch.zeros(1, 1, *img_shape, device=device)
+        low_res_masks = torch.zeros(1, 1, *low_res_sz, device=device)
 
         for click_idx in range(num_clicks):
             if roi_gt is not None:
                 new_co, new_la = prompt_generator(prev_masks.cpu(), roi_gt.cpu())
-                if isinstance(new_co, list): new_co = torch.cat(new_co, dim=0)
-                if isinstance(new_la, list): new_la = torch.cat(new_la, dim=0)
+                if isinstance(new_co, list):
+                    new_co = torch.cat(new_co, dim=0)
+                if isinstance(new_la, list):
+                    new_la = torch.cat(new_la, dim=0)
                 new_co = new_co.to(device)
                 new_la = new_la.to(device)
             else:
                 D, H, W = img_shape
-                new_co = torch.tensor([[[D//2, H//2, W//2]]], device=device, dtype=torch.float)
+                new_co = torch.tensor(
+                    [[[D // 2, H // 2, W // 2]]], device=device, dtype=torch.float
+                )
                 new_la = torch.tensor([[1]], device=device, dtype=torch.long)
                 num_clicks = 1
 
@@ -99,7 +107,8 @@ def sam_model_infer(model, roi_image, roi_gt=None,
             points_arg = None if click_idx == num_clicks - 1 else [new_co, new_la]
 
             sparse_emb, dense_emb = model.prompt_encoder(
-                points=points_arg, boxes=None, masks=low_res_masks)
+                points=points_arg, boxes=None, masks=low_res_masks
+            )
 
             low_res_masks, _ = model.mask_decoder(
                 image_embeddings=image_embeddings,
@@ -110,10 +119,12 @@ def sam_model_infer(model, roi_image, roi_gt=None,
             )
 
             prev_masks = F.interpolate(
-                low_res_masks, size=img_shape, mode='trilinear', align_corners=False)
+                low_res_masks, size=img_shape, mode="trilinear", align_corners=False
+            )
 
         final_hr = F.interpolate(
-            low_res_masks, size=img_shape, mode='trilinear', align_corners=False)
+            low_res_masks, size=img_shape, mode="trilinear", align_corners=False
+        )
 
     prob = torch.sigmoid(final_hr).cpu().numpy().squeeze()
     mask = (prob > 0.5).astype(np.uint8)
@@ -124,16 +135,17 @@ def sam_model_infer(model, roi_image, roi_gt=None,
 # I/O HELPERS
 # =============================================================================
 
+
 def read_arr_from_nifti(nii_path, get_meta_info=False):
     sitk_image = sitk.ReadImage(nii_path)
     arr = sitk.GetArrayFromImage(sitk_image)  # ZYX
     if not get_meta_info:
         return arr
     return arr, {
-        "sitk_image_object":  sitk_image,
-        "sitk_origin":        sitk_image.GetOrigin(),
-        "sitk_direction":     sitk_image.GetDirection(),
-        "sitk_spacing":       sitk_image.GetSpacing(),
+        "sitk_image_object": sitk_image,
+        "sitk_origin": sitk_image.GetOrigin(),
+        "sitk_direction": sitk_image.GetDirection(),
+        "sitk_spacing": sitk_image.GetSpacing(),
         "original_numpy_shape": arr.shape,
     }
 
@@ -180,6 +192,7 @@ def save_numpy_to_nifti(in_arr, out_path, meta_info_for_saving):
 # PREPROCESSING — matches training exactly
 # =============================================================================
 
+
 def data_preprocess(subject, meta_info, category_index, crop_size=128):
     """
     Replicates training pipeline:
@@ -192,31 +205,34 @@ def data_preprocess(subject, meta_info, category_index, crop_size=128):
     new_lbl[lbl == category_index] = 1
     subject.label.set_data(new_lbl)
 
-    meta_info["original_subject_affine"]        = subject.image.affine.copy()
+    meta_info["original_subject_affine"] = subject.image.affine.copy()
     meta_info["original_subject_spatial_shape"] = subject.image.spatial_shape
 
     # 1. Canonicalize
     subject_canonical = tio.ToCanonical()(subject)
 
     # 2. CropOrPad centered on label centroid
-    crop_transform = tio.CropOrPad(mask_name='label',
-                                   target_shape=(crop_size, crop_size, crop_size))
-    padding_params, cropping_params = crop_transform._compute_center_crop_or_pad(subject_canonical)
+    crop_transform = tio.CropOrPad(
+        mask_name="label", target_shape=(crop_size, crop_size, crop_size)
+    )
+    padding_params, cropping_params = crop_transform._compute_center_crop_or_pad(
+        subject_canonical
+    )
     subject_cropped = crop_transform(subject_canonical)
 
-    meta_info["padding_params_functional"]  = padding_params
+    meta_info["padding_params_functional"] = padding_params
     meta_info["cropping_params_functional"] = cropping_params
-    meta_info["canonical_subject_shape"]    = subject_canonical.spatial_shape
-    meta_info["canonical_subject_affine"]   = subject_canonical.image.affine.copy()
-    meta_info["roi_subject_affine"]         = subject_cropped.image.affine.copy()  # KEY affine
+    meta_info["canonical_subject_shape"] = subject_canonical.spatial_shape
+    meta_info["canonical_subject_affine"] = subject_canonical.image.affine.copy()
+    meta_info["roi_subject_affine"] = subject_cropped.image.affine.copy()  # KEY affine
 
     # 3. Extract + normalize
     img3D = subject_cropped.image.data.clone().detach()  # (1, D, H, W) float64
-    gt3D  = subject_cropped.label.data.clone().detach()
+    gt3D = subject_cropped.label.data.clone().detach()
 
     norm = tio.ZNormalization(masking_method=lambda x: x > 0)
     img3D = norm(img3D).unsqueeze(0)  # (1, 1, D, H, W)
-    gt3D  = gt3D.unsqueeze(0)
+    gt3D = gt3D.unsqueeze(0)
 
     return img3D, gt3D, meta_info
 
@@ -224,6 +240,7 @@ def data_preprocess(subject, meta_info, category_index, crop_size=128):
 # =============================================================================
 # POSTPROCESSING — maps canonical prediction back to original space
 # =============================================================================
+
 
 def data_postprocess(roi_pred_numpy, meta_info):
     """
@@ -240,7 +257,7 @@ def data_postprocess(roi_pred_numpy, meta_info):
         affine=meta_info["original_subject_affine"],
     )
 
-    resampled = tio.Resample(target=ref_image, image_interpolation='nearest')(pred_map)
+    resampled = tio.Resample(target=ref_image, image_interpolation="nearest")(pred_map)
     out = resampled.data.squeeze(0).cpu().numpy().astype(np.uint8)
     return out.transpose(2, 1, 0)  # XYZ → ZYX for sitk
 
@@ -249,8 +266,10 @@ def data_postprocess(roi_pred_numpy, meta_info):
 # SLIDING WINDOW INFERENCE
 # =============================================================================
 
-def infer_full_volume(model, subject, meta_info, category_index,
-                      num_clicks=5, crop_size=128):
+
+def infer_full_volume(
+    model, subject, meta_info, category_index, num_clicks=5, crop_size=128
+):
     """
     Runs inference over the full canonical volume using a sliding window along Z.
     Normalization stats are computed from the centroid crop (matches training).
@@ -261,9 +280,9 @@ def infer_full_volume(model, subject, meta_info, category_index,
     # --- Get correct affines via data_preprocess on centroid crop ---
     _subj = copy.deepcopy(subject)
     _meta = copy.deepcopy(meta_info)
-    _, _, affine_meta = data_preprocess(_subj, _meta,
-                                        category_index=category_index,
-                                        crop_size=crop_size)
+    _, _, affine_meta = data_preprocess(
+        _subj, _meta, category_index=category_index, crop_size=crop_size
+    )
     # affine_meta["roi_subject_affine"]         = cropped subject affine (correct for mapping back)
     # affine_meta["original_subject_affine"]    = original tio subject affine (correct for ref space)
     # affine_meta["original_subject_spatial_shape"] = original spatial shape
@@ -280,7 +299,9 @@ def infer_full_volume(model, subject, meta_info, category_index,
     lbl_full = subj_canonical.label.data  # (1, X, Y, Z)
     _, X, Y, Z = img_full.shape
 
-    print(f"  Canonical shape: ({X},{Y},{Z}) | GT voxels: {(lbl_full>0).sum().item()}")
+    print(
+        f"  Canonical shape: ({X},{Y},{Z}) | GT voxels: {(lbl_full > 0).sum().item()}"
+    )
 
     # --- Compute norm stats from centroid crop (matches training normalization) ---
     all_coords = torch.argwhere(lbl_full[0] > 0)
@@ -288,21 +309,25 @@ def infer_full_volume(model, subject, meta_info, category_index,
     gcy = int(all_coords[:, 1].float().mean().item())
     gcz = int(all_coords[:, 2].float().mean().item())
 
-    def clip(v, lo, hi): return max(lo, min(hi, v))
-    cgx0 = clip(gcx - crop_size//2, 0, X - crop_size)
+    def clip(v, lo, hi):
+        return max(lo, min(hi, v))
+
+    cgx0 = clip(gcx - crop_size // 2, 0, X - crop_size)
     cgx1 = cgx0 + crop_size
-    cgy0 = clip(gcy - crop_size//2, 0, Y - crop_size)
+    cgy0 = clip(gcy - crop_size // 2, 0, Y - crop_size)
     cgy1 = cgy0 + crop_size
-    cgz0 = clip(gcz - crop_size//2, 0, max(0, Z - crop_size))
+    cgz0 = clip(gcz - crop_size // 2, 0, max(0, Z - crop_size))
     cgz1 = min(cgz0 + crop_size, Z)
 
     centroid_patch = img_full[:, cgx0:cgx1, cgy0:cgy1, cgz0:cgz1].clone()
     if centroid_patch.shape[-1] < crop_size:
-        centroid_patch = F.pad(centroid_patch, (0, crop_size - centroid_patch.shape[-1]))
+        centroid_patch = F.pad(
+            centroid_patch, (0, crop_size - centroid_patch.shape[-1])
+        )
 
     cmask = centroid_patch > 0
     norm_mean = centroid_patch[cmask].mean()
-    norm_std  = centroid_patch[cmask].std()
+    norm_std = centroid_patch[cmask].std()
     print(f"  Norm stats — mean: {norm_mean:.4f}  std: {norm_std:.4f}")
 
     # --- Sliding window along Z ---
@@ -316,14 +341,14 @@ def infer_full_volume(model, subject, meta_info, category_index,
 
     print(f"  Sliding window: {len(z_starts)} z-patches, stride={stride}")
 
-    pred_acc  = np.zeros((X, Y, Z), dtype=np.float32)
+    pred_acc = np.zeros((X, Y, Z), dtype=np.float32)
     count_acc = np.zeros((X, Y, Z), dtype=np.float32)
 
     for z0 in z_starts:
         z1 = min(z0 + crop_size, Z)
         z0 = max(0, z1 - crop_size) if Z >= crop_size else 0
         actual_z = z1 - z0
-        z_pad    = crop_size - actual_z
+        z_pad = crop_size - actual_z
 
         lbl_z = lbl_full[0, :, :, z0:z1]
         if lbl_z.sum() == 0:
@@ -334,8 +359,10 @@ def infer_full_volume(model, subject, meta_info, category_index,
         cx = int(lc[:, 0].float().mean().item())
         cy = int(lc[:, 1].float().mean().item())
 
-        x0 = clip(cx - crop_size//2, 0, X - crop_size); x1 = x0 + crop_size
-        y0 = clip(cy - crop_size//2, 0, Y - crop_size); y1 = y0 + crop_size
+        x0 = clip(cx - crop_size // 2, 0, X - crop_size)
+        x1 = x0 + crop_size
+        y0 = clip(cy - crop_size // 2, 0, Y - crop_size)
+        y1 = y0 + crop_size
 
         img_patch = img_full[:, x0:x1, y0:y1, z0:z1].clone()
         lbl_patch = lbl_full[:, x0:x1, y0:y1, z0:z1].clone()
@@ -350,15 +377,17 @@ def infer_full_volume(model, subject, meta_info, category_index,
         # Normalize with centroid stats — consistent across all patches
         img_normed = (img_patch - norm_mean) / (norm_std + 1e-8)
         img_normed = img_normed.unsqueeze(0).float()  # (1,1,128,128,128)
-        lbl_5d     = lbl_patch.unsqueeze(0)           # (1,1,128,128,128)
+        lbl_5d = lbl_patch.unsqueeze(0)  # (1,1,128,128,128)
 
-        pred_np, _ = sam_model_infer(model, img_normed, roi_gt=lbl_5d, num_clicks=num_clicks)
+        pred_np, _ = sam_model_infer(
+            model, img_normed, roi_gt=lbl_5d, num_clicks=num_clicks
+        )
 
         if z_pad > 0:
             pred_np = pred_np[:, :, :actual_z]
 
-        pred_acc[x0:x1,  y0:y1,  z0:z1] += pred_np.astype(np.float32)
-        count_acc[x0:x1, y0:y1, z0:z1]  += 1
+        pred_acc[x0:x1, y0:y1, z0:z1] += pred_np.astype(np.float32)
+        count_acc[x0:x1, y0:y1, z0:z1] += 1
 
     count_acc = np.maximum(count_acc, 1)
     roi_pred_numpy = (pred_acc / count_acc > 0.5).astype(np.uint8)
@@ -376,8 +405,10 @@ def infer_full_volume(model, subject, meta_info, category_index,
 # TOP-LEVEL ENTRY POINT
 # =============================================================================
 
-def validate_paired_img_gt(model, img_path, gt_path, output_path,
-                            num_clicks=5, crop_size=128, seed=233):
+
+def validate_paired_img_gt(
+    model, img_path, gt_path, output_path, num_clicks=5, crop_size=128, seed=233
+):
     torch.manual_seed(seed)
     np.random.seed(seed)
 
@@ -408,40 +439,40 @@ def validate_paired_img_gt(model, img_path, gt_path, output_path,
 # MAIN LOOP
 # =============================================================================
 
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--checkpoint')
+    parser.add_argument("--checkpoint")
     parser.add_argument("--test_dir")
-    parser.add_argument('--output_path')
+    parser.add_argument("--output_path")
     args = parser.parse_args()
 
     test_dir = args.test_dir
 
-    raw_images_path = str(Path(test_dir) / 'imagesTr')
-    labels_path = str(Path(test_dir) / 'labelsTr')
+    raw_images_path = str(Path(test_dir) / "imagesTr")
+    labels_path = str(Path(test_dir) / "labelsTr")
 
     output_path = args.output_path
     checkpoint = args.checkpoint
 
     model = medim.create_model("SAM-Med3D", pretrained=True, checkpoint_path=checkpoint)
-    images = [f.name for f in Path(raw_images_path).iterdir() 
-              if f.is_file() and f.name.endswith('.nii.gz')]
-
-
-
+    images = [
+        f.name
+        for f in Path(raw_images_path).iterdir()
+        if f.is_file() and f.name.endswith(".nii.gz")
+    ]
 
     for image in images:
         img_path = str(Path(raw_images_path) / image)
         gt_path = str(Path(labels_path) / image)
         out_path = str(Path(output_path) / image)
-        
-
 
         if not Path(gt_path).exists():
             print(f"GT not found for {image}, skipping.")
             continue
 
         validate_paired_img_gt(model, img_path, gt_path, out_path, num_clicks=5)
+
 
 if __name__ == "__main__":
     main()

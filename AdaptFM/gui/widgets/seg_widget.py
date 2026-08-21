@@ -1,24 +1,21 @@
 from pathlib import Path
 
-from magicgui import magicgui
-from magicgui.widgets import Container, Label
-from napari import Viewer
-from AdaptFM.segmentation.registry import SEGMENTATION_REGISTRY
-from AdaptFM.volume.volume_manager import VolumeManager 
-from AdaptFM.gui.napari_utils import qt_widget_obj_exists
-from magicgui import widgets, magicgui
 import dask.array as da
 import numpy as np
-from napari.qt.threading import thread_worker
-from qtpy.QtWidgets import QSizePolicy,QFileDialog,QMessageBox
-from glob import glob
-import os
 import tifffile as tiff
+from magicgui import magicgui, widgets
+from magicgui.widgets import Container, Label
+from napari.qt.threading import thread_worker
 from napari.utils.notifications import show_info
+from qtpy.QtWidgets import QFileDialog, QMessageBox, QSizePolicy
+
+from AdaptFM.gui.napari_utils import qt_widget_obj_exists
+from AdaptFM.segmentation.registry import SEGMENTATION_REGISTRY
+from AdaptFM.volume.volume_manager import VolumeManager
 
 
 class SegmentationWidget:
-    def __init__(self, viewer,segmentation_manager):
+    def __init__(self, viewer, segmentation_manager):
         self.viewer = viewer
         self.current_algo = None
         self.run_button = None
@@ -33,32 +30,39 @@ class SegmentationWidget:
 
         self._build_widget()
 
-
     def _build_widget(self):
         # Dropdown for selecting segmentation algorithm
         @magicgui(
-            segmentation_algorithm={"choices": SEGMENTATION_REGISTRY.names(), "label": "Algorithm"},
-            auto_call=True
+            segmentation_algorithm={
+                "choices": SEGMENTATION_REGISTRY.names(),
+                "label": "Algorithm",
+            },
+            auto_call=True,
         )
         def algo_selector(segmentation_algorithm: str):
             self._on_algorithm_selected(segmentation_algorithm)
-        algo_selector.label = "" # otherwise puts the text algo selector on the dropdown
+
+        algo_selector.label = (
+            ""  # otherwise puts the text algo selector on the dropdown
+        )
         self.algo_selector = algo_selector
-        
-        
-        self.param_container = Container() # Container for dynamically generated param widgets
-        self.main_container = Container(widgets=[self.algo_selector, self.param_container]) # bundle with the selector
+
+        self.param_container = (
+            Container()
+        )  # Container for dynamically generated param widgets
+        self.main_container = Container(
+            widgets=[self.algo_selector, self.param_container]
+        )  # bundle with the selector
         self.widget = self.main_container.native
 
-        # run the param retrieval on startup 
+        # run the param retrieval on startup
         self._on_algorithm_selected(self.algo_selector.segmentation_algorithm.value)
-
 
     def _on_algorithm_selected(self, algo_name: str):
         self._teardown_sam2()  # no-op if previous algo was batch
 
-        self.current_algo = SEGMENTATION_REGISTRY.get(algo_name) 
-        
+        self.current_algo = SEGMENTATION_REGISTRY.get(algo_name)
+
         if getattr(self.current_algo, "mode", "batch") == "interactive":
             self._build_interactive_panel()
 
@@ -69,8 +73,8 @@ class SegmentationWidget:
         else:
             if self.run_button is not None:
                 self.run_button.visible = True
-                self.run_folder_button.visible=True # sadly, unhiding this puts it at the top of the parameter options. not sure how to fix
-            self._load_tunable_params() 
+                self.run_folder_button.visible = True  # sadly, unhiding this puts it at the top of the parameter options. not sure how to fix
+            self._load_tunable_params()
 
     def _load_tunable_params(self):
         # clear old widgets
@@ -88,30 +92,30 @@ class SegmentationWidget:
             self.param_container.native.layout().addWidget(w.native)
 
         self.param_container.native.show()
-        from qtpy.QtCore import Qt
 
         # w = self.param_container.native
         # w.setWindowFlags(w.windowFlags() | Qt.WindowStaysOnTopHint | Qt.Window)
         # w.show()
 
-        # w.setWindowTitle("Annotation")   
+        # w.setWindowTitle("Annotation")
         # Add "Run auto-seg" button dynamically
         if self.run_button is None:
+
             @magicgui(call_button="Run auto-segmentation")
             def run_button():
                 if "Original" not in self.viewer.layers:
                     raise RuntimeError("No image loaded")
-
 
                 params = {k: w.control.value for k, w in self.param_widgets.items()}
                 volume = self.viewer.layers["Original"].data
                 algo = self.current_algo
 
                 self._set_ui_enabled(False)
+
                 @thread_worker
                 def _run_in_thread(volume, algo, params):
                     if isinstance(volume, da.Array):
-                        print('converting')
+                        print("converting")
                         volume = volume.compute()
                     seg = algo.run(volume, params)
                     return seg
@@ -126,9 +130,9 @@ class SegmentationWidget:
                         self.viewer.layers[algo.name].data = seg
                     else:
                         self.viewer.add_labels(
-                            seg, 
+                            seg,
                             name=f"{algo.name}_AdaptFMseg",
-                            colormap={1:'white', None: 'white'}
+                            colormap={1: "white", None: "white"},
                         )
 
                 def _on_error(e):
@@ -144,26 +148,29 @@ class SegmentationWidget:
             self.param_container.native.layout().addWidget(run_button.native)
 
         else:
-        # Re-append to layout to guarantee it stays below dynamically added parameter widgets
+            # Re-append to layout to guarantee it stays below dynamically added parameter widgets
             self.param_container.native.layout().removeWidget(self.run_button.native)
             self.param_container.native.layout().addWidget(self.run_button.native)
 
         if self.run_folder_button is None:
+
             @magicgui(call_button="Run auto-segmentation on folder")
             def run_folder_button():
                 folder = QFileDialog.getExistingDirectory(
-                    self.widget,
-                    "Select folder containing images",
-                    ""
+                    self.widget, "Select folder containing images", ""
                 )
                 if not folder:
                     show_info("No folder selected.")
                     return
                 # Collect image files
-                image_paths = sorted([
-                    p for p in Path(folder).iterdir()
-                    if p.is_file() and p.name.lower().endswith((".tif", ".tiff", ".nii.gz"))
-                ])
+                image_paths = sorted(
+                    [
+                        p
+                        for p in Path(folder).iterdir()
+                        if p.is_file()
+                        and p.name.lower().endswith((".tif", ".tiff", ".nii.gz"))
+                    ]
+                )
                 if not image_paths:
                     show_info("No images found in folder.")
                     return
@@ -202,13 +209,12 @@ class SegmentationWidget:
                     self.widget,
                     "Confirm Batch Processing",
                     msg,
-                    QMessageBox.Yes | QMessageBox.No
+                    QMessageBox.Yes | QMessageBox.No,
                 )
 
                 if reply != QMessageBox.Yes:
                     show_info("Batch processing cancelled.")
                     return
-
 
                 self._set_ui_enabled(False)
                 self.volume_manager = VolumeManager()
@@ -278,13 +284,17 @@ class SegmentationWidget:
                 worker.returned.connect(_on_success)
                 worker.errored.connect(_on_error)
                 worker.start()
+
             self.run_folder_button = run_folder_button
             self.param_container.native.layout().addWidget(run_folder_button.native)
         else:
-            self.param_container.native.layout().removeWidget(self.run_folder_button.native)
-            self.param_container.native.layout().addWidget(self.run_folder_button.native)
+            self.param_container.native.layout().removeWidget(
+                self.run_folder_button.native
+            )
+            self.param_container.native.layout().addWidget(
+                self.run_folder_button.native
+            )
             self.param_container.native.show()
-
 
     def _make_param_widget(self, name: str, spec: dict):
         """
@@ -337,11 +347,10 @@ class SegmentationWidget:
 
         return labeled
 
-
     def _build_interactive_panel(self):
         layout = self.param_container.native.layout()
 
-            #     # ── Segment click mode ON/OFF ──────────────────────────────
+        #     # ── Segment click mode ON/OFF ──────────────────────────────
         self._sam2_click_active = widgets.CheckBox(
             value=False,
             label="Segment click mode",
@@ -349,13 +358,18 @@ class SegmentationWidget:
         layout.addWidget(self._sam2_click_active.native)
 
         self._sam2_status = widgets.Label(value="Status: not initialised")
-        self._sam2_status.native.setWordWrap(True) # attempt send text down rather than out (that autoresizes undesirably)
-        self._sam2_status.native.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred) # more enforcement of no dock size change
+        self._sam2_status.native.setWordWrap(
+            True
+        )  # attempt send text down rather than out (that autoresizes undesirably)
+        self._sam2_status.native.setSizePolicy(
+            QSizePolicy.Ignored, QSizePolicy.Preferred
+        )  # more enforcement of no dock size change
         layout.addWidget(self._sam2_status.native)
 
         @magicgui(call_button="Initialise (encode all slices)")
         def init_btn():
             self._sam2_initialise()
+
         self._sam2_init_btn = init_btn
         layout.addWidget(init_btn.native)
 
@@ -392,6 +406,7 @@ class SegmentationWidget:
         @magicgui(call_button="Segment by text (current slice)")
         def text_prompt_btn():
             self._sam3_run_text_prompt()
+
         self._sam3_text_btn = text_prompt_btn
 
         for w in [
@@ -422,6 +437,7 @@ class SegmentationWidget:
         @magicgui(call_button="Propagate through volume")
         def prop_btn():
             self._sam2_propagate()
+
         self._sam2_prop_btn = prop_btn
         layout.addWidget(prop_btn.native)
 
@@ -444,11 +460,19 @@ class SegmentationWidget:
         layout.addWidget(reset_all_btn.native)
 
         self._sam2_extra_widgets = [
-            self._sam2_status, init_btn,
-            self._sam3_text_input, self._sam3_text_obj_spinner, text_prompt_btn,
-            self._sam2_obj_spinner,self._sam2_obj_spinner_row,
-            prop_btn, reset_obj_btn, reset_all_btn,self._sam2_click_active,
-            self._sam3_text_obj_spinner_row,self._sam3_text_input_row
+            self._sam2_status,
+            init_btn,
+            self._sam3_text_input,
+            self._sam3_text_obj_spinner,
+            text_prompt_btn,
+            self._sam2_obj_spinner,
+            self._sam2_obj_spinner_row,
+            prop_btn,
+            reset_obj_btn,
+            reset_all_btn,
+            self._sam2_click_active,
+            self._sam3_text_obj_spinner_row,
+            self._sam3_text_input_row,
         ]
 
     def _set_ui_enabled(self, enabled: bool):
@@ -459,7 +483,7 @@ class SegmentationWidget:
 
         if self.run_button is not None:
             self.run_button.enabled = enabled
-            self.run_folder_button.enabled=enabled
+            self.run_folder_button.enabled = enabled
 
         sam_buttons = [
             "_sam2_init_btn",
@@ -469,12 +493,11 @@ class SegmentationWidget:
 
         for attr_name in sam_buttons:
             btn = getattr(self, attr_name, None)
-            if qt_widget_obj_exists(btn): # this function will return false on None
+            if qt_widget_obj_exists(btn):  # this function will return false on None
                 btn.enabled = enabled
 
         for param_widget in self.param_widgets.values():
-            param_widget.control.enabled = enabled 
-
+            param_widget.control.enabled = enabled
 
     def _sam3_run_text_prompt(self):
         """Called by the 'Segment by text' button."""
@@ -488,7 +511,7 @@ class SegmentationWidget:
             return
 
         obj_id = self._sam3_text_obj_spinner.value
-        z      = self.viewer.dims.current_step[0]   # current slice in viewer
+        z = self.viewer.dims.current_step[0]  # current slice in viewer
         params = {k: w.control.value for k, w in self.param_widgets.items()}
 
         self._sam2_status.value = f'Status: running text prompt "{text}" on slice {z}…'
@@ -505,6 +528,7 @@ class SegmentationWidget:
             )
         except Exception as e:
             self._sam2_status.value = f"Status: ERROR — {e}"
+
     # ------------------------------------------------------------------
     # SAM2 actions
     # ------------------------------------------------------------------
@@ -538,10 +562,15 @@ class SegmentationWidget:
 
         def _on_success(blank):
             self._set_ui_enabled(True)
-            if self._sam2_labels_layer is not None and self._sam2_labels_layer in self.viewer.layers:
+            if (
+                self._sam2_labels_layer is not None
+                and self._sam2_labels_layer in self.viewer.layers
+            ):
                 self.viewer.layers.remove(self._sam2_labels_layer)
 
-            self._sam2_labels_layer = self.viewer.add_labels(blank, name=f"{self.current_algo.name}_AdaptFMseg")
+            self._sam2_labels_layer = self.viewer.add_labels(
+                blank, name=f"{self.current_algo.name}_AdaptFMseg"
+            )
             self._sam2_status.value = (
                 f"Status: ready — {self.current_algo.n_slices} slices encoded.\n"
                 "Left-click = add prompt, right-click = background"
@@ -589,20 +618,26 @@ class SegmentationWidget:
             if len(coords) < 3:
                 return
 
-            z0  = int(np.clip(round(coords[0]), 0, self.current_algo.n_slices - 1))
-            r0  = int(coords[1])
-            c0  = int(coords[2])
+            z0 = int(np.clip(round(coords[0]), 0, self.current_algo.n_slices - 1))
+            r0 = int(coords[1])
+            c0 = int(coords[2])
 
             # Right-click: handle immediately, no drag tracking needed
             if event.button == 2:
                 obj_id = self._sam2_obj_spinner.value
                 try:
                     self.current_algo.add_prompt(
-                        z=z0, x=c0, y=r0, label=0,
-                        obj_id=obj_id, params=self._sam2_get_params(),
+                        z=z0,
+                        x=c0,
+                        y=r0,
+                        label=0,
+                        obj_id=obj_id,
+                        params=self._sam2_get_params(),
                     )
                     self._sam2_refresh_labels()
-                    self._sam2_status.value = f"Status: BG click — slice {z0}, obj {obj_id}, ({c0}, {r0})"
+                    self._sam2_status.value = (
+                        f"Status: BG click — slice {z0}, obj {obj_id}, ({c0}, {r0})"
+                    )
                 except Exception as e:
                     self._sam2_status.value = f"Status: ERROR — {e}"
                 return
@@ -620,19 +655,23 @@ class SegmentationWidget:
             if len(coords) < 3:
                 return
 
-            z1  = int(np.clip(round(coords[0]), 0, self.current_algo.n_slices - 1))
-            r1  = int(coords[1])
-            c1  = int(coords[2])
+            z1 = int(np.clip(round(coords[0]), 0, self.current_algo.n_slices - 1))
+            r1 = int(coords[1])
+            c1 = int(coords[2])
 
             drag_dist = np.hypot(c1 - c0, r1 - r0)
             obj_id = self._sam2_obj_spinner.value
 
             try:
                 if drag_dist < BOX_MIN_DRAG_PX:
-                    label = 1 
+                    label = 1
                     self.current_algo.add_prompt(
-                        z=z0, x=c0, y=r0, label=label,
-                        obj_id=obj_id, params=self._sam2_get_params(),
+                        z=z0,
+                        x=c0,
+                        y=r0,
+                        label=label,
+                        obj_id=obj_id,
+                        params=self._sam2_get_params(),
                     )
                     self._sam2_refresh_labels()
                     self._sam2_status.value = f"Status: {'FG' if label else 'BG'} click — slice {z0}, obj {obj_id}, ({c0}, {r0})"
@@ -642,12 +681,13 @@ class SegmentationWidget:
                     x_min, x_max = sorted([c0, c1])
                     y_min, y_max = sorted([r0, r1])
                     self.current_algo.add_box_prompt(
-                        z=z0, 
+                        z=z0,
                         x0=x_min,
                         y0=y_min,
                         x1=x_max,
                         y1=y_max,
-                        obj_id=obj_id, params=self._sam2_get_params(),
+                        obj_id=obj_id,
+                        params=self._sam2_get_params(),
                     )
                     self._sam2_refresh_labels()
                     self._sam2_status.value = f"Status: box — slice {z0}, obj {obj_id}, [{x_min},{y_min} → {x_max},{y_max}]"
@@ -658,13 +698,12 @@ class SegmentationWidget:
         self._sam2_click_callback = on_drag
         self.viewer.mouse_drag_callbacks.append(on_drag)
 
-
     def _sam2_propagate(self):
         if not self.current_algo.is_initialized:
             self._sam2_status.value = "Status: initialise first"
             return
 
-        params    = self._sam2_get_params()
+        params = self._sam2_get_params()
         direction = params.get("propagation_direction", "both")
 
         # No longer need obj_id — propagates everything at once
@@ -685,7 +724,7 @@ class SegmentationWidget:
 
         def _on_success(result):
             self._set_ui_enabled(True)
-            
+
             if result is not None:
                 self._sam2_refresh_labels()
                 self._sam2_status.value = "Status: propagation done"
@@ -699,7 +738,6 @@ class SegmentationWidget:
         worker.returned.connect(_on_success)
         worker.errored.connect(_on_error)
         worker.start()
-
 
     def _sam2_refresh_labels(self):
         """Push the updated label volume back to the napari layer."""
@@ -725,5 +763,3 @@ class SegmentationWidget:
         self._sam2_init_btn = None
         self._sam2_prop_btn = None
         self._sam3_text_btn = None
-
-

@@ -1,9 +1,9 @@
 import numpy as np
-from skimage.filters import threshold_triangle, threshold_otsu, gaussian
-from skimage.measure import regionprops, label
-from skimage.morphology import remove_small_objects
-from scipy.ndimage import distance_transform_edt
 from joblib import Parallel, delayed
+from scipy.ndimage import distance_transform_edt
+from skimage.filters import gaussian, threshold_otsu, threshold_triangle
+from skimage.measure import label, regionprops
+from skimage.morphology import remove_small_objects
 
 # ---------------------------------------------------------------------------
 # GPU ACCELERATION (optional — requires: pip install cupy cucim-cu12)
@@ -11,10 +11,10 @@ from joblib import Parallel, delayed
 # To enable GPU mode set USE_GPU = True.
 
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def triangle_threshold_4_binary(image):
     """Triangle threshold → binary. Logic unchanged."""
@@ -36,7 +36,7 @@ def _process_z_layer(z, volume, max_threshold, minimum_size, sigma):
     regions = regionprops(labeled_array)
     volume_list = [region.area for region in regions]
 
-    if minimum_size == '':
+    if minimum_size == "":
         volume_array = np.asarray(volume_list)
         z_min_size = float(np.mean(volume_array)) if volume_array.size > 0 else 0.0
     else:
@@ -45,7 +45,7 @@ def _process_z_layer(z, volume, max_threshold, minimum_size, sigma):
     labeled_array_filtered = remove_small_objects(labeled_array, max_size=z_min_size)
     filtered_binary_image = (labeled_array_filtered > 0).astype(np.uint8)
 
-    if sigma == '':
+    if sigma == "":
         distance_transform = distance_transform_edt(labeled_array)
         z_sigma = float(np.max(distance_transform))
     else:
@@ -56,15 +56,14 @@ def _process_z_layer(z, volume, max_threshold, minimum_size, sigma):
     return z, segmented_layer
 
 
-
 # ---------------------------------------------------------------------------
 # Main segmentation function
 # ---------------------------------------------------------------------------
 
-def run_organoid_segmentation(volume,
-                              minimum_size,
-                              sigma,
-                              n_jobs=-1):          # n_jobs=-1 → use all CPU cores
+
+def run_organoid_segmentation(
+    volume, minimum_size, sigma, n_jobs=-1
+):  # n_jobs=-1 → use all CPU cores
     """
     Accelerated organoid segmentation.  Segmentation logic is identical to
     the original; speed gains come from:
@@ -110,4 +109,3 @@ def run_organoid_segmentation(volume,
 
     final_image = (final_image > 0).astype(np.uint8)
     return final_image
-

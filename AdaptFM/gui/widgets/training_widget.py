@@ -1,4 +1,3 @@
-
 """
 training_widget.py
 ------------------
@@ -18,35 +17,34 @@ Flow
 
 from __future__ import annotations
 
-import json
-import os
 from pathlib import Path
-from typing import Optional
 
-from qtpy.QtCore import QThread, Signal, QObject
-from qtpy.QtWidgets import QWidget, QLabel
+from qtpy.QtCore import QObject, QThread, Signal
 
 from AdaptFM.gui.widgets.model_widget import (
-    ModelWorkflowWidget, _section_label, _RED, _AMBER, _GREEN,
+    _AMBER,
+    _GREEN,
+    _RED,
+    ModelWorkflowWidget,
 )
 from AdaptFM.model.nnUNetV2Spec import NNUNetV2ModelSpec
 from AdaptFM.model.registry import MODEL_REGISTRY
-
 
 # ---------------------------------------------------------------------------
 # Background worker: prepare_dataset() can do heavy file I/O
 # ---------------------------------------------------------------------------
 
+
 class _PrepareWorker(QObject):
-    finished = Signal(object)   # dataset_info (any type the model returns)
-    error    = Signal(str)
+    finished = Signal(object)  # dataset_info (any type the model returns)
+    error = Signal(str)
 
     def __init__(self, model, dataset_manager, output_dir, params):
         super().__init__()
-        self._model          = model
+        self._model = model
         self._dataset_manager = dataset_manager
-        self._output_dir     = output_dir
-        self._params         = params
+        self._output_dir = output_dir
+        self._params = params
 
     def run(self):
         try:
@@ -74,14 +72,15 @@ class _PrepareWorker(QObject):
 # TrainingWidget
 # ---------------------------------------------------------------------------
 
+
 class TrainingWidget(ModelWorkflowWidget):
     WINDOW_TITLE = "Training"
-    SKIP_PARAMS  = False
+    SKIP_PARAMS = False
 
     def __init__(self, dataset_manager):
-        self._prep_thread: Optional[QThread] = None
-        self._prep_worker: Optional[_PrepareWorker] = None
-        self.output_dir: Optional[Path] = None
+        self._prep_thread: QThread | None = None
+        self._prep_worker: _PrepareWorker | None = None
+        self.output_dir: Path | None = None
         super().__init__(dataset_manager)
 
     # ------------------------------------------------------------------
@@ -98,23 +97,25 @@ class TrainingWidget(ModelWorkflowWidget):
             if model_spec.supports_training:
                 self._model_combo.addItem(model_name)
 
-
     def _run_workflow(self):
         # Already validated by base: model set, output_dir set, no process running
         if self.dataset_dir is None:
             self._log_line("⚠  Please select a dataset folder.", color=_AMBER)
             return
-        
-        conda_env = Path(self.model.conda_env) if self.model.conda_env is not None else None
-        if conda_env is None or not conda_env.is_dir(): # none comes first else err on the dircheck
+
+        conda_env = (
+            Path(self.model.conda_env) if self.model.conda_env is not None else None
+        )
+        if (
+            conda_env is None or not conda_env.is_dir()
+        ):  # none comes first else err on the dircheck
             raise RuntimeError(
-            f"{self.model.conda_env} not installed. "
-            "You must first install the environment with the environment manager before using."
+                f"{self.model.conda_env} not installed. "
+                "You must first install the environment with the environment manager before using."
             )
 
-
-        params  = self.collect_params()
-        gpu     = self._gpu_spin.value()
+        params = self.collect_params()
+        gpu = self._gpu_spin.value()
         params["gpu"] = gpu
 
         self._log_line(
@@ -138,7 +139,7 @@ class TrainingWidget(ModelWorkflowWidget):
         self._prep_worker.finished.connect(self._prep_thread.quit)
         self._prep_worker.error.connect(self._prep_thread.quit)
         self._prep_thread.finished.connect(self._prep_thread.deleteLater)
-        self._prep_thread.finished.connect(lambda: setattr(self, '_prep_thread', None))
+        self._prep_thread.finished.connect(lambda: setattr(self, "_prep_thread", None))
         self._prep_thread.start()
 
     def _on_prepare_error(self, msg: str):
@@ -151,7 +152,9 @@ class TrainingWidget(ModelWorkflowWidget):
         env_extra = {"CUDA_VISIBLE_DEVICES": str(gpu)}
 
         # Build the conda-wrapped command list
-        training_cmd  = self.model.training_command(dataset_info, params, self.output_dir)
+        training_cmd = self.model.training_command(
+            dataset_info, params, self.output_dir
+        )
         full_train_cmd = self.model._wrap_with_conda(training_cmd)
 
         if isinstance(self.model, NNUNetV2ModelSpec):
@@ -165,7 +168,7 @@ class TrainingWidget(ModelWorkflowWidget):
 
             self._run_chain(
                 steps=[
-                    (full_pre_cmd[0],   full_pre_cmd[1:],   "Preprocessing"),
+                    (full_pre_cmd[0], full_pre_cmd[1:], "Preprocessing"),
                     (full_train_cmd[0], full_train_cmd[1:], "Training"),
                 ],
                 env_extra=env_extra,
@@ -185,12 +188,14 @@ class TrainingWidget(ModelWorkflowWidget):
         if exit_code == 0:
             self._log_line(
                 f"\n✓  Training complete. Output: {self.output_dir}",
-                color=_GREEN, bold=True,
+                color=_GREEN,
+                bold=True,
             )
         else:
             self._log_line(
                 f"\n✗  Training failed (exit {exit_code}).",
-                color=_RED, bold=True,
+                color=_RED,
+                bold=True,
             )
 
     # ------------------------------------------------------------------

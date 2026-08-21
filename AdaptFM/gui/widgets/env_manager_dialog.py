@@ -1,4 +1,3 @@
-
 """
 env_manager_dialog.py
 ---------------------
@@ -32,48 +31,59 @@ Layout
 from __future__ import annotations
 
 import shutil
-import subprocess
-from typing import Callable, Optional
+from collections.abc import Callable
 
-from qtpy.QtCore import (
-    Qt, QProcess, QThread, Signal, QObject,QProcessEnvironment
-)
+from qtpy.QtCore import QObject, QProcess, QProcessEnvironment, Qt, QThread, Signal
 from qtpy.QtGui import QFont, QTextCursor
 from qtpy.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QScrollArea, QWidget, QFrame, QTextEdit, QSizePolicy,
-    QMessageBox, QProgressBar, QSplitter,QInputDialog
+    QDialog,
+    QFrame,
+    QHBoxLayout,
+    QInputDialog,
+    QLabel,
+    QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QScrollArea,
+    QSizePolicy,
+    QSplitter,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
 )
 
-from AdaptFM.install.env_registry import ENV_REGISTRY, EnvironmentSpec
-from AdaptFM.install.env_inspector import (
-    EnvStatus, PackageVersionInfo, probe_all,
-)
 from AdaptFM.gui.widgets.pytorch_config_widget import PyTorchConfigWidget
 from AdaptFM.gui.widgets.sam_card import SamCard
 from AdaptFM.gui.widgets.ssvt_card import SSVTCard
+from AdaptFM.install.env_inspector import (
+    EnvStatus,
+    PackageVersionInfo,
+    probe_all,
+)
+from AdaptFM.install.env_registry import ENV_REGISTRY, EnvironmentSpec
 from AdaptFM.model.model_utils import REPO_ROOT
 
 # ---------------------------------------------------------------------------
 # Colour / style constants (kept minimal so they work on both light & dark Qt)
 # ---------------------------------------------------------------------------
 
-_INSTALLED_COLOR   = "#4caf50"   # green
-_UNINSTALLED_COLOR = "#9e9e9e"   # grey
-_UPDATE_COLOR      = "#ff9800"   # amber
-_WARNING_COLOR     = "#f44336"   # red-ish
-_CARD_BG_DARK      = "#2b2b2b"
-_CARD_BORDER       = "#444"
-_MONO_FONT         = "Consolas, 'Courier New', monospace"
+_INSTALLED_COLOR = "#4caf50"  # green
+_UNINSTALLED_COLOR = "#9e9e9e"  # grey
+_UPDATE_COLOR = "#ff9800"  # amber
+_WARNING_COLOR = "#f44336"  # red-ish
+_CARD_BG_DARK = "#2b2b2b"
+_CARD_BORDER = "#444"
+_MONO_FONT = "Consolas, 'Courier New', monospace"
 
 
 # ---------------------------------------------------------------------------
 # Background probe worker
 # ---------------------------------------------------------------------------
 
+
 class _ProbeWorker(QObject):
-    finished = Signal(list)   # list[EnvStatus]
-    error    = Signal(str)
+    finished = Signal(list)  # list[EnvStatus]
+    error = Signal(str)
 
     def __init__(self, specs):
         super().__init__()
@@ -91,8 +101,9 @@ class _ProbeWorker(QObject):
 # Per-package version row
 # ---------------------------------------------------------------------------
 
+
 class _PackageRow(QWidget):
-    update_requested = Signal(str)   # emits the pip package import_name
+    update_requested = Signal(str)  # emits the pip package import_name
 
     def __init__(self, info: PackageVersionInfo, parent=None):
         super().__init__(parent)
@@ -111,7 +122,7 @@ class _PackageRow(QWidget):
         row.addWidget(name_lbl)
 
         installed = self._info.installed_version or "—"
-        latest    = self._info.latest_version
+        latest = self._info.latest_version
 
         inst_lbl = QLabel(f"installed: {installed}")
         inst_lbl.setStyleSheet("color: #aaa; font-size: 11px;")
@@ -155,11 +166,12 @@ class _PackageRow(QWidget):
 # Per-environment card
 # ---------------------------------------------------------------------------
 
+
 class _EnvCard(QFrame):
     """One card per EnvironmentSpec."""
 
-    action_requested       = Signal(str, str)  # (env_key, action)
-    pytorch_config_clicked = Signal()           # user clicked the PyTorch warning link
+    action_requested = Signal(str, str)  # (env_key, action)
+    pytorch_config_clicked = Signal()  # user clicked the PyTorch warning link
 
     def __init__(self, status: EnvStatus, parent=None):
         super().__init__(parent)
@@ -197,16 +209,14 @@ class _EnvCard(QFrame):
 
         # Status badge
         if self._status.is_installed:
-            badge_text  = "● Installed"
+            badge_text = "● Installed"
             badge_color = _INSTALLED_COLOR
         else:
-            badge_text  = "○ Not installed"
+            badge_text = "○ Not installed"
             badge_color = _UNINSTALLED_COLOR
 
         badge = QLabel(badge_text)
-        badge.setStyleSheet(
-            f"color: {badge_color}; font-size: 11px; font-weight: 600;"
-        )
+        badge.setStyleSheet(f"color: {badge_color}; font-size: 11px; font-weight: 600;")
         hdr.addWidget(badge)
         outer.addLayout(hdr)
 
@@ -219,17 +229,18 @@ class _EnvCard(QFrame):
         # --- PyTorch swap warning (clickable link → opens config card) ---
         if spec.requires_pytorch_swap:
             from AdaptFM.gui.widgets.pytorch_config_widget import PYTORCH_CMD_FILE
+
             if PYTORCH_CMD_FILE.exists() and PYTORCH_CMD_FILE.read_text().strip():
                 warn_text = (
-                    '⚠  Uses a custom PyTorch build  '
+                    "⚠  Uses a custom PyTorch build  "
                     f'<a href="configure" style="color:{_UPDATE_COLOR}; font-size:10px;">'
-                    'change</a>'
+                    "change</a>"
                 )
             else:
                 warn_text = (
                     f'<span style="color:{_WARNING_COLOR};">⚠  PyTorch not configured</span>  '
                     f'<a href="configure" style="color:{_UPDATE_COLOR}; font-size:10px;">'
-                    'configure now ↑</a>'
+                    "configure now ↑</a>"
                 )
             warn = QLabel(warn_text)
             warn.setOpenExternalLinks(False)
@@ -282,7 +293,8 @@ class _EnvCard(QFrame):
     def _on_uninstall(self):
         spec = self._status.spec
         reply = QMessageBox.question(
-            self, "Confirm uninstall",
+            self,
+            "Confirm uninstall",
             f"Remove conda environment '{spec.conda_env_name}'?\n\n"
             f"This will delete the environment and all its packages.",
             QMessageBox.Yes | QMessageBox.No,
@@ -304,6 +316,7 @@ class _EnvCard(QFrame):
 # Main dialog
 # ---------------------------------------------------------------------------
 
+
 class EnvironmentManagerDialog(QDialog):
     """
     Launched from the Environments menu item.
@@ -318,9 +331,9 @@ class EnvironmentManagerDialog(QDialog):
         self.setMinimumWidth(560)
 
         self._cards: dict[str, _EnvCard] = {}
-        self._process: Optional[QProcess] = None
-        self._probe_thread: Optional[QThread] = None
-        self._probe_worker: Optional[_ProbeWorker] = None
+        self._process: QProcess | None = None
+        self._probe_thread: QThread | None = None
+        self._probe_worker: _ProbeWorker | None = None
 
         self._build_ui()
         self._start_probe()
@@ -354,7 +367,7 @@ class EnvironmentManagerDialog(QDialog):
 
         # Progress bar (hidden when idle)
         self._progress = QProgressBar()
-        self._progress.setRange(0, 0)   # indeterminate
+        self._progress.setRange(0, 0)  # indeterminate
         self._progress.setFixedHeight(4)
         self._progress.setVisible(False)
         self._progress.setStyleSheet(
@@ -383,7 +396,6 @@ class EnvironmentManagerDialog(QDialog):
         self._scroll.setWidget(self._card_container)
         scroll_layout.addWidget(self._scroll)
         splitter.addWidget(scroll_outer)
-
 
         # Log panel
         log_outer = QWidget()
@@ -448,12 +460,8 @@ class EnvironmentManagerDialog(QDialog):
         self._refresh_btn.setEnabled(True)
 
         installed = sum(1 for s in statuses if s.is_installed)
-        total     = len(statuses)
-        updates   = sum(
-            1 for s in statuses
-            for p in s.packages
-            if p.update_available
-        )
+        total = len(statuses)
+        updates = sum(1 for s in statuses for p in s.packages if p.update_available)
 
         parts = [f"{installed}/{total} environments installed"]
         if updates:
@@ -468,7 +476,8 @@ class EnvironmentManagerDialog(QDialog):
         self._card_layout.addWidget(self._pytorch_card)
 
         self._sam2_card = SamCard(
-            key="SAM2", display_name="SAM 2",
+            key="SAM2",
+            display_name="SAM 2",
             description="Segment Anything Model 2 (Meta). Installs directly into the AdaptFM environment.",
             import_name="sam2",
             install_command="adaptfm-install-sam2",
@@ -476,10 +485,11 @@ class EnvironmentManagerDialog(QDialog):
             requires_pytorch=True,
             log_fn=self._log_line,
             run_process_fn=self._run_process,
-            source_dir = REPO_ROOT/"segmentation"/"sam2"
+            source_dir=REPO_ROOT / "segmentation" / "sam2",
         )
         self._sam3_card = SamCard(
-            key="SAM3", display_name="SAM 3",
+            key="SAM3",
+            display_name="SAM 3",
             description="Segment Anything Model 3 (Meta). Installs directly into the AdaptFM environment.",
             import_name="sam3",
             install_command="adaptfm-install-sam3",
@@ -487,19 +497,20 @@ class EnvironmentManagerDialog(QDialog):
             requires_pytorch=True,
             log_fn=self._log_line,
             run_process_fn=self._run_process,
-            source_dir = REPO_ROOT/"segmentation"/"sam3"
+            source_dir=REPO_ROOT / "segmentation" / "sam3",
         )
 
         self._ssvt_card = SSVTCard(
-            key="SSVT",display_name="SSVT",
-            description = "Downloads the SSVT model from Hugging face",
+            key="SSVT",
+            display_name="SSVT",
+            description="Downloads the SSVT model from Hugging face",
             import_name=None,
             install_command="adaptfm-install-ssvt",
             uninstall_command="adaptfm-uninstall-ssvt",
             requires_pytorch=False,
             log_fn=self._log_line,
             run_process_fn=self._run_process,
-            source_dir =None
+            source_dir=None,
         )
 
         self._sam2_card.pytorch_config_clicked.connect(self._focus_pytorch_card)
@@ -508,13 +519,16 @@ class EnvironmentManagerDialog(QDialog):
         self._card_layout.addWidget(self._sam3_card)
         self._card_layout.addWidget(self._ssvt_card)
 
-        self._aux_cards = [self._pytorch_card, self._sam2_card, self._sam3_card,
-                           self._ssvt_card]
+        self._aux_cards = [
+            self._pytorch_card,
+            self._sam2_card,
+            self._sam3_card,
+            self._ssvt_card,
+        ]
 
         # Stretch goes last, AFTER every fixed card. Dynamic env cards get
         # inserted just before it via `idx = self._card_layout.count() - 1`.
         self._card_layout.addStretch()
-
 
         for status in statuses:
             card = _EnvCard(status)
@@ -540,7 +554,7 @@ class EnvironmentManagerDialog(QDialog):
         program: str,
         args: list[str],
         label: str = "",
-        on_done: Optional[Callable[[int], None]] = None,
+        on_done: Callable[[int], None] | None = None,
     ):
         """
         Start *program* with *args* in a QProcess.
@@ -550,9 +564,9 @@ class EnvironmentManagerDialog(QDialog):
         """
         if self._process and self._process.state() != QProcess.NotRunning:
             QMessageBox.warning(
-                self, "Busy",
-                "Another operation is already running.\n"
-                "Please wait for it to finish.",
+                self,
+                "Busy",
+                "Another operation is already running.\nPlease wait for it to finish.",
             )
             return
 
@@ -567,7 +581,7 @@ class EnvironmentManagerDialog(QDialog):
         def _done(code, _status):
             self._progress.setVisible(False)
             self._set_all_cards_busy(False)
-            
+
             for card in getattr(self, "_aux_cards", []):
                 card.setEnabled(True)
 
@@ -588,15 +602,16 @@ class EnvironmentManagerDialog(QDialog):
 
     def _on_action(self, env_key: str, action: str):
         from AdaptFM.install.env_registry import ENV_REGISTRY_MAP
+
         spec = ENV_REGISTRY_MAP.get(env_key)
         if not spec:
             return
 
         if self._process and self._process.state() != QProcess.NotRunning:
             QMessageBox.warning(
-                self, "Busy",
-                "Another operation is already running.\n"
-                "Please wait for it to finish.",
+                self,
+                "Busy",
+                "Another operation is already running.\nPlease wait for it to finish.",
             )
             return
 
@@ -621,16 +636,19 @@ class EnvironmentManagerDialog(QDialog):
                 color=_WARNING_COLOR,
             )
             return
-        
+
         extra_env = None
         if env_key == "CellSAM" and command == spec.install_command:
             access_token, ok = QInputDialog.getText(
                 self,
                 "DeepCell Access Token",
-                "Enter your DeepCell access token for CellSAM:"
+                "Enter your DeepCell access token for CellSAM:",
             )
             if not ok:
-                self._log_line("[install cancelled] CellSAM token entry cancelled.", color=_WARNING_COLOR)
+                self._log_line(
+                    "[install cancelled] CellSAM token entry cancelled.",
+                    color=_WARNING_COLOR,
+                )
                 return
 
             access_token = access_token.strip()
@@ -638,7 +656,7 @@ class EnvironmentManagerDialog(QDialog):
                 QMessageBox.warning(
                     self,
                     "Missing token",
-                    "A DeepCell access token is required to install CellSAM."
+                    "A DeepCell access token is required to install CellSAM.",
                 )
                 return
 
@@ -662,7 +680,6 @@ class EnvironmentManagerDialog(QDialog):
             self._process.setProcessEnvironment(env)
 
         self._process.start(exe, [])
-
 
     def _run_uninstall(self, spec: EnvironmentSpec, env_key: str):
         """Uninstall = run uninstall script if it exists, else conda env remove."""
@@ -690,9 +707,7 @@ class EnvironmentManagerDialog(QDialog):
         # -------------------------
         # Fallback: conda env remove
         # -------------------------
-        self._log_line(
-            f"\n▶ conda env remove -n {spec.conda_env_name} -y", bold=True
-        )
+        self._log_line(f"\n▶ conda env remove -n {spec.conda_env_name} -y", bold=True)
         self._set_all_cards_busy(True)
         self._progress.setVisible(True)
 
@@ -706,8 +721,16 @@ class EnvironmentManagerDialog(QDialog):
 
     def _run_pip_update(self, spec: EnvironmentSpec, import_name: str, env_key: str):
         """Run `conda run -n <env> pip install --upgrade <package>`."""
-        args = ["run", "-n", spec.conda_env_name, "--no-capture-output",
-                "pip", "install", "--upgrade", import_name]
+        args = [
+            "run",
+            "-n",
+            spec.conda_env_name,
+            "--no-capture-output",
+            "pip",
+            "install",
+            "--upgrade",
+            import_name,
+        ]
         self._log_line(f"\n▶ conda {' '.join(args)}", bold=True)
         self._set_all_cards_busy(True)
         self._progress.setVisible(True)
@@ -737,7 +760,11 @@ class EnvironmentManagerDialog(QDialog):
         self._set_all_cards_busy(False)
 
         if exit_code == 0:
-            self._log_line("\n✓ Done. RESTART ADAPTFM TO USE THIS MODEL", color=_INSTALLED_COLOR, bold=True)
+            self._log_line(
+                "\n✓ Done. RESTART ADAPTFM TO USE THIS MODEL",
+                color=_INSTALLED_COLOR,
+                bold=True,
+            )
         else:
             self._log_line(
                 f"\n✗ Exited with code {exit_code}", color=_WARNING_COLOR, bold=True
@@ -752,7 +779,7 @@ class EnvironmentManagerDialog(QDialog):
 
     def _reprobe_one(self, env_key: str):
         from AdaptFM.install.env_registry import ENV_REGISTRY_MAP
-        from AdaptFM.install.env_inspector import probe_env
+
         spec = ENV_REGISTRY_MAP.get(env_key)
         if not spec:
             return
@@ -764,7 +791,9 @@ class EnvironmentManagerDialog(QDialog):
         worker = _SingleProbeWorker(spec)
         worker.moveToThread(thread)
         thread.started.connect(worker.run)
-        worker.finished.connect(lambda status: self._on_single_probe_done(status, thread))
+        worker.finished.connect(
+            lambda status: self._on_single_probe_done(status, thread)
+        )
         worker.finished.connect(thread.quit)
         thread.start()
         # Keep a reference so it isn't GC'd
@@ -800,14 +829,14 @@ class EnvironmentManagerDialog(QDialog):
     def _log_line(self, text: str, color: str = "", bold: bool = False):
         self._log.moveCursor(QTextCursor.End)
         if color or bold:
-            fmt_open  = ""
+            fmt_open = ""
             fmt_close = ""
             if bold:
-                fmt_open  += "<b>"
-                fmt_close  = "</b>" + fmt_close
+                fmt_open += "<b>"
+                fmt_close = "</b>" + fmt_close
             if color:
-                fmt_open  += f'<span style="color:{color};">'
-                fmt_close  = "</span>" + fmt_close
+                fmt_open += f'<span style="color:{color};">'
+                fmt_close = "</span>" + fmt_close
             self._log.insertHtml(
                 f"{fmt_open}{text.replace(chr(10), '<br>')}{fmt_close}<br>"
             )
@@ -824,7 +853,8 @@ class EnvironmentManagerDialog(QDialog):
     def closeEvent(self, event):
         if self._process and self._process.state() != QProcess.NotRunning:
             reply = QMessageBox.question(
-                self, "Operation in progress",
+                self,
+                "Operation in progress",
                 "An install/uninstall is still running.\n"
                 "Close anyway? (the process will keep running in the background)",
                 QMessageBox.Yes | QMessageBox.No,
@@ -840,8 +870,9 @@ class EnvironmentManagerDialog(QDialog):
 # Lightweight single-env probe worker
 # ---------------------------------------------------------------------------
 
+
 class _SingleProbeWorker(QObject):
-    finished = Signal(object)   # EnvStatus
+    finished = Signal(object)  # EnvStatus
 
     def __init__(self, spec):
         super().__init__()
@@ -849,6 +880,7 @@ class _SingleProbeWorker(QObject):
 
     def run(self):
         from AdaptFM.install.env_inspector import probe_env
+
         try:
             self.finished.emit(probe_env(self._spec))
         except Exception:

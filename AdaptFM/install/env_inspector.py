@@ -11,24 +11,24 @@ from __future__ import annotations
 
 import json
 import subprocess
-import urllib.request
 import urllib.error
+import urllib.request
 from dataclasses import dataclass
-from typing import Optional
 
 from AdaptFM.install.env_registry import EnvironmentSpec, PipPackageSpec
-
 
 # ---------------------------------------------------------------------------
 # Data classes returned to the GUI
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class PackageVersionInfo:
     """Version state for one pip package inside a conda env."""
+
     spec: PipPackageSpec
-    installed_version: Optional[str]   # None → not installed
-    latest_version: Optional[str]      # None → could not determine
+    installed_version: str | None  # None → not installed
+    latest_version: str | None  # None → could not determine
     update_available: bool = False
     error: str = ""
 
@@ -36,6 +36,7 @@ class PackageVersionInfo:
 @dataclass
 class EnvStatus:
     """Full status snapshot for one EnvironmentSpec."""
+
     spec: EnvironmentSpec
     is_installed: bool
     packages: list[PackageVersionInfo]
@@ -46,22 +47,30 @@ class EnvStatus:
 # Conda helpers
 # ---------------------------------------------------------------------------
 
+
 def _conda_envs() -> set[str]:
     """Return the set of currently-existing conda env names."""
     try:
         result = subprocess.run(
             ["conda", "env", "list", "--json"],
-            capture_output=True, text=True, check=True, timeout=30,
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=30,
         )
         data = json.loads(result.stdout)
         # each path ends with the env name
-        return {p.rstrip("/\\").split("/")[-1].split("\\")[-1]
-                for p in data.get("envs", [])}
+        return {
+            p.rstrip("/\\").split("/")[-1].split("\\")[-1] for p in data.get("envs", [])
+        }
     except Exception:
         # fall back to text parsing
         result = subprocess.run(
             ["conda", "env", "list"],
-            capture_output=True, text=True, check=False, timeout=30,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=30,
         )
         names: set[str] = set()
         for line in result.stdout.splitlines():
@@ -71,13 +80,24 @@ def _conda_envs() -> set[str]:
         return names
 
 
-def _conda_run_pip_show(env_name: str, package: str) -> Optional[str]:
+def _conda_run_pip_show(env_name: str, package: str) -> str | None:
     """Return installed version string for *package* in *env_name*, or None."""
     try:
         result = subprocess.run(
-            ["conda", "run", "-n", env_name, "--no-capture-output",
-             "pip", "show", package],
-            capture_output=True, text=True, check=False, timeout=30,
+            [
+                "conda",
+                "run",
+                "-n",
+                env_name,
+                "--no-capture-output",
+                "pip",
+                "show",
+                package,
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=30,
         )
         for line in result.stdout.splitlines():
             if line.lower().startswith("version:"):
@@ -91,7 +111,8 @@ def _conda_run_pip_show(env_name: str, package: str) -> Optional[str]:
 # Remote version helpers
 # ---------------------------------------------------------------------------
 
-def _pypi_latest(package: str) -> Optional[str]:
+
+def _pypi_latest(package: str) -> str | None:
     url = f"https://pypi.org/pypi/{package}/json"
     try:
         with urllib.request.urlopen(url, timeout=10) as resp:
@@ -101,7 +122,7 @@ def _pypi_latest(package: str) -> Optional[str]:
         return None
 
 
-def _github_latest_tag(repo: str) -> Optional[str]:
+def _github_latest_tag(repo: str) -> str | None:
     """Return the tag_name of the latest GitHub release (no auth needed for public repos)."""
     url = f"https://api.github.com/repos/{repo}/releases/latest"
     req = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json"})
@@ -113,11 +134,14 @@ def _github_latest_tag(repo: str) -> Optional[str]:
         return None
 
 
-def _conda_latest(conda_package: str) -> Optional[str]:
+def _conda_latest(conda_package: str) -> str | None:
     try:
         result = subprocess.run(
             ["conda", "search", conda_package, "--json"],
-            capture_output=True, text=True, check=False, timeout=30,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=30,
         )
         data = json.loads(result.stdout)
         entries = data.get(conda_package, [])
@@ -136,7 +160,7 @@ def _version_tuple(v: str):
         return (0,)
 
 
-def _update_available(installed: Optional[str], latest: Optional[str]) -> bool:
+def _update_available(installed: str | None, latest: str | None) -> bool:
     if not installed or not latest:
         return False
     return _version_tuple(latest) > _version_tuple(installed)
@@ -145,6 +169,7 @@ def _update_available(installed: Optional[str], latest: Optional[str]) -> bool:
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 def probe_env(spec: EnvironmentSpec) -> EnvStatus:
     """
@@ -157,9 +182,11 @@ def probe_env(spec: EnvironmentSpec) -> EnvStatus:
     pkg_infos: list[PackageVersionInfo] = []
     if is_installed:
         for pkg_spec in spec.pip_packages:
-            installed_ver = _conda_run_pip_show(spec.conda_env_name, pkg_spec.import_name)
+            installed_ver = _conda_run_pip_show(
+                spec.conda_env_name, pkg_spec.import_name
+            )
 
-            latest_ver: Optional[str] = None
+            latest_ver: str | None = None
             error = ""
             try:
                 if pkg_spec.update_source == "pypi":
@@ -173,13 +200,15 @@ def probe_env(spec: EnvironmentSpec) -> EnvStatus:
             except Exception as exc:
                 error = str(exc)
 
-            pkg_infos.append(PackageVersionInfo(
-                spec=pkg_spec,
-                installed_version=installed_ver,
-                latest_version=latest_ver,
-                update_available=_update_available(installed_ver, latest_ver),
-                error=error,
-            ))
+            pkg_infos.append(
+                PackageVersionInfo(
+                    spec=pkg_spec,
+                    installed_version=installed_ver,
+                    latest_version=latest_ver,
+                    update_available=_update_available(installed_ver, latest_ver),
+                    error=error,
+                )
+            )
 
     return EnvStatus(
         spec=spec,

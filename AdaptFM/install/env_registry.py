@@ -13,8 +13,7 @@ To add a new environment:
 """
 
 from dataclasses import dataclass, field
-from typing import Literal, Optional
-
+from typing import Literal
 
 UpdateSource = Literal["pypi", "github", "conda", "none"]
 
@@ -22,13 +21,14 @@ UpdateSource = Literal["pypi", "github", "conda", "none"]
 @dataclass
 class PipPackageSpec:
     """A pip-installed package whose version the GUI should track."""
-    import_name: str          # name used in `pip show` / PyPI JSON API
-    display_name: str = ""    # human-friendly label (falls back to import_name)
+
+    import_name: str  # name used in `pip show` / PyPI JSON API
+    display_name: str = ""  # human-friendly label (falls back to import_name)
     update_source: UpdateSource = "pypi"
     # For github source:
-    github_repo: str = ""     # "owner/repo"
+    github_repo: str = ""  # "owner/repo"
     # For conda source:
-    conda_package: str = ""   # conda package name (if different from import_name)
+    conda_package: str = ""  # conda package name (if different from import_name)
 
     def __post_init__(self):
         if not self.display_name:
@@ -40,22 +40,22 @@ class EnvironmentSpec:
     """Everything the GUI needs to know about one installable environment."""
 
     # --- Identity ---
-    key: str                  # unique machine key, e.g. "cellpose_sam"
-    display_name: str         # shown in the GUI card header
-    description: str          # one-line blurb shown under the name
-    conda_env_name: str       # the actual conda env created on disk
+    key: str  # unique machine key, e.g. "cellpose_sam"
+    display_name: str  # shown in the GUI card header
+    description: str  # one-line blurb shown under the name
+    conda_env_name: str  # the actual conda env created on disk
 
     # --- Install / uninstall commands (entry-point names from setup.cfg) ---
-    install_command: str      # e.g. "install-cellposesam"
-    uninstall_command: str    # e.g. "uninstall-cellposesam"  (can be empty)
+    install_command: str  # e.g. "install-cellposesam"
+    uninstall_command: str  # e.g. "uninstall-cellposesam"  (can be empty)
 
     # --- Pip packages to version-track ---
     pip_packages: list[PipPackageSpec] = field(default_factory=list)
 
     # --- Flags ---
-    requires_pytorch_swap: bool = False   # show PyTorch-swap warning in UI
+    requires_pytorch_swap: bool = False  # show PyTorch-swap warning in UI
     requires_gpu: bool = True
-    optional: bool = False                # mark non-essential extras
+    optional: bool = False  # mark non-essential extras
 
     # --- Docs / homepage ---
     docs_url: str = ""
@@ -101,15 +101,15 @@ ENV_REGISTRY: list[EnvironmentSpec] = [
         uninstall_command="adaptfm-uninstall micro-sam_adapt",
         requires_pytorch_swap=False,
         pip_packages=[
-            PipPackageSpec("micro-sam", display_name="microSAM",
-                           update_source="conda",
-                           conda_package="micro_sam"),
+            PipPackageSpec(
+                "micro-sam",
+                display_name="microSAM",
+                update_source="conda",
+                conda_package="micro_sam",
+            ),
         ],
-        docs_url='https://computational-cell-analytics.github.io/micro-sam/micro_sam.html'
+        docs_url="https://computational-cell-analytics.github.io/micro-sam/micro_sam.html",
     ),
-
-
-
     EnvironmentSpec(
         key="nnUNet",
         display_name="nnUNet",
@@ -119,18 +119,15 @@ ENV_REGISTRY: list[EnvironmentSpec] = [
         uninstall_command="adaptfm-uninstall nnUNet_adapt",
         requires_gpu=True,
         pip_packages=[
-            PipPackageSpec("nnunetv2",
-                           display_name="nnUNet",
-                           update_source="pypi"),
+            PipPackageSpec("nnunetv2", display_name="nnUNet", update_source="pypi"),
             PipPackageSpec(
                 import_name="torch",
                 display_name="PyTorch",
                 update_source="pypi",
-            )],
-        docs_url="https://github.com/MIC-DKFZ/nnUNet"
+            ),
+        ],
+        docs_url="https://github.com/MIC-DKFZ/nnUNet",
     ),
-
-
     EnvironmentSpec(
         key="sammed3d",
         display_name="SAM-Med3D",
@@ -140,50 +137,51 @@ ENV_REGISTRY: list[EnvironmentSpec] = [
         uninstall_command="adaptfm-uninstall",
         requires_gpu=True,
         pip_packages=[
-            PipPackageSpec("segment_anything",
-                           display_name="SAM-Med3D",
-                           update_source="github",
-                           github_repo="https://github.com/uni-medical/SAM-Med3D.git")
+            PipPackageSpec(
+                "segment_anything",
+                display_name="SAM-Med3D",
+                update_source="github",
+                github_repo="https://github.com/uni-medical/SAM-Med3D.git",
+            )
         ],
-        docs_url="https://github.com/uni-medical/sam-med3d"
+        docs_url="https://github.com/uni-medical/sam-med3d",
     ),
-
     EnvironmentSpec(
         key="CellSAM",
-        display_name='CellSAM',
+        display_name="CellSAM",
         description="A foundation model for cell segmentation",
         conda_env_name="cellsam_adapt",
         install_command="adaptfm-install-cellsam",
         uninstall_command="adaptfm-uninstall",
         requires_gpu=True,
         pip_packages=[
-            PipPackageSpec("cellSAM",
-                           display_name="CellSAM",
-                           update_source="github",
-                           github_repo="git+https://github.com/vanvalenlab/cellSAM.git")
+            PipPackageSpec(
+                "cellSAM",
+                display_name="CellSAM",
+                update_source="github",
+                github_repo="git+https://github.com/vanvalenlab/cellSAM.git",
+            )
         ],
-        docs_url="https://vanvalenlab.github.io/cellSAM/"
-        ),
-
-
-
-EnvironmentSpec(
+        docs_url="https://vanvalenlab.github.io/cellSAM/",
+    ),
+    EnvironmentSpec(
         key="Merlin-nnUNet",
-        display_name='Merlin nnUNet',
+        display_name="Merlin nnUNet",
         description="3D Ct Segmentation using fine-tuned Merlin",
         conda_env_name="Merlin_nnUNet_adapt",
         install_command="adaptfm-install-merlin",
         uninstall_command="adaptfm-uninstall",
         requires_gpu=True,
         pip_packages=[
-            PipPackageSpec("nnunetv2",
-                           display_name="Merlin nnUNet",
-                           update_source="github",
-                           github_repo="git+https://github.com/ashwinkumargb/Merlin-nnUNet.git")
+            PipPackageSpec(
+                "nnunetv2",
+                display_name="Merlin nnUNet",
+                update_source="github",
+                github_repo="git+https://github.com/ashwinkumargb/Merlin-nnUNet.git",
+            )
         ],
-        docs_url="https://github.com/ashwinkumargb/Merlin-nnUNet.git"
-        ),
-
+        docs_url="https://github.com/ashwinkumargb/Merlin-nnUNet.git",
+    ),
     EnvironmentSpec(
         key="bmex",
         display_name="BME-X",
@@ -198,14 +196,15 @@ EnvironmentSpec(
         uninstall_command="adaptfm-uninstall",
         requires_gpu=True,
         pip_packages=[
-            PipPackageSpec("BME_X",
-                           display_name="BME_X",
-                           update_source="github",
-                           github_repo="https://github.com/DBC-Lab/Brain_MRI_Enhancement.git")
+            PipPackageSpec(
+                "BME_X",
+                display_name="BME_X",
+                update_source="github",
+                github_repo="https://github.com/DBC-Lab/Brain_MRI_Enhancement.git",
+            )
         ],
-        docs_url="https://brain-mri-enhancement.readthedocs.io/en/latest/"
+        docs_url="https://brain-mri-enhancement.readthedocs.io/en/latest/",
     ),
-
     EnvironmentSpec(
         key="usegment3d",
         display_name="USegment3D",
@@ -228,25 +227,21 @@ EnvironmentSpec(
                 update_source="pypi",
             ),
         ],
-        docs_url="https://github.com/DanuserLab/u-segment3D"
-
+        docs_url="https://github.com/DanuserLab/u-segment3D",
     ),
-    
-EnvironmentSpec(
+    EnvironmentSpec(
         key="CT-FM",
-        display_name='CT-FM',
+        display_name="CT-FM",
         description="A 3D Image-Based Foundation Model for Radiological Tasks",
         conda_env_name="CTFM_adapt",
         install_command="adaptfm-install-ctfm",
         uninstall_command="adaptfm-uninstall",
         requires_gpu=True,
         pip_packages=[
-            PipPackageSpec("lighter-zoo",
-                           display_name="CT-FM",
-                           update_source="pypi")        ],
-        docs_url="https://project-lighter.github.io/CT-FM/"
-        ),
-
+            PipPackageSpec("lighter-zoo", display_name="CT-FM", update_source="pypi")
+        ],
+        docs_url="https://project-lighter.github.io/CT-FM/",
+    ),
 ]
 
 # Quick lookup by key

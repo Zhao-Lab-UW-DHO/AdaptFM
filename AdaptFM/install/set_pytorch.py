@@ -17,7 +17,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 ADAPTFM_ENV = "AdaptFM"
 
 
@@ -41,7 +40,9 @@ def main() -> None:
         print(f"Current command: {existing}")
         overwrite = input("Overwrite? [y/N]: ").strip().lower()
         if overwrite != "y":
-            print(f"Keeping existing command. Run conda run -n {ADAPTFM_ENV} {existing} to reinstall torch")
+            print(
+                f"Keeping existing command. Run conda run -n {ADAPTFM_ENV} {existing} to reinstall torch"
+            )
             sys.exit(0)
         print()
 
@@ -78,7 +79,9 @@ def main() -> None:
 
     # Install PyTorch into the main adaptfm conda environment
     print(f"\n--- Installing PyTorch into '{ADAPTFM_ENV}' environment ---")
-    cmd = ["conda", "run", "-n", ADAPTFM_ENV, "--no-capture-output"] + shlex.split(canonical)
+    cmd = ["conda", "run", "-n", ADAPTFM_ENV, "--no-capture-output"] + shlex.split(
+        canonical
+    )
     print(f"  + {' '.join(cmd)}")
     result = subprocess.run(cmd, check=False)
     if result.returncode != 0:
@@ -89,7 +92,9 @@ def main() -> None:
     else:
         print(f"\n✓ PyTorch installed into '{ADAPTFM_ENV}' successfully.")
 
-    print("  This command will also be used by install-nnunet and install-cellposesam.\n")
+    print(
+        "  This command will also be used by install-nnunet and install-cellposesam.\n"
+    )
 
 
 if __name__ == "__main__":

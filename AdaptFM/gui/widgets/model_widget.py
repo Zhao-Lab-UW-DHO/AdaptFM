@@ -16,35 +16,54 @@ from __future__ import annotations
 
 import os
 import signal
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, Optional
-from qtpy.QtCore import Qt, QProcess, QProcessEnvironment, QThread, Signal, QObject, QTimer
+
+from qtpy.QtCore import (
+    QObject,
+    QProcess,
+    QProcessEnvironment,
+    Qt,
+    QThread,
+    QTimer,
+    Signal,
+)
 from qtpy.QtGui import QFont, QTextCursor
 from qtpy.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
-    QLabel, QPushButton, QSpinBox,
-    QScrollArea, QFrame, QTextEdit,
-    QFileDialog, QSplitter, QProgressBar, QComboBox,
-    QMessageBox,QSizePolicy
+    QComboBox,
+    QFileDialog,
+    QFormLayout,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QScrollArea,
+    QSizePolicy,
+    QSpinBox,
+    QSplitter,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
 )
 
-from AdaptFM.model.registry import MODEL_REGISTRY
 from AdaptFM.model.nnUNetV2Spec import NNUNetV2ModelSpec
-
+from AdaptFM.model.registry import MODEL_REGISTRY
 
 # ---------------------------------------------------------------------------
 # Colours
 # ---------------------------------------------------------------------------
 
-_GREEN  = "#4caf50"
-_AMBER  = "#ff9800"
-_RED    = "#f44336"
-_BLUE   = "#42a5f5"
-_BG     = "#2b2b2b"
-_BG2    = "#1e1e1e"
-_BD     = "#444"
-_TEXT   = "#e8e8e8"
-_MUTED  = "#888"
+_GREEN = "#4caf50"
+_AMBER = "#ff9800"
+_RED = "#f44336"
+_BLUE = "#42a5f5"
+_BG = "#2b2b2b"
+_BG2 = "#1e1e1e"
+_BD = "#444"
+_TEXT = "#e8e8e8"
+_MUTED = "#888"
 
 # Global dark stylesheet applied to every widget in the window
 _WINDOW_STYLE = f"""
@@ -90,9 +109,10 @@ _WINDOW_STYLE = f"""
 # Background worker: calls model.tunable_params() off the main thread
 # ---------------------------------------------------------------------------
 
+
 class _ParamLoader(QObject):
     finished = Signal(dict)
-    error    = Signal(str)
+    error = Signal(str)
 
     def __init__(self, model):
         super().__init__()
@@ -110,6 +130,7 @@ class _ParamLoader(QObject):
 # Base widget
 # ---------------------------------------------------------------------------
 
+
 class ModelWorkflowWidget:
     """
     Shared base for TrainingWidget and InferenceWidget.
@@ -123,31 +144,31 @@ class ModelWorkflowWidget:
     WINDOW_TITLE = "AdaptFM"
     # If True, skip the "Load Parameters" button; params load automatically
     # on model change (used for nnUNet) or not at all (inference).
-    SKIP_PARAMS  = False
+    SKIP_PARAMS = False
     # If True, auto-load params on every model change (no manual button click)
     AUTO_LOAD_PARAMS = False
 
     def __init__(self, dataset_manager):
-        self.dataset_manager             = dataset_manager
-        self.model                       = None
-        self.dataset_dir: Optional[Path] = None
-        self.output_dir:  Optional[Path] = None
-        self.param_widgets: dict         = {}
+        self.dataset_manager = dataset_manager
+        self.model = None
+        self.dataset_dir: Path | None = None
+        self.output_dir: Path | None = None
+        self.param_widgets: dict = {}
         self.registry = getattr(self, "registry", MODEL_REGISTRY)
         self.registry_title = getattr(self, "registry_title", "MODEL")
 
-        self._process: Optional[QProcess]       = None
-        self._param_thread: Optional[QThread]   = None
-        self._param_worker: Optional[_ParamLoader] = None
-        self._process_chain: list               = []
-        self._chain_env: dict                   = {}
-        self._chain_on_done: Optional[Callable] = None
-        self._param_load_id: int                = 0
+        self._process: QProcess | None = None
+        self._param_thread: QThread | None = None
+        self._param_worker: _ParamLoader | None = None
+        self._process_chain: list = []
+        self._chain_env: dict = {}
+        self._chain_on_done: Callable | None = None
+        self._param_load_id: int = 0
 
         self.widget = QWidget()
         self.widget.setWindowTitle(self.WINDOW_TITLE)
         self.widget.setWindowFlags(self.widget.windowFlags() | Qt.Window)
-        
+
         # Intercept close events to kill threads, but DO NOT delete the C++ object
         self.widget.closeEvent = self._on_close
 
@@ -177,7 +198,9 @@ class ModelWorkflowWidget:
 
         # Splitter: controls top, log bottom
         splitter = QSplitter(Qt.Vertical)
-        splitter.setStyleSheet(f"QSplitter::handle {{ background: {_BD}; height: 2px; }}")
+        splitter.setStyleSheet(
+            f"QSplitter::handle {{ background: {_BD}; height: 2px; }}"
+        )
         root.addWidget(splitter)
 
         # ── Controls ────────────────────────────────────────────────── #
@@ -212,7 +235,6 @@ class ModelWorkflowWidget:
         gpu_row.addWidget(self._gpu_spin)
         gpu_row.addStretch()
         ctrl.addLayout(gpu_row)
-
 
         # Parameters
         self._param_title_lbl = _section_label("Parameters")
@@ -274,7 +296,9 @@ class ModelWorkflowWidget:
         log_hdr.addStretch()
         clear_btn = QPushButton("Clear")
         clear_btn.setFixedWidth(50)
-        clear_btn.setStyleSheet(f"color: {_MUTED}; font-size: 10px; border: none; background: transparent;")
+        clear_btn.setStyleSheet(
+            f"color: {_MUTED}; font-size: 10px; border: none; background: transparent;"
+        )
         clear_btn.clicked.connect(self._clear_log)
         log_hdr.addWidget(clear_btn)
         log_layout.addLayout(log_hdr)
@@ -340,12 +364,12 @@ class ModelWorkflowWidget:
         lbl.setWordWrap(True)
         setattr(self, lbl_attr, lbl)
         row.addWidget(lbl, stretch=1)
-        
+
         btn = QPushButton("Browse…")
         btn.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         btn.setStyleSheet(_secondary_btn_style())
         btn.clicked.connect(slot)
-        
+
         # Keep python reference alive on self to prevent GC disconnection
         setattr(self, f"{lbl_attr}_btn", btn)
         row.addWidget(btn)
@@ -355,22 +379,21 @@ class ModelWorkflowWidget:
     # Model selection & thread lifecycle
     # ------------------------------------------------------------------
 
-
-# ------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # Model Selection & Parameter Management
     # ------------------------------------------------------------------
     def _set_param_section_visible(self, visible: bool):
-            """Toggle visibility for all widgets in the Parameters panel."""
-            if hasattr(self, "_param_title_lbl") and self._param_title_lbl:
-                self._param_title_lbl.setVisible(visible)
-            if hasattr(self, "_param_status_lbl") and self._param_status_lbl:
-                self._param_status_lbl.setVisible(visible)
-            if hasattr(self, "_param_scroll") and self._param_scroll:
-                self._param_scroll.setVisible(visible)
-            if hasattr(self, "_load_params_btn") and self._load_params_btn:
-                self._load_params_btn.setVisible(visible)
-            if not visible and hasattr(self, "_param_progress") and self._param_progress:
-                self._param_progress.setVisible(False)
+        """Toggle visibility for all widgets in the Parameters panel."""
+        if hasattr(self, "_param_title_lbl") and self._param_title_lbl:
+            self._param_title_lbl.setVisible(visible)
+        if hasattr(self, "_param_status_lbl") and self._param_status_lbl:
+            self._param_status_lbl.setVisible(visible)
+        if hasattr(self, "_param_scroll") and self._param_scroll:
+            self._param_scroll.setVisible(visible)
+        if hasattr(self, "_load_params_btn") and self._load_params_btn:
+            self._load_params_btn.setVisible(visible)
+        if not visible and hasattr(self, "_param_progress") and self._param_progress:
+            self._param_progress.setVisible(False)
 
     def _on_model_selected(self, model_name: str, init_flag: bool = False):
         self.model = MODEL_REGISTRY.get(model_name)
@@ -398,78 +421,77 @@ class ModelWorkflowWidget:
                 self._load_params_btn.setVisible(True)
                 self._load_params_btn.setEnabled(True)
 
-
     def _load_tunable_params(self, init_flag: bool = False):
-            if self.model is None:
-                return
+        if self.model is None:
+            return
 
-            # try:
-            #     raw_env = getattr(self.model, "conda_env", None)
-                
-            #     if not raw_env: # if none,
-            #         raise ValueError("Model's conda environment was not found (returned None)") # env is None, likely .prefix is undefined
+        # try:
+        #     raw_env = getattr(self.model, "conda_env", None)
 
-            #     conda_env = Path(raw_env) # may raise TypeErr
-                
-            #     if not conda_env.is_dir():
-            #         raise ValueError("Model's conda environment failed to be recognized as a directory (or the directory doesn't exist)") # conda env specified isn't a directory or doesn't exist
+        #     if not raw_env: # if none,
+        #         raise ValueError("Model's conda environment was not found (returned None)") # env is None, likely .prefix is undefined
 
-            # except Exception as e:
-            #     if init_flag:
-            #         return # don't give err message on widget build
-            #     env_str = raw_env if raw_env is not None else "Conda environment"
-            #     msg = (
-            #         f"{env_str} not installed or .prefix file missing. "
-            #         "You must first install the environment with the "
-            #         "environment manager before using this model. "
-            #         f"Error given was: {e}"
-            #     )
-            #     self._on_params_error(msg, self._param_load_id)
-            #     return
+        #     conda_env = Path(raw_env) # may raise TypeErr
 
-            self._param_load_id += 1
-            current_id = self._param_load_id
+        #     if not conda_env.is_dir():
+        #         raise ValueError("Model's conda environment failed to be recognized as a directory (or the directory doesn't exist)") # conda env specified isn't a directory or doesn't exist
 
-            self._clear_params()
-            self._param_status_lbl.setText("Loading parameters…")
-            self._param_progress.setVisible(True)
-            if hasattr(self, "_load_params_btn"):
-                self._load_params_btn.setEnabled(False)
+        # except Exception as e:
+        #     if init_flag:
+        #         return # don't give err message on widget build
+        #     env_str = raw_env if raw_env is not None else "Conda environment"
+        #     msg = (
+        #         f"{env_str} not installed or .prefix file missing. "
+        #         "You must first install the environment with the "
+        #         "environment manager before using this model. "
+        #         f"Error given was: {e}"
+        #     )
+        #     self._on_params_error(msg, self._param_load_id)
+        #     return
 
-            # Safely clean up previous thread reference if it exists or was deleted by Qt
-            if self._param_thread is not None:
-                try:
-                    if self._param_thread.isRunning():
-                        self._param_thread.quit()
-                        self._param_thread.wait(500)
-                except RuntimeError:
-                    # C++ object was already garbage collected by Qt
-                    pass
+        self._param_load_id += 1
+        current_id = self._param_load_id
+
+        self._clear_params()
+        self._param_status_lbl.setText("Loading parameters…")
+        self._param_progress.setVisible(True)
+        if hasattr(self, "_load_params_btn"):
+            self._load_params_btn.setEnabled(False)
+
+        # Safely clean up previous thread reference if it exists or was deleted by Qt
+        if self._param_thread is not None:
+            try:
+                if self._param_thread.isRunning():
+                    self._param_thread.quit()
+                    self._param_thread.wait(500)
+            except RuntimeError:
+                # C++ object was already garbage collected by Qt
+                pass
+            self._param_thread = None
+
+        thread = QThread(self.widget)
+        self._param_thread = thread
+        self._param_worker = _ParamLoader(self.model)
+        self._param_worker.moveToThread(thread)
+
+        thread.started.connect(self._param_worker.run)
+        self._param_worker.finished.connect(
+            lambda schema: self._on_params_loaded(schema, current_id)
+        )
+        self._param_worker.error.connect(
+            lambda msg: self._on_params_error(msg, current_id)
+        )
+        self._param_worker.finished.connect(thread.quit)
+        self._param_worker.error.connect(thread.quit)
+
+        # Clear python reference when thread finishes to prevent dead wrapper calls
+        def _on_thread_finished():
+            if getattr(self, "_param_thread", None) is thread:
                 self._param_thread = None
 
-            thread = QThread(self.widget)
-            self._param_thread = thread
-            self._param_worker = _ParamLoader(self.model)
-            self._param_worker.moveToThread(thread)
-
-            thread.started.connect(self._param_worker.run)
-            self._param_worker.finished.connect(
-                lambda schema: self._on_params_loaded(schema, current_id)
-            )
-            self._param_worker.error.connect(
-                lambda msg: self._on_params_error(msg, current_id)
-            )
-            self._param_worker.finished.connect(thread.quit)
-            self._param_worker.error.connect(thread.quit)
-
-            # Clear python reference when thread finishes to prevent dead wrapper calls
-            def _on_thread_finished():
-                if getattr(self, "_param_thread", None) is thread:
-                    self._param_thread = None
-
-            thread.finished.connect(_on_thread_finished)
-            thread.finished.connect(thread.deleteLater)
-            thread.start()
+        thread.finished.connect(_on_thread_finished)
+        thread.finished.connect(thread.deleteLater)
+        thread.start()
 
     def _on_params_loaded(self, schema: dict, load_id: int):
         self._param_progress.setVisible(False)
@@ -482,7 +504,6 @@ class ModelWorkflowWidget:
         if not schema:
             self._param_status_lbl.setText("No tunable parameters for this model.")
             return
-
 
         self._param_status_lbl.setText(f"{len(schema)} parameter(s) loaded.")
         for name, spec in schema.items():
@@ -514,8 +535,12 @@ class ModelWorkflowWidget:
 
         if isinstance(annotation, str):
             type_map = {
-                "int": int, "float": float, "str": str,
-                "bool": bool, "list": list, "dict": dict
+                "int": int,
+                "float": float,
+                "str": str,
+                "bool": bool,
+                "list": list,
+                "dict": dict,
             }
             annotation = type_map.get(annotation.lower(), annotation)
 
@@ -554,9 +579,7 @@ class ModelWorkflowWidget:
     def _select_dataset_folder(self, *args):
         # Pass parent=None and DontUseNativeDialog so dialog pops up on top
         folder = QFileDialog.getExistingDirectory(
-            None,
-            "Select dataset folder",
-            options=QFileDialog.DontUseNativeDialog
+            None, "Select dataset folder", options=QFileDialog.DontUseNativeDialog
         )
         if folder:
             self.dataset_dir = Path(folder)
@@ -569,21 +592,18 @@ class ModelWorkflowWidget:
                     self._log_line(f"[dataset warning] {exc}", color=_AMBER)
 
             if isinstance(self.model, NNUNetV2ModelSpec):
-                self.param_widgets['Set Name'].value = self.dataset_dir.name
-                
+                self.param_widgets["Set Name"].value = self.dataset_dir.name
+
     def _select_output_folder(self, *args):
         folder = QFileDialog.getExistingDirectory(
-            None,
-            "Select output directory",
-            options=QFileDialog.DontUseNativeDialog
+            None, "Select output directory", options=QFileDialog.DontUseNativeDialog
         )
         if folder:
             self.output_dir = Path(folder)
             self._output_lbl.setText(str(self.output_dir))
             self._output_lbl.setStyleSheet(f"color: {_TEXT}; font-size: 11px;")
-            
-        if isinstance(self.model, NNUNetV2ModelSpec):
 
+        if isinstance(self.model, NNUNetV2ModelSpec):
             # Path to nnUNet_raw inside the selected output folder
             raw_dir = self.output_dir / "nnUNet_raw"
 
@@ -603,8 +623,7 @@ class ModelWorkflowWidget:
                             num_str = prefix.replace("Dataset", "")
                             if num_str.isdigit():
                                 num = int(num_str)
-                                if num > max_id:
-                                    max_id = num
+                                max_id = max(max_id, num)
 
                 # Increment largest ID
                 next_id = max_id + 1 if max_id > 0 else 1
@@ -635,45 +654,52 @@ class ModelWorkflowWidget:
     def _run_workflow(self):
         raise NotImplementedError
 
-    def _extra_controls(self) -> Optional[QWidget]:
+    def _extra_controls(self) -> QWidget | None:
         return None
 
     def _on_terminate_clicked(self):
         if not (self._process and self._process.state() != QProcess.NotRunning):
             return
         reply = QMessageBox.question(
-            self.widget, "Terminate process",
+            self.widget,
+            "Terminate process",
             "Terminate the running process?\nAny unsaved progress will be lost.",
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No,
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
         )
         if reply == QMessageBox.Yes:
             self._kill_process()
 
     def _kill_process(self):
-            if self._process is None:
-                return
+        if self._process is None:
+            return
 
-            pid = self._process.processId()
-            if pid and hasattr(os, "killpg") and hasattr(os, "getpgid") and hasattr(os, "getpid"):
-                try:
-                    child_pgid = os.getpgid(pid)
-                    gui_pgid = os.getpgid(os.getpid())
+        pid = self._process.processId()
+        if (
+            pid
+            and hasattr(os, "killpg")
+            and hasattr(os, "getpgid")
+            and hasattr(os, "getpid")
+        ):
+            try:
+                child_pgid = os.getpgid(pid)
+                gui_pgid = os.getpgid(os.getpid())
 
-                    # Only kill the process group if it is distinct from the main GUI process group
-                    if child_pgid != gui_pgid:
-                        os.killpg(child_pgid, signal.SIGKILL)
-                    else:
-                        os.kill(pid, signal.SIGKILL)
-                except (ProcessLookupError, PermissionError, OSError):
-                    pass
+                # Only kill the process group if it is distinct from the main GUI process group
+                if child_pgid != gui_pgid:
+                    os.killpg(child_pgid, signal.SIGKILL)
+                else:
+                    os.kill(pid, signal.SIGKILL)
+            except (ProcessLookupError, PermissionError, OSError):
+                pass
 
-            # Fallback to standard Qt QProcess termination
-            self._process.kill()
-            self._process.waitForFinished(2000)
+        # Fallback to standard Qt QProcess termination
+        self._process.kill()
+        self._process.waitForFinished(2000)
 
-            self._log_line("\n■  Process terminated by user.", color=_RED, bold=True)
-            self._set_busy(False)
-            self._process_chain.clear()
+        self._log_line("\n■  Process terminated by user.", color=_RED, bold=True)
+        self._set_busy(False)
+        self._process_chain.clear()
 
     def _on_close(self, event):
         """Cleanup running threads and processes when the window is closed."""
@@ -711,13 +737,13 @@ class ModelWorkflowWidget:
     # ------------------------------------------------------------------
 
     def _start_process(
-            self,
-            program: str,
-            args: list,
-            label: str = "",
-            env_extra: Optional[dict] = None,
-            on_done: Optional[Callable[[int], None]] = None,
-        ):
+        self,
+        program: str,
+        args: list,
+        label: str = "",
+        env_extra: dict | None = None,
+        on_done: Callable[[int], None] | None = None,
+    ):
         self._set_busy(True)
         self._log_line(f"\n▶  {label or program}", bold=True)
 
@@ -743,7 +769,7 @@ class ModelWorkflowWidget:
             text = str(data)
         self._log_append(text)
 
-    def _on_step_done(self, exit_code: int, on_done: Optional[Callable]):
+    def _on_step_done(self, exit_code: int, on_done: Callable | None):
         if exit_code == 0:
             self._log_line("✓  Done (exit 0)", color=_GREEN, bold=True)
         else:
@@ -763,11 +789,11 @@ class ModelWorkflowWidget:
     def _run_chain(
         self,
         steps: list,
-        env_extra: Optional[dict] = None,
-        on_all_done: Optional[Callable[[int], None]] = None,
+        env_extra: dict | None = None,
+        on_all_done: Callable[[int], None] | None = None,
     ):
         self._process_chain = list(steps)
-        self._chain_env     = env_extra or {}
+        self._chain_env = env_extra or {}
         self._chain_on_done = on_all_done
         self._run_next_in_chain()
 
@@ -779,7 +805,9 @@ class ModelWorkflowWidget:
             return
         program, args, label = self._process_chain.pop(0)
         self._start_process(
-            program, args, label=label,
+            program,
+            args,
+            label=label,
             env_extra=self._chain_env,
             on_done=self._on_chain_step_done,
         )
@@ -819,10 +847,12 @@ class ModelWorkflowWidget:
             b_c = "</b>" if bold else ""
             c_o = f'<span style="color:{color};">' if color else ""
             c_c = "</span>" if color else ""
-            safe = (text.replace("&", "&amp;")
-                        .replace("<", "&lt;")
-                        .replace(">", "&gt;")
-                        .replace("\n", "<br>"))
+            safe = (
+                text.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\n", "<br>")
+            )
             self._log.insertHtml(f"{b_o}{c_o}{safe}{c_c}{b_c}<br>")
         else:
             self._log.insertPlainText(text + "\n")
@@ -835,6 +865,7 @@ class ModelWorkflowWidget:
 # ---------------------------------------------------------------------------
 # Style helpers (exported so subclasses can use them)
 # ---------------------------------------------------------------------------
+
 
 def _section_label(text: str) -> QLabel:
     lbl = QLabel(text)
@@ -870,4 +901,3 @@ def _secondary_btn_style() -> str:
         "QPushButton:hover { background: #4a4a4a; }"
         "QPushButton:disabled { color: #555; background: #2a2a2a; }"
     )
-

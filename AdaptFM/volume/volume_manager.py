@@ -1,9 +1,9 @@
-import os
-import tifffile as tiff
-import dask.array as da
-import numpy as np
-import SimpleITK as sitk
 from pathlib import Path
+
+import dask.array as da
+import SimpleITK as sitk
+import tifffile as tiff
+
 
 class VolumeManager:
     def __init__(
@@ -31,7 +31,7 @@ class VolumeManager:
     def load_image(self, path):
         self.path = path
 
-        mb_est = Path(path).stat().st_size / (1024 ** 2)
+        mb_est = Path(path).stat().st_size / (1024**2)
 
         if mb_est < self.eager_threshold_mb:
             self.mode = "eager"
@@ -63,21 +63,20 @@ class VolumeManager:
     # Internal helpers
     # -------------------------
 
-
     def _load_eager(self, path):
 
-        if path.endswith('.tiff'):
+        if path.endswith(".tiff"):
             return tiff.imread(path)
-        elif path.endswith('.nii.gz'):
+        elif path.endswith(".nii.gz"):
             return sitk.GetArrayFromImage(sitk.ReadImage(path))
 
     def _load_lazy(self, path):
 
-        if path.endswith('.tiff'):
+        if path.endswith(".tiff"):
             zarr_store = tiff.imread(path, aszarr=True)
             return da.from_zarr(zarr_store, chunks=self.chunk_size)
-        
-        elif path.endswith('.nii.gz'):
+
+        elif path.endswith(".nii.gz"):
             arr = sitk.GetArrayFromImage(sitk.ReadImage(path))
             return da.from_array(arr, chunks=self.chunk_size)
 
@@ -100,5 +99,3 @@ class VolumeManager:
         }
 
         return metadata
-
-

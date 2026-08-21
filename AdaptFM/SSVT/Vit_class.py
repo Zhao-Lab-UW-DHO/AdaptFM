@@ -3,18 +3,15 @@
 
 
 import math
-from typing import Tuple, Optional
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 # ----------------------------------------------------
 # Utilities
 # ----------------------------------------------------
 
-import math
-import torch
 
 def get_3d_sincos_pos_embed(embed_dim, grid_size):
     """
@@ -27,15 +24,13 @@ def get_3d_sincos_pos_embed(embed_dim, grid_size):
     y = torch.arange(gy)
     x = torch.arange(gx)
 
-    zz, yy, xx = torch.meshgrid(z, y, x, indexing='ij')
+    zz, yy, xx = torch.meshgrid(z, y, x, indexing="ij")
     coords = torch.stack([zz, yy, xx], dim=-1).reshape(-1, 3).float()
 
     assert embed_dim % 6 == 0, "embed_dim must be divisible by 6"
 
     dim_each = embed_dim // 3
-    div_term = torch.exp(
-        torch.arange(0, dim_each, 2) * (-math.log(10000.0) / dim_each)
-    )
+    div_term = torch.exp(torch.arange(0, dim_each, 2) * (-math.log(10000.0) / dim_each))
 
     pe = []
     for i in range(3):
@@ -46,22 +41,18 @@ def get_3d_sincos_pos_embed(embed_dim, grid_size):
     return torch.cat(pe, dim=1)
 
 
-
 # ----------------------------------------------------
 # Patch Embedding
 # ----------------------------------------------------
 
+
 class PatchEmbed3D(nn.Module):
-    def __init__(self, patch_size: Tuple[int, int, int], embed_dim: int):
+    def __init__(self, patch_size: tuple[int, int, int], embed_dim: int):
         super().__init__()
         self.patch_size = patch_size
         self.embed_dim = embed_dim
 
-        self.proj = nn.Conv3d(
-            1, embed_dim,
-            kernel_size=patch_size,
-            stride=patch_size
-        )
+        self.proj = nn.Conv3d(1, embed_dim, kernel_size=patch_size, stride=patch_size)
 
     def forward(self, x):
         # x: [B, 1, Z, Y, X]
@@ -75,18 +66,19 @@ class PatchEmbed3D(nn.Module):
 # Transformer Blocks
 # ----------------------------------------------------
 
+
 class TransformerBlock(nn.Module):
     def __init__(self, dim, num_heads, mlp_ratio=4.0, drop=0.0):
         super().__init__()
         self.norm1 = nn.LayerNorm(dim)
-        self.attn = nn.MultiheadAttention(dim, num_heads, dropout=drop, batch_first=True)
+        self.attn = nn.MultiheadAttention(
+            dim, num_heads, dropout=drop, batch_first=True
+        )
         self.norm2 = nn.LayerNorm(dim)
 
         hidden_dim = int(dim * mlp_ratio)
         self.mlp = nn.Sequential(
-            nn.Linear(dim, hidden_dim),
-            nn.GELU(),
-            nn.Linear(hidden_dim, dim)
+            nn.Linear(dim, hidden_dim), nn.GELU(), nn.Linear(hidden_dim, dim)
         )
 
     def forward(self, x):
@@ -99,14 +91,17 @@ class TransformerBlock(nn.Module):
 # ViT Encoder
 # ----------------------------------------------------
 
-import torch
-import torch.nn as nn
+from torch import nn
+
+
 class ViTEncoder3D(nn.Module):
-    def __init__(self, patch_size=(4,16,16), embed_dim=132, depth=4, num_heads=4):
+    def __init__(self, patch_size=(4, 16, 16), embed_dim=132, depth=4, num_heads=4):
         super().__init__()
         self.embed_dim = embed_dim
         self.patch_embed = PatchEmbed3D(patch_size, embed_dim)
-        self.blocks = nn.ModuleList([TransformerBlock(embed_dim, num_heads) for _ in range(depth)])
+        self.blocks = nn.ModuleList(
+            [TransformerBlock(embed_dim, num_heads) for _ in range(depth)]
+        )
         self.norm = nn.LayerNorm(embed_dim)
 
         # initialize dummy parameter with 1 token
@@ -120,11 +115,11 @@ class ViTEncoder3D(nn.Module):
         # interpolate for forward pass only, do NOT overwrite self.pos_embed
         if self.pos_embed.shape[1] != N:
             pos_embed = F.interpolate(
-                self.pos_embed.transpose(1,2),
+                self.pos_embed.transpose(1, 2),
                 size=N,
-                mode='linear',
-                align_corners=False
-            ).transpose(1,2)
+                mode="linear",
+                align_corners=False,
+            ).transpose(1, 2)
         else:
             pos_embed = self.pos_embed
 
@@ -140,10 +135,10 @@ class ViTEncoder3D(nn.Module):
         return x
 
 
-
 # ----------------------------------------------------
 # MAE Decoder
 # ----------------------------------------------------
+
 
 class MAEDecoder3D(nn.Module):
     def __init__(
@@ -152,16 +147,15 @@ class MAEDecoder3D(nn.Module):
         decoder_dim=512,
         depth=4,
         num_heads=8,
-        patch_volume=4*16*16
+        patch_volume=4 * 16 * 16,
     ):
         super().__init__()
         self.proj = nn.Linear(embed_dim, decoder_dim)
         self.mask_token = nn.Parameter(torch.zeros(1, 1, decoder_dim))
 
-        self.blocks = nn.ModuleList([
-            TransformerBlock(decoder_dim, num_heads)
-            for _ in range(depth)
-        ])
+        self.blocks = nn.ModuleList(
+            [TransformerBlock(decoder_dim, num_heads) for _ in range(depth)]
+        )
         self.norm = nn.LayerNorm(decoder_dim)
         self.head = nn.Linear(decoder_dim, patch_volume)
 
@@ -200,7 +194,7 @@ def cuboid_mask(grid_size, mask_ratio):
         y0 = torch.randint(0, gy - cy + 1, (1,)).item()
         x0 = torch.randint(0, gx - cx + 1, (1,)).item()
 
-        region = mask[z0:z0+cz, y0:y0+cy, x0:x0+cx]
+        region = mask[z0 : z0 + cz, y0 : y0 + cy, x0 : x0 + cx]
         newly_masked = (~region).sum().item()
         region[:] = True
         masked += newly_masked
@@ -208,10 +202,10 @@ def cuboid_mask(grid_size, mask_ratio):
     return mask.flatten()
 
 
-
 # ----------------------------------------------------
 # Full MAE Model
 # ----------------------------------------------------
+
 
 class MaskedAutoencoder3D(nn.Module):
     def __init__(self, encoder: ViTEncoder3D, decoder: MAEDecoder3D):
@@ -237,13 +231,17 @@ class MaskedAutoencoder3D(nn.Module):
 
         # Prepare mask tokens
         mask_tokens = self.decoder.mask_token.repeat(B, mask.sum(), 1)
-        mask_tokens = torch.zeros(B, mask.sum(), tokens.size(-1), device=x.device, dtype=tokens.dtype)
+        mask_tokens = torch.zeros(
+            B, mask.sum(), tokens.size(-1), device=x.device, dtype=tokens.dtype
+        )
 
         # Combine visible and mask tokens into full token sequence
         full_tokens = torch.zeros(
-            B, N, tokens.size(-1),  # still encoder embed_dim
+            B,
+            N,
+            tokens.size(-1),  # still encoder embed_dim
             device=x.device,
-            dtype=tokens.dtype
+            dtype=tokens.dtype,
         )
         full_tokens[:, ~mask] = visible
         full_tokens[:, mask] = mask_tokens
@@ -253,15 +251,15 @@ class MaskedAutoencoder3D(nn.Module):
 
         return preds, mask, grid
 
+    # ----------------------------------------------------
+    # Losses
+    # ----------------------------------------------------
 
-# ----------------------------------------------------
-# Losses
-# ----------------------------------------------------
-
-    def reconstruction_loss(self,pred, target):
+    def reconstruction_loss(self, pred, target):
         return F.l1_loss(pred, target)
 
-    def multiscale_reconstruction_loss(self,
+    def multiscale_reconstruction_loss(
+        self,
         preds,
         target,
         grid,
@@ -284,19 +282,12 @@ class MaskedAutoencoder3D(nn.Module):
         loss_full = F.l1_loss(recon, target)
 
         # 2× downsample
-        loss_2x = F.l1_loss(
-            F.avg_pool3d(recon, 2),
-            F.avg_pool3d(target, 2)
-        )
+        loss_2x = F.l1_loss(F.avg_pool3d(recon, 2), F.avg_pool3d(target, 2))
 
         # 4× downsample
-        loss_4x = F.l1_loss(
-            F.avg_pool3d(recon, 4),
-            F.avg_pool3d(target, 4)
-        )
+        loss_4x = F.l1_loss(F.avg_pool3d(recon, 4), F.avg_pool3d(target, 4))
 
         return loss_full + 0.5 * loss_2x + 0.25 * loss_4x
-
 
 
 # ----------------------------------------------------
@@ -341,9 +332,8 @@ class EMA:
 
 
 import torch
-import torch.nn as nn
-from torch.cuda.amp import autocast, GradScaler
-from torch.utils.data import DataLoader
+from torch import nn
+
 
 # -------------------------
 # Segmentation model
@@ -356,7 +346,7 @@ class ViTSegmentationModel(nn.Module):
         self.head = nn.Sequential(
             nn.Conv3d(encoder.embed_dim, 256, kernel_size=1),
             nn.ReLU(inplace=True),
-            nn.Conv3d(256, num_classes, kernel_size=1)
+            nn.Conv3d(256, num_classes, kernel_size=1),
         )
 
     def forward(self, x):
@@ -365,7 +355,7 @@ class ViTSegmentationModel(nn.Module):
         logits = self.head(feats)
         return logits
 
-    
+
 class DiceLoss(nn.Module):
     def __init__(self, eps=1e-6):
         super().__init__()
@@ -373,10 +363,9 @@ class DiceLoss(nn.Module):
 
     def forward(self, logits, targets):
         probs = torch.sigmoid(logits)
-        num = 2 * (probs * targets).sum(dim=(2,3,4))
-        den = probs.sum(dim=(2,3,4)) + targets.sum(dim=(2,3,4)) + self.eps
+        num = 2 * (probs * targets).sum(dim=(2, 3, 4))
+        den = probs.sum(dim=(2, 3, 4)) + targets.sum(dim=(2, 3, 4)) + self.eps
         return 1 - (num / den).mean()
-
 
 
 def tokens_to_volume(tokens, grid_size):
@@ -392,10 +381,9 @@ def tokens_to_volume(tokens, grid_size):
     return tokens.transpose(1, 2).reshape(B, C, Z, Y, X)
 
 
-
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
+from torch import nn
+
 
 class MAE3DUNetDecoder(nn.Module):
     """
@@ -446,14 +434,12 @@ class MAE3DUNetDecoder(nn.Module):
         # Interpolate to match the input patch size if necessary
         if target_patch_size is not None and logits.shape[2:] != target_patch_size:
             logits = F.interpolate(
-                logits,
-                size=target_patch_size,
-                mode='trilinear',
-                align_corners=False
+                logits, size=target_patch_size, mode="trilinear", align_corners=False
             )
 
         return logits
-    
+
+
 def dice_loss(pred, target, eps=1e-6):
     pred = pred.flatten(1)
     target = target.flatten(1)
@@ -461,6 +447,7 @@ def dice_loss(pred, target, eps=1e-6):
     union = pred.sum(1) + target.sum(1)
     dice = (2 * intersection + eps) / (union + eps)
     return 1 - dice.mean()
+
 
 class FeatureAdapter(nn.Module):
     def __init__(self, embed_dim):
@@ -476,30 +463,31 @@ class ZAdapter(nn.Module):
     def __init__(self, embed_dim, k=3):
         super().__init__()
         self.z_conv = nn.Conv3d(
-            embed_dim, embed_dim,
-            kernel_size=(k,1,1),
-            padding=(k//2,0,0),
-            groups=embed_dim  # depthwise
+            embed_dim,
+            embed_dim,
+            kernel_size=(k, 1, 1),
+            padding=(k // 2, 0, 0),
+            groups=embed_dim,  # depthwise
         )
         self.pointwise = nn.Conv3d(embed_dim, embed_dim, kernel_size=1)
         self.norm = nn.InstanceNorm3d(embed_dim)
 
     def forward(self, x):
-        x = self.z_conv(x)      # depthwise mixing along Z
-        x = self.pointwise(x)   # channel mixing
+        x = self.z_conv(x)  # depthwise mixing along Z
+        x = self.pointwise(x)  # channel mixing
         return self.norm(x)
 
 
-
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
+from torch import nn
+
 
 class MAE3DSegmentation(nn.Module):
     """
     Combines ViT 3D encoder with MAE 3D U-Net decoder.
     Automatically handles patch reshaping and voxel-aligned decoding.
     """
+
     def __init__(self, encoder, decoder, freeze_encoder=False):
         super().__init__()
         self.encoder = encoder
@@ -516,6 +504,7 @@ class MAE3DSegmentation(nn.Module):
         tokens, _ = self.encoder(x, return_grid=True)
         logits = self.decoder(tokens, target_patch_size=target_patch_size)
         return logits
+
 
 class MAE3DSegmentationZAdapt(nn.Module):
     def __init__(self, encoder, decoder, freeze_encoder=False, use_adapter=True):
@@ -553,10 +542,9 @@ class MAE3DSegmentationZAdapt(nn.Module):
         return logits
 
 
-    
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
+from torch import nn
+
 
 class MAE3DUNetDecoderBig(nn.Module):
     """
@@ -625,17 +613,14 @@ class MAE3DUNetDecoderBig(nn.Module):
         # Interpolate to match input patch size if necessary
         if target_patch_size is not None and logits.shape[2:] != target_patch_size:
             logits = F.interpolate(
-                logits,
-                size=target_patch_size,
-                mode='trilinear',
-                align_corners=False
+                logits, size=target_patch_size, mode="trilinear", align_corners=False
             )
 
         return logits
-    
+
+
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
+from torch import nn
 
 
 class MAE3DLinearProbeDecoder(nn.Module):
@@ -667,9 +652,7 @@ class MAE3DLinearProbeDecoder(nn.Module):
         B, N, C = tokens.shape
 
         # reshape tokens -> 3D patch grid
-        x = tokens.transpose(1, 2).reshape(
-            B, C, self.Dp, self.Hp, self.Wp
-        )
+        x = tokens.transpose(1, 2).reshape(B, C, self.Dp, self.Hp, self.Wp)
 
         # linear projection
         logits = self.proj(x)
@@ -677,10 +660,7 @@ class MAE3DLinearProbeDecoder(nn.Module):
         # upsample to full voxel resolution
         if target_patch_size is not None and logits.shape[2:] != target_patch_size:
             logits = F.interpolate(
-                logits,
-                size=target_patch_size,
-                mode="trilinear",
-                align_corners=False
+                logits, size=target_patch_size, mode="trilinear", align_corners=False
             )
 
         return logits

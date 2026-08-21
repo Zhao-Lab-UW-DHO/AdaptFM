@@ -1,13 +1,12 @@
-from qtpy.QtWidgets import QWidget, QVBoxLayout
+from pathlib import Path
+
 from magicgui import magicgui
-from qtpy.QtWidgets import QFileDialog
 from napari.layers import Image
 from napari.layers.image._image_utils import guess_labels
-import os
-from glob import glob
-from pathlib import Path
-from AdaptFM.gui.napari_utils import update_or_create_image,  update_or_create_labels
-from qtpy.QtWidgets import QVBoxLayout, QSizePolicy
+from qtpy.QtWidgets import QFileDialog, QSizePolicy, QVBoxLayout, QWidget
+
+from AdaptFM.gui.napari_utils import update_or_create_image, update_or_create_labels
+
 
 class SessionWidget:
     def __init__(self, viewer, session, vm, sm):
@@ -16,8 +15,10 @@ class SessionWidget:
         self.vm = vm
         self.sm = sm
 
-        self._working_image_layername = "Original" # the name of the image to do annotation on set by AdaptFM
-        self._seg_layername_identifier = "_AdaptFMseg" # AdaptFM interactive segmentations end in this string (but duplicate algs end in [1], [2] etc)
+        self._working_image_layername = (
+            "Original"  # the name of the image to do annotation on set by AdaptFM
+        )
+        self._seg_layername_identifier = "_AdaptFMseg"  # AdaptFM interactive segmentations end in this string (but duplicate algs end in [1], [2] etc)
 
         self.widget = QWidget()
         layout = QVBoxLayout()
@@ -32,11 +33,10 @@ class SessionWidget:
         self._clear_auto_seg()
         img, _ = self.vm.load_image(path)
 
-        if guess_labels(img)=="labels":
+        if guess_labels(img) == "labels":
             label_name = Path(path).name
-            update_or_create_labels(self.viewer,label_name,img)
+            update_or_create_labels(self.viewer, label_name, img)
             return
-        
 
         update_or_create_image(
             self.viewer,
@@ -45,13 +45,18 @@ class SessionWidget:
             colormap="gray",
         )
 
-        self.viewer.layers[self._working_image_layername].metadata = {"filename_base": Path(path).stem}
+        self.viewer.layers[self._working_image_layername].metadata = {
+            "filename_base": Path(path).stem
+        }
 
     def _on_layer_inserted(self, event):
         layer = event.value
         if not isinstance(layer, Image):
             return
-        if self._seg_layername_identifier in layer.name or layer.name == self._working_image_layername:
+        if (
+            self._seg_layername_identifier in layer.name
+            or layer.name == self._working_image_layername
+        ):
             return  # created by our own update_or_create_image / auto segmentation annotation dock
 
         path = layer.source.path if layer.source is not None else None
@@ -68,15 +73,10 @@ class SessionWidget:
         # widget that looks up viewer.layers["Original"].
         layer.name = self._working_image_layername
 
-
     def _build(self, layout):
         @magicgui(call_button="Open image")
         def open_image():
-            path, _ = QFileDialog.getOpenFileName(
-                None,
-                "Select image",
-                ""
-            )
+            path, _ = QFileDialog.getOpenFileName(None, "Select image", "")
             if not path:
                 return
 
@@ -88,7 +88,8 @@ class SessionWidget:
 
     def _clear_auto_seg(self):
         layers_to_remove = [
-            layer for layer in self.viewer.layers 
+            layer
+            for layer in self.viewer.layers
             if self._seg_layername_identifier in layer.name
         ]
         for layer in layers_to_remove:

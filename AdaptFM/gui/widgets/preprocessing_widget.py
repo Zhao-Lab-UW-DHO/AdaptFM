@@ -9,35 +9,49 @@ PreprocessingWidget logic (dynamic param widgets from function signature,
 worker thread, cancel handling, folder selection) is unchanged.
 """
 
-from pathlib import Path
-import traceback
-
 import inspect
+import traceback
+from pathlib import Path
+
 from qtpy.QtCore import Qt, QThread, Signal
 from qtpy.QtGui import QFont, QTextCursor
 from qtpy.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
-    QComboBox, QLabel, QFileDialog, QPushButton, QProgressBar,
-    QMessageBox, QDoubleSpinBox, QCheckBox, QLineEdit, QSpinBox,
-    QScrollArea, QFrame, QTextEdit, QSplitter, QSizePolicy
+    QCheckBox,
+    QComboBox,
+    QDoubleSpinBox,
+    QFileDialog,
+    QFormLayout,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QScrollArea,
+    QSizePolicy,
+    QSpinBox,
+    QSplitter,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
 )
 
 from AdaptFM.preprocessing.registry import PREPROC_REGISTRY
-
 
 # ---------------------------------------------------------------------------
 # Colours (matches ModelWorkflowWidget)
 # ---------------------------------------------------------------------------
 
-_GREEN  = "#4caf50"
-_AMBER  = "#ff9800"
-_RED    = "#f44336"
-_BLUE   = "#42a5f5"
-_BG     = "#2b2b2b"
-_BG2    = "#1e1e1e"
-_BD     = "#444"
-_TEXT   = "#e8e8e8"
-_MUTED  = "#888"
+_GREEN = "#4caf50"
+_AMBER = "#ff9800"
+_RED = "#f44336"
+_BLUE = "#42a5f5"
+_BG = "#2b2b2b"
+_BG2 = "#1e1e1e"
+_BD = "#444"
+_TEXT = "#e8e8e8"
+_MUTED = "#888"
 
 # Global dark stylesheet applied to the widget (extends ModelWorkflowWidget's
 # version with the extra input types PreprocessingWidget's dynamic form uses)
@@ -95,6 +109,7 @@ _WINDOW_STYLE = f"""
 # Style helpers (same as model_widget.py)
 # ---------------------------------------------------------------------------
 
+
 def _section_label(text: str) -> QLabel:
     lbl = QLabel(text)
     lbl.setStyleSheet(
@@ -137,6 +152,7 @@ class CancelledError(Exception):
 
 class PreProcWorker(QThread):
     """Background thread to run the conversion without freezing Napari."""
+
     progress = Signal(int)
     finished = Signal()
     error = Signal(str)
@@ -159,9 +175,14 @@ class PreProcWorker(QThread):
 
     def run(self):
         try:
-            self.func(self.input_dir, self.output_dir, progress_callback=self._progress_wrapper, **self.extra_kwargs)
+            self.func(
+                self.input_dir,
+                self.output_dir,
+                progress_callback=self._progress_wrapper,
+                **self.extra_kwargs,
+            )
         except Exception as e:
-            err_msg = f"{str(e)}\n\n{traceback.format_exc()}"
+            err_msg = f"{e!s}\n\n{traceback.format_exc()}"
             self.error.emit(err_msg)
         finally:
             self.finished.emit()
@@ -210,7 +231,9 @@ class PreprocessingWidget(QWidget):
 
         # Splitter: controls top, log bottom
         splitter = QSplitter(Qt.Vertical)
-        splitter.setStyleSheet(f"QSplitter::handle {{ background: {_BD}; height: 2px; }}")
+        splitter.setStyleSheet(
+            f"QSplitter::handle {{ background: {_BD}; height: 2px; }}"
+        )
         root.addWidget(splitter)
 
         # ── Controls ────────────────────────────────────────────────── #
@@ -229,19 +252,29 @@ class PreprocessingWidget(QWidget):
 
         # Input folder
         ctrl.addWidget(_section_label("Input folder"))
-        ctrl.addLayout(self._build_dir_row(
-            lbl_attr="in_label", btn_attr="btn_in",
-            initial_text="Input folder: None",
-            slot=lambda: self._select_folder("Select a folder to process", "folder2process"),
-        ))
+        ctrl.addLayout(
+            self._build_dir_row(
+                lbl_attr="in_label",
+                btn_attr="btn_in",
+                initial_text="Input folder: None",
+                slot=lambda: self._select_folder(
+                    "Select a folder to process", "folder2process"
+                ),
+            )
+        )
 
         # Output folder
         ctrl.addWidget(_section_label("Output folder"))
-        ctrl.addLayout(self._build_dir_row(
-            lbl_attr="out_label", btn_attr="btn_out",
-            initial_text="Output folder: None",
-            slot=lambda: self._select_folder("Select an output folder", "output_folder"),
-        ))
+        ctrl.addLayout(
+            self._build_dir_row(
+                lbl_attr="out_label",
+                btn_attr="btn_out",
+                initial_text="Output folder: None",
+                slot=lambda: self._select_folder(
+                    "Select an output folder", "output_folder"
+                ),
+            )
+        )
 
         # Parameters
         ctrl.addWidget(_section_label("Parameters"))
@@ -274,7 +307,9 @@ class PreprocessingWidget(QWidget):
         log_hdr.addStretch()
         clear_btn = QPushButton("Clear")
         clear_btn.setFixedWidth(50)
-        clear_btn.setStyleSheet(f"color: {_MUTED}; font-size: 10px; border: none; background: transparent;")
+        clear_btn.setStyleSheet(
+            f"color: {_MUTED}; font-size: 10px; border: none; background: transparent;"
+        )
         clear_btn.clicked.connect(self._clear_log)
         log_hdr.addWidget(clear_btn)
         log_layout.addLayout(log_hdr)
@@ -303,7 +338,9 @@ class PreprocessingWidget(QWidget):
         )
         root.addWidget(self.progress_bar)
 
-    def _build_dir_row(self, lbl_attr: str, btn_attr: str, initial_text: str, slot) -> QHBoxLayout:
+    def _build_dir_row(
+        self, lbl_attr: str, btn_attr: str, initial_text: str, slot
+    ) -> QHBoxLayout:
         """Labelled path display + Browse button (mirrors ModelWorkflowWidget._path_row)."""
         row = QHBoxLayout()
         lbl = QLabel(initial_text)
@@ -351,8 +388,10 @@ class PreprocessingWidget(QWidget):
             if name in self.RESERVED_PARAMS:
                 continue
 
-            default = param.default if param.default is not inspect.Parameter.empty else None
-            is_optional = (param.default is None)
+            default = (
+                param.default if param.default is not inspect.Parameter.empty else None
+            )
+            is_optional = param.default is None
 
             # Generate appropriate Qt widget based on type or default value
             if isinstance(default, bool):
@@ -421,7 +460,9 @@ class PreprocessingWidget(QWidget):
 
     def _run(self):
         if self.folder2process is None or self.output_folder is None:
-            QMessageBox.warning(self, "Warning", "Select an input and output folder first.")
+            QMessageBox.warning(
+                self, "Warning", "Select an input and output folder first."
+            )
             return
 
         self.output_folder.mkdir(parents=True, exist_ok=True)
@@ -440,7 +481,7 @@ class PreprocessingWidget(QWidget):
             conversion_func,
             self.folder2process,
             self.output_folder,
-            extra_kwargs=extra_kwargs
+            extra_kwargs=extra_kwargs,
         )
         self.worker.progress.connect(self.progress_bar.setValue)
         self.worker.error.connect(self._handle_error)
@@ -463,7 +504,6 @@ class PreprocessingWidget(QWidget):
     def _handle_error(self, err_msg):
         self._had_error = True
         self._log_line(f"[error] {err_msg}", color=_RED)
-        
 
     def _processing_finished(self):
         self._set_ui_enabled(True)
@@ -492,10 +532,12 @@ class PreprocessingWidget(QWidget):
             b_c = "</b>" if bold else ""
             c_o = f'<span style="color:{color};">' if color else ""
             c_c = "</span>" if color else ""
-            safe = (text.replace("&", "&amp;")
-                        .replace("<", "&lt;")
-                        .replace(">", "&gt;")
-                        .replace("\n", "<br>"))
+            safe = (
+                text.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\n", "<br>")
+            )
             self._log.insertHtml(f"{b_o}{c_o}{safe}{c_c}{b_c}<br>")
         else:
             self._log.insertPlainText(text + "\n")

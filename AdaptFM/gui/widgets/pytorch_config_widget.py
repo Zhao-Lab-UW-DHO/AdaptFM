@@ -25,22 +25,29 @@ config_saved(cmd: str)   — emitted when the file is (re-)written
 from __future__ import annotations
 
 import shlex
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, Optional
 
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
-    QPushButton, QFrame, QSizePolicy, QToolButton,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QSizePolicy,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
 )
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
-CONFIG_DIR       = Path.home() / ".adaptfm"
+CONFIG_DIR = Path.home() / ".adaptfm"
 PYTORCH_CMD_FILE = CONFIG_DIR / "pytorch_cmd.txt"
-ADAPTFM_ENV      = "AdaptFM"
+ADAPTFM_ENV = "AdaptFM"
 
 _PYTORCH_URL = "https://pytorch.org/get-started/locally/"
 
@@ -51,12 +58,12 @@ _EXAMPLE_COMMANDS = [
 ]
 
 # Style constants (match the rest of the dialog)
-_CARD_BG    = "#2b2b2b"
-_CARD_BD    = "#444"
-_GREEN      = "#4caf50"
-_AMBER      = "#ff9800"
-_RED        = "#f44336"
-_BLUE       = "#42a5f5"
+_CARD_BG = "#2b2b2b"
+_CARD_BD = "#444"
+_GREEN = "#4caf50"
+_AMBER = "#ff9800"
+_RED = "#f44336"
+_BLUE = "#42a5f5"
 
 
 def _read_saved_cmd() -> str:
@@ -74,7 +81,7 @@ def _normalise_cmd(raw: str) -> str:
     s = raw.strip()
     for prefix in ("pip3 install ", "pip install "):
         if s.startswith(prefix):
-            return "pip install " + s[len(prefix):]
+            return "pip install " + s[len(prefix) :]
     if s.startswith("install "):
         return "pip " + s
     # Bare package list → prepend pip install
@@ -95,7 +102,10 @@ def _validate_cmd(cmd: str) -> tuple[bool, str]:
     if len(parts) < 3:
         return False, "Too short — expected at least  pip install <package>."
     if parts[0] not in ("pip", "pip3"):
-        return False, f"Expected command to start with 'pip' or 'pip3', got '{parts[0]}'."
+        return (
+            False,
+            f"Expected command to start with 'pip' or 'pip3', got '{parts[0]}'.",
+        )
     if parts[1] != "install":
         return False, f"Expected 'pip install …', got 'pip {parts[1]} …'."
     # Must contain at least one token that looks like a package name (not a flag)
@@ -105,13 +115,17 @@ def _validate_cmd(cmd: str) -> tuple[bool, str]:
     # Warn if it looks like torch is missing
     torch_tokens = {"torch", "pytorch"}
     if not any(t in p.lower() for p in packages for t in torch_tokens):
-        return False, "Warning: 'torch' not found in the command — is this a PyTorch install?"
+        return (
+            False,
+            "Warning: 'torch' not found in the command — is this a PyTorch install?",
+        )
     return True, ""
 
 
 # ---------------------------------------------------------------------------
 # Widget
 # ---------------------------------------------------------------------------
+
 
 class PyTorchConfigWidget(QFrame):
     """
@@ -128,18 +142,18 @@ class PyTorchConfigWidget(QFrame):
         to the shared log panel and the busy-lock is respected.
     """
 
-    config_saved = Signal(str)   # emits the normalised command string
+    config_saved = Signal(str)  # emits the normalised command string
 
     def __init__(
         self,
         log_fn: Callable,
         run_process_fn: Callable,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ):
         super().__init__(parent)
-        self._log        = log_fn
-        self._run_proc   = run_process_fn
-        self._expanded   = False
+        self._log = log_fn
+        self._run_proc = run_process_fn
+        self._expanded = False
         self._build()
         self._load_saved()
 
@@ -204,7 +218,7 @@ class PyTorchConfigWidget(QFrame):
         # Example hint
         eg = QLabel(
             f'<span style="color:#666; font-size:10px;">'
-            f'e.g.  {_EXAMPLE_COMMANDS[0]}</span>'
+            f"e.g.  {_EXAMPLE_COMMANDS[0]}</span>"
         )
         eg.setWordWrap(True)
         body_layout.addWidget(eg)
@@ -298,9 +312,7 @@ class PyTorchConfigWidget(QFrame):
     def _set_expanded(self, expanded: bool):
         self._expanded = expanded
         self._body.setVisible(expanded)
-        self._toggle_btn.setArrowType(
-            Qt.DownArrow if expanded else Qt.RightArrow
-        )
+        self._toggle_btn.setArrowType(Qt.DownArrow if expanded else Qt.RightArrow)
 
     def expand(self):
         """Called externally, e.g. from a warning badge click."""
@@ -322,16 +334,12 @@ class PyTorchConfigWidget(QFrame):
 
         if ok:
             self._validation_lbl.setText("✓ Looks valid")
-            self._validation_lbl.setStyleSheet(
-                f"color: {_GREEN}; font-size: 10px;"
-            )
+            self._validation_lbl.setStyleSheet(f"color: {_GREEN}; font-size: 10px;")
             self._save_btn.setEnabled(True)
             self._install_btn.setEnabled(True)
         else:
             self._validation_lbl.setText(f"⚠  {msg}")
-            self._validation_lbl.setStyleSheet(
-                f"color: {_AMBER}; font-size: 10px;"
-            )
+            self._validation_lbl.setStyleSheet(f"color: {_AMBER}; font-size: 10px;")
             # Still allow saving if it's just a soft warning (starts with Warning:)
             is_soft = msg.startswith("Warning:")
             self._save_btn.setEnabled(is_soft)
@@ -362,11 +370,14 @@ class PyTorchConfigWidget(QFrame):
 
     def _save_and_install(self):
         cmd = self._save()
-        parts = shlex.split(cmd)   # e.g. ["pip", "install", "torch", …]
+        parts = shlex.split(cmd)  # e.g. ["pip", "install", "torch", …]
 
         # Run inside AdaptFM conda env
         conda_args = [
-            "run", "-n", ADAPTFM_ENV, "--no-capture-output",
+            "run",
+            "-n",
+            ADAPTFM_ENV,
+            "--no-capture-output",
         ] + parts
 
         self._log(
@@ -385,14 +396,16 @@ class PyTorchConfigWidget(QFrame):
         if exit_code == 0:
             self._log(
                 f"✓ PyTorch installed into '{ADAPTFM_ENV}' successfully.",
-                color=_GREEN, bold=True,
+                color=_GREEN,
+                bold=True,
             )
         else:
             self._log(
                 f"✗ PyTorch install exited with code {exit_code}.\n"
                 f"  You can retry from the command line:\n"
                 f"  conda run -n {ADAPTFM_ENV} {_read_saved_cmd()}",
-                color=_RED, bold=True,
+                color=_RED,
+                bold=True,
             )
 
     # ------------------------------------------------------------------

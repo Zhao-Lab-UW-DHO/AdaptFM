@@ -1,20 +1,21 @@
+import argparse
+import json
+from pathlib import Path
+
+import SimpleITK as sitk
+from monai.data import Dataset
 from monai.transforms import (
-    EnsureChannelFirstd,
+    CenterSpatialCropd,
     Compose,
+    EnsureChannelFirstd,
     LoadImaged,
     Orientationd,
     Spacingd,
     SpatialPadd,
     ToTensord,
-    CenterSpatialCropd,
 )
 
-from pathlib import Path
-import argparse
-from monai.data import  Dataset
-import SimpleITK as sitk
-import json
-#run transforms on data as recommended by merlin 
+# run transforms on data as recommended by merlin
 
 ImageTransforms = Compose(
     [
@@ -31,6 +32,7 @@ ImageTransforms = Compose(
     ]
 )
 
+
 def run_merlin_transforms(input_path):
     data = [{"image": input_path}]
     ds = Dataset(data=data, transform=ImageTransforms)
@@ -40,10 +42,11 @@ def run_merlin_transforms(input_path):
 
     return img
 
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--folder2transform')
-    parser.add_argument('--params')
+    parser.add_argument("--folder2transform")
+    parser.add_argument("--params")
     args = parser.parse_args()
 
     folder2transform = Path(args.folder2transform)
@@ -55,26 +58,24 @@ def main():
     original_name = folder2transform.name
     output_name = f"{original_name}_transformed"
 
-    output_folder = folder2transform.parent /output_name
+    output_folder = folder2transform.parent / output_name
 
     output_folder.mkdir(exist_ok=True, parents=True)
 
     nii_files = sorted(folder2transform.glob("*.nii.gz"))
     for f in nii_files:
-            print(f"Processing {f.name}")
+        print(f"Processing {f.name}")
 
-            img_tensor = run_merlin_transforms(f)  # shape (1, 224, 224, 160)
-            img_np = img_tensor.numpy()[0]         # remove channel dimension
+        img_tensor = run_merlin_transforms(f)  # shape (1, 224, 224, 160)
+        img_np = img_tensor.numpy()[0]  # remove channel dimension
 
-            # Save as NIfTI
-            out_path = output_folder / f.name
+        # Save as NIfTI
+        out_path = output_folder / f.name
 
-            # img_np is shape (224, 224, 160)
-            sitk_img = sitk.GetImageFromArray(img_np.astype("float32"))
-            sitk.WriteImage(sitk_img, str(out_path))
-
-    return
+        # img_np is shape (224, 224, 160)
+        sitk_img = sitk.GetImageFromArray(img_np.astype("float32"))
+        sitk.WriteImage(sitk_img, str(out_path))
 
 
-if __name__=='__main__':
+if __name__ == "__main__":
     main()

@@ -9,21 +9,18 @@
 
 
 from pathlib import Path
-from typing import Tuple, List
 
 import numpy as np
-import torch
-from torch.utils.data import Dataset
-
 import tifffile
-from scipy.ndimage import zoom, map_coordinates
-
-import numpy as np
+import torch
 import torch.nn.functional as F
+from scipy.ndimage import map_coordinates, zoom
+from torch.utils.data import Dataset
 
 # ------------------------------------------------------------
 # Utility functions
 # ------------------------------------------------------------
+
 
 def read_tiff(path: Path):
     """
@@ -33,10 +30,9 @@ def read_tiff(path: Path):
         spacing: (sz, sy, sx)
     """
 
-
     volume = tifffile.imread(path)
 
-    return volume.astype(np.float32)#, (sz, sy, sx)
+    return volume.astype(np.float32)  # , (sz, sy, sx)
 
 
 def normalize_patch(patch):
@@ -47,10 +43,10 @@ def normalize_patch(patch):
 def sliding_window_inference(
     model,
     volume,
-    patch_size=(32,64,64),
-    stride=(16,32,32),
+    patch_size=(32, 64, 64),
+    stride=(16, 32, 32),
     device="cuda",
-    threshold=0.5
+    threshold=0.5,
 ):
     model.eval()
 
@@ -64,7 +60,6 @@ def sliding_window_inference(
         for z in range(0, Z, stride[0]):
             for y in range(0, Y, stride[1]):
                 for x in range(0, X, stride[2]):
-
                     z1 = min(z + pz, Z)
                     y1 = min(y + py, Y)
                     x1 = min(x + px, X)
@@ -75,17 +70,12 @@ def sliding_window_inference(
                     pad_y = py - patch.shape[1]
                     pad_x = px - patch.shape[2]
 
-
                     patch = normalize_patch(patch)
 
                     if pad_z > 0 or pad_y > 0 or pad_x > 0:
-
                         patch = np.pad(
-                            patch,
-                            ((0, pad_z), (0, pad_y), (0, pad_x)),
-                            mode='constant'
+                            patch, ((0, pad_z), (0, pad_y), (0, pad_x)), mode="constant"
                         )
-
 
                     patch_tensor = (
                         torch.from_numpy(patch)
@@ -120,7 +110,8 @@ def sliding_window_inference(
 # Physical cropping
 # ------------------------------------------------------------
 
-def physical_random_crop(volume, crop_size_vox: Tuple[int,int,int]):
+
+def physical_random_crop(volume, crop_size_vox: tuple[int, int, int]):
     """Random crop by voxels (already computed to satisfy patch_size)."""
     vz, vy, vx = crop_size_vox
     Z, Y, X = volume.shape
@@ -133,7 +124,8 @@ def physical_random_crop(volume, crop_size_vox: Tuple[int,int,int]):
     y0 = np.random.randint(0, Y - vy + 1) if Y > vy else 0
     x0 = np.random.randint(0, X - vx + 1) if X > vx else 0
 
-    return volume[z0:z0+vz, y0:y0+vy, x0:x0+vx]
+    return volume[z0 : z0 + vz, y0 : y0 + vy, x0 : x0 + vx]
+
 
 # ------------------------------------------------------------
 # Augmentations
@@ -188,28 +180,18 @@ def mild_elastic_deform(volume, alpha=2.0, sigma=8.0):
     dx = np.random.randn(*shape) * alpha
 
     zz, yy, xx = np.meshgrid(
-        np.arange(shape[0]),
-        np.arange(shape[1]),
-        np.arange(shape[2]),
-        indexing='ij'
+        np.arange(shape[0]), np.arange(shape[1]), np.arange(shape[2]), indexing="ij"
     )
 
-    indices = (
-        zz + dz,
-        yy + dy,
-        xx + dx
-    )
+    indices = (zz + dz, yy + dy, xx + dx)
 
-    return map_coordinates(volume, indices, order=1, mode='reflect')
+    return map_coordinates(volume, indices, order=1, mode="reflect")
 
-
-import numpy as np
-from typing import Tuple
 
 def physical_random_crop_pair(
     volume: np.ndarray,
     mask: np.ndarray,
-    crop_size_vox: Tuple[int, int, int],
+    crop_size_vox: tuple[int, int, int],
 ):
     """
     Random voxel-aligned crop applied identically to volume and mask.
@@ -227,14 +209,14 @@ def physical_random_crop_pair(
     y0 = np.random.randint(0, Y - vy + 1) if Y > vy else 0
     x0 = np.random.randint(0, X - vx + 1) if X > vx else 0
 
-    vol_crop = volume[z0:z0+vz, y0:y0+vy, x0:x0+vx]
-    mask_crop = mask[z0:z0+vz, y0:y0+vy, x0:x0+vx]
+    vol_crop = volume[z0 : z0 + vz, y0 : y0 + vy, x0 : x0 + vx]
+    mask_crop = mask[z0 : z0 + vz, y0 : y0 + vy, x0 : x0 + vx]
 
     return vol_crop, mask_crop
 
 
 import numpy as np
-from scipy.ndimage import map_coordinates
+
 
 def mild_elastic_deform_pair(
     volume: np.ndarray,
@@ -255,51 +237,46 @@ def mild_elastic_deform_pair(
     dx = np.random.randn(*shape) * alpha
 
     zz, yy, xx = np.meshgrid(
-        np.arange(shape[0]),
-        np.arange(shape[1]),
-        np.arange(shape[2]),
-        indexing='ij'
+        np.arange(shape[0]), np.arange(shape[1]), np.arange(shape[2]), indexing="ij"
     )
 
-    indices = (
-        zz + dz,
-        yy + dy,
-        xx + dx
-    )
+    indices = (zz + dz, yy + dy, xx + dx)
 
     vol_def = map_coordinates(
         volume,
         indices,
-        order=1,            # linear
-        mode="reflect"
+        order=1,  # linear
+        mode="reflect",
     )
 
     mask_def = map_coordinates(
         mask,
         indices,
-        order=0,            # nearest neighbor
-        mode="reflect"
+        order=0,  # nearest neighbor
+        mode="reflect",
     )
 
     return vol_def, mask_def
-
 
 
 # ------------------------------------------------------------
 # Dataset
 # ------------------------------------------------------------
 
+
 class OrganoidMAEDataset(Dataset):
     """
     Returns fixed-size 3D patches for ViT-MAE pretraining.
     """
 
-    def __init__(self,
-                 paths: List[Path],
-                 patch_size=(32,64,64),   # voxel size
-                 augment=True,
-                 patches_per_image=5):
-        
+    def __init__(
+        self,
+        paths: list[Path],
+        patch_size=(32, 64, 64),  # voxel size
+        augment=True,
+        patches_per_image=5,
+    ):
+
         self.paths = paths
         self.patch_size = patch_size
         self.augment = augment
@@ -310,7 +287,7 @@ class OrganoidMAEDataset(Dataset):
 
     def __getitem__(self, idx):
         img_idx = idx % len(self.paths)
-        vol  = read_tiff(self.paths[img_idx])
+        vol = read_tiff(self.paths[img_idx])
 
         # Random crop
         patch = physical_random_crop(vol, self.patch_size)
@@ -320,7 +297,7 @@ class OrganoidMAEDataset(Dataset):
             patch = anisotropic_scaling(patch)
             patch = mild_elastic_deform(patch)
             patch = z_jitter(patch)
-            #patch = z_slice_dropout(patch)
+            # patch = z_slice_dropout(patch)
             patch = intensity_augment(patch)
 
         # Pad to make divisible by ViT patch size
@@ -332,7 +309,8 @@ class OrganoidMAEDataset(Dataset):
         # To tensor
         patch = torch.from_numpy(patch).unsqueeze(0).float()
 
-        return {'image': patch}
+        return {"image": patch}
+
 
 # ------------------------------------------------------------
 # NOTES
@@ -343,7 +321,6 @@ class OrganoidMAEDataset(Dataset):
 #   - additional reconstruction targets
 #   - channel-wise volumes
 # ------------------------------------------------------------
-
 
 
 def center_crop_or_pad(patch: np.ndarray, target_shape):
@@ -372,9 +349,9 @@ def center_crop_or_pad(patch: np.ndarray, target_shape):
     x_start = max((x - tx) // 2, 0)
 
     patch = patch[
-        z_start:z_start + min(z, tz),
-        y_start:y_start + min(y, ty),
-        x_start:x_start + min(x, tx),
+        z_start : z_start + min(z, tz),
+        y_start : y_start + min(y, ty),
+        x_start : x_start + min(x, tx),
     ]
 
     # ---------- Pad ----------
@@ -406,16 +383,18 @@ def center_crop_or_pad(patch: np.ndarray, target_shape):
         constant_values=0,
     )
 
-    assert patch.shape == target_shape, \
+    assert patch.shape == target_shape, (
         f"center_crop_or_pad failed: got {patch.shape}, expected {target_shape}"
+    )
 
     return patch
 
 
 from pathlib import Path
-from torch.utils.data import Dataset
-import torch
+
 import numpy as np
+from torch.utils.data import Dataset
+
 
 class OrganoidSegmentationDataset(Dataset):
     """
@@ -445,49 +424,47 @@ class OrganoidSegmentationDataset(Dataset):
         img_idx = idx % len(self.image_paths)
 
         image = read_tiff(self.image_paths[img_idx])
-        mask  = read_tiff(self.mask_paths[img_idx])
+        mask = read_tiff(self.mask_paths[img_idx])
 
         # ---- joint random crop ----
-        image, mask = physical_random_crop_pair(
-            image, mask, self.patch_size
-        )
+        image, mask = physical_random_crop_pair(image, mask, self.patch_size)
 
         # ---- augmentations ----
         if self.augment:
             image, mask = mild_elastic_deform_pair(image, mask)
-            image,mask = anisotropic_scaling_pair(image,mask)
-            image,mask = z_jitter_pair(image,mask)
+            image, mask = anisotropic_scaling_pair(image, mask)
+            image, mask = z_jitter_pair(image, mask)
             image = intensity_augment(image)
 
         # ---- center crop / pad ----
         image = center_crop_or_pad(image, self.patch_size)
-        mask  = center_crop_or_pad(mask,  self.patch_size)
+        mask = center_crop_or_pad(mask, self.patch_size)
 
         # ---- normalize image only ----
         image = (image - image.mean()) / (image.std() + 1e-6)
 
         image = torch.from_numpy(image).unsqueeze(0).float()
-        mask  = torch.from_numpy(mask).unsqueeze(0).float()
+        mask = torch.from_numpy(mask).unsqueeze(0).float()
 
-        return {
-            "image": image,
-            "mask": mask
-        }
-    
+        return {"image": image, "mask": mask}
+
+
 from pathlib import Path
+
 from torch.utils.data import DataLoader
+
 
 def build_dataloaders(
     data_root,
     batch_size=4,
     patch_size=(32, 64, 64),
     patches_per_image=20,
-    num_workers=8
+    num_workers=8,
 ):
     data_root = Path(data_root)
 
     image_paths = sorted((data_root / "images").glob("*.tiff"))
-    mask_paths  = sorted((data_root / "masks").glob("*.tiff"))
+    mask_paths = sorted((data_root / "masks").glob("*.tiff"))
 
     assert len(image_paths) > 0, "No images found"
     assert len(image_paths) == len(mask_paths), "Image/mask count mismatch"
@@ -497,7 +474,7 @@ def build_dataloaders(
         mask_paths=mask_paths,
         patch_size=patch_size,
         augment=True,
-        patches_per_image=patches_per_image
+        patches_per_image=patches_per_image,
     )
 
     loader = DataLoader(
@@ -506,20 +483,16 @@ def build_dataloaders(
         shuffle=True,
         num_workers=num_workers,
         pin_memory=True,
-        drop_last=True
+        drop_last=True,
     )
 
     return loader
 
 
 import numpy as np
-from scipy.ndimage import zoom
 
-def anisotropic_scaling_pair(
-    image,
-    mask,
-    scale_range=(0.9, 1.1)
-):
+
+def anisotropic_scaling_pair(image, mask, scale_range=(0.9, 1.1)):
     """
     Apply the same random anisotropic scaling to image and mask.
     image: np.ndarray [Z, Y, X]
@@ -536,20 +509,20 @@ def anisotropic_scaling_pair(
     image_scaled = zoom(
         image,
         zoom=(sz, sy, sx),
-        order=1,          # linear
-        mode="reflect"
+        order=1,  # linear
+        mode="reflect",
     )
 
     mask_scaled = zoom(
         mask,
         zoom=(sz, sy, sx),
-        order=0,          # nearest
-        mode="reflect"
+        order=0,  # nearest
+        mode="reflect",
     )
 
     # Center crop or pad back to original shape
     image_scaled = center_crop_or_pad(image_scaled, (Z, Y, X))
-    mask_scaled  = center_crop_or_pad(mask_scaled,  (Z, Y, X))
+    mask_scaled = center_crop_or_pad(mask_scaled, (Z, Y, X))
 
     return image_scaled, mask_scaled
 
@@ -576,25 +549,23 @@ def z_jitter_pair(image, mask, max_shift=2):
         return out
 
     image_shifted = shift_z(image, shift)
-    mask_shifted  = shift_z(mask, shift)
+    mask_shifted = shift_z(mask, shift)
 
     return image_shifted, mask_shifted
 
 
-import torch
-from torch.utils.data import Dataset
-from typing import List
 from pathlib import Path
+
+from torch.utils.data import Dataset
+
 
 class OrganoidSegDataset(Dataset):
     """
     Returns full 3D images and voxel-level masks for segmentation.
     Reuses augmentations from pretraining.
     """
-    def __init__(self,
-                 image_paths: List[Path],
-                 mask_paths: List[Path],
-                 augment=True):
+
+    def __init__(self, image_paths: list[Path], mask_paths: list[Path], augment=True):
         assert len(image_paths) == len(mask_paths), "Image and mask lists must match."
         self.image_paths = image_paths
         self.mask_paths = mask_paths
@@ -604,8 +575,8 @@ class OrganoidSegDataset(Dataset):
         return len(self.image_paths)
 
     def __getitem__(self, idx):
-        img = read_tiff(self.image_paths[idx])   # (D,H,W)
-        mask = read_tiff(self.mask_paths[idx])   # (D,H,W)
+        img = read_tiff(self.image_paths[idx])  # (D,H,W)
+        mask = read_tiff(self.mask_paths[idx])  # (D,H,W)
 
         # Apply augmentations (same transform to image + mask)
         if self.augment:
@@ -619,10 +590,10 @@ class OrganoidSegDataset(Dataset):
         img = (img - img.mean()) / (img.std() + 1e-6)
 
         # To tensor
-        img = torch.from_numpy(img).unsqueeze(0).float()    # (1,D,H,W)
+        img = torch.from_numpy(img).unsqueeze(0).float()  # (1,D,H,W)
         mask = torch.from_numpy(mask).unsqueeze(0).float()  # (1,D,H,W)
 
-        return {'image': img, 'mask': mask}
+        return {"image": img, "mask": mask}
 
     def apply_augmentations(self, img, mask):
         """
@@ -639,17 +610,17 @@ class OrganoidSegDataset(Dataset):
         # Intensity augment (only on image)
         img = intensity_augment(img)
         return img, mask
-    
-import torch
-import torch.nn.functional as F
+
+
 import numpy as np
 
+
 def sliding_window_inference_3d(
-    image,                  # 3D torch tensor (1,D,H,W) or (B=1,1,D,H,W)
-    model,                  # your MAE3DSegmentation model
+    image,  # 3D torch tensor (1,D,H,W) or (B=1,1,D,H,W)
+    model,  # your MAE3DSegmentation model
     patch_size=(4, 128, 128),  # patch size for the sliding window
-    stride=None,            # stride of sliding window (None -> same as patch_size)
-    device='cuda'
+    stride=None,  # stride of sliding window (None -> same as patch_size)
+    device="cuda",
 ):
     """
     Perform sliding window inference on a 3D volume.
@@ -659,22 +630,22 @@ def sliding_window_inference_3d(
     image = image.to(device)
     if len(image.shape) == 4:
         image = image.unsqueeze(0)  # add batch dim
-    
+
     _, _, D, H, W = image.shape
     ps_d, ps_h, ps_w = patch_size
     stride = stride or patch_size
-    
+
     st_d, st_h, st_w = stride
-    
+
     # Output tensor
     output = torch.zeros((1, 1, D, H, W), device=device)
     count_map = torch.zeros((1, 1, D, H, W), device=device)  # for averaging overlaps
-    
+
     # Compute sliding windows
     d_starts = list(range(0, max(D - ps_d + 1, 1), st_d))
     h_starts = list(range(0, max(H - ps_h + 1, 1), st_h))
     w_starts = list(range(0, max(W - ps_w + 1, 1), st_w))
-    
+
     # Ensure last patch reaches the end
     if d_starts[-1] + ps_d < D:
         d_starts.append(D - ps_d)
@@ -682,7 +653,7 @@ def sliding_window_inference_3d(
         h_starts.append(H - ps_h)
     if w_starts[-1] + ps_w < W:
         w_starts.append(W - ps_w)
-    
+
     with torch.no_grad():
         for d0 in d_starts:
             for h0 in h_starts:
@@ -690,33 +661,35 @@ def sliding_window_inference_3d(
                     d1 = d0 + ps_d
                     h1 = h0 + ps_h
                     w1 = w0 + ps_w
-                    
+
                     patch = image[:, :, d0:d1, h0:h1, w0:w1]
-                    
+
                     # Forward pass
                     logits_patch = model(patch)  # (B=1,1,ps_d,ps_h,ps_w)
-                    
+
                     # Resize to patch size if necessary
                     if logits_patch.shape[2:] != (ps_d, ps_h, ps_w):
                         logits_patch = F.interpolate(
-                            logits_patch, size=(ps_d, ps_h, ps_w),
-                            mode='trilinear', align_corners=False
+                            logits_patch,
+                            size=(ps_d, ps_h, ps_w),
+                            mode="trilinear",
+                            align_corners=False,
                         )
-                    
+
                     # Add patch prediction to output
                     output[:, :, d0:d1, h0:h1, w0:w1] += logits_patch
                     count_map[:, :, d0:d1, h0:h1, w0:w1] += 1
-    
+
     # Average overlapping regions
     output = output / count_map
     return output
 
-import torch
+
+import random
+from pathlib import Path
+
 import numpy as np
 from torch.utils.data import Dataset
-from typing import List, Tuple
-from pathlib import Path
-import random
 
 
 class OrganoidPatchDataset(Dataset):
@@ -724,13 +697,15 @@ class OrganoidPatchDataset(Dataset):
     Random patch sampling dataset for 3D voxel segmentation.
     """
 
-    def __init__(self,
-                 image_paths: List[Path],
-                 mask_paths: List[Path],
-                 patch_size: Tuple[int, int, int],
-                 samples_per_volume: int = 16,
-                 augment: bool = True,
-                 min_fg_fraction: float = 0.01):
+    def __init__(
+        self,
+        image_paths: list[Path],
+        mask_paths: list[Path],
+        patch_size: tuple[int, int, int],
+        samples_per_volume: int = 16,
+        augment: bool = True,
+        min_fg_fraction: float = 0.01,
+    ):
         """
         patch_size: (D, H, W)
         samples_per_volume: number of patches drawn per volume per epoch
@@ -770,8 +745,8 @@ class OrganoidPatchDataset(Dataset):
             h0 = random.randint(0, max(H - ps_h, 0))
             w0 = random.randint(0, max(W - ps_w, 0))
 
-            patch_img = img[d0:d0+ps_d, h0:h0+ps_h, w0:w0+ps_w]
-            patch_mask = mask[d0:d0+ps_d, h0:h0+ps_h, w0:w0+ps_w]
+            patch_img = img[d0 : d0 + ps_d, h0 : h0 + ps_h, w0 : w0 + ps_w]
+            patch_mask = mask[d0 : d0 + ps_d, h0 : h0 + ps_h, w0 : w0 + ps_w]
 
             fg_fraction = patch_mask.mean()
 
@@ -792,10 +767,6 @@ class OrganoidPatchDataset(Dataset):
         img, mask = z_jitter_pair(img, mask)
         img = intensity_augment(img)
         return img, mask
-    
-
-import torch
-import torch.nn.functional as F
 
 
 class OrganoidPatchDatasetGPU(Dataset):
@@ -803,13 +774,15 @@ class OrganoidPatchDatasetGPU(Dataset):
     Random patch sampling dataset for 3D voxel segmentation.
     """
 
-    def __init__(self,
-                 image_paths: List[Path],
-                 mask_paths: List[Path],
-                 patch_size: Tuple[int, int, int],
-                 samples_per_volume: int = 16,
-                 augment: bool = True,
-                 min_fg_fraction: float = 0.01):
+    def __init__(
+        self,
+        image_paths: list[Path],
+        mask_paths: list[Path],
+        patch_size: tuple[int, int, int],
+        samples_per_volume: int = 16,
+        augment: bool = True,
+        min_fg_fraction: float = 0.01,
+    ):
         """
         patch_size: (D, H, W)
         samples_per_volume: number of patches drawn per volume per epoch
@@ -846,8 +819,8 @@ class OrganoidPatchDatasetGPU(Dataset):
             h0 = random.randint(0, max(H - ps_h, 0))
             w0 = random.randint(0, max(W - ps_w, 0))
 
-            patch_img = img[d0:d0+ps_d, h0:h0+ps_h, w0:w0+ps_w]
-            patch_mask = mask[d0:d0+ps_d, h0:h0+ps_h, w0:w0+ps_w]
+            patch_img = img[d0 : d0 + ps_d, h0 : h0 + ps_h, w0 : w0 + ps_w]
+            patch_mask = mask[d0 : d0 + ps_d, h0 : h0 + ps_h, w0 : w0 + ps_w]
 
             fg_fraction = patch_mask.mean()
 
@@ -861,29 +834,29 @@ class OrganoidPatchDatasetGPU(Dataset):
         patch_mask = torch.from_numpy(patch_mask).unsqueeze(0).float()
 
         return {"image": patch_img, "mask": patch_mask}
-    
 
 
-
-
-from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
+
 import tifffile as tiff
-from collections import deque
+
 
 class OrganoidPatchDatasetGPUTCell(Dataset):
     """
     Random patch sampling dataset for 3D voxel segmentation.
     """
 
-    def __init__(self,
-                 image_paths: List[Path],
-                 mask_paths: List[Path],
-                 patch_size: Tuple[int, int, int],
-                 samples_per_volume: int = 16,
-                 augment: bool = True,
-                 min_fg_fraction: float = 0.01,
-                 num_preload_workers = 8):
+    def __init__(
+        self,
+        image_paths: list[Path],
+        mask_paths: list[Path],
+        patch_size: tuple[int, int, int],
+        samples_per_volume: int = 16,
+        augment: bool = True,
+        min_fg_fraction: float = 0.01,
+        num_preload_workers=8,
+    ):
         """
         patch_size: (D, H, W)
         samples_per_volume: number of patches drawn per volume per epoch
@@ -905,26 +878,20 @@ class OrganoidPatchDatasetGPUTCell(Dataset):
         self.volumes = [None] * len(image_paths)
         self.mask_volumes = [None] * len(mask_paths)
         self.fg_voxels = [None] * len(mask_paths)
-        def load_tiff(p:Path):
+
+        def load_tiff(p: Path):
             vol = tiff.imread(p)
             return vol
-        
-        
+
         with ThreadPoolExecutor(max_workers=num_preload_workers) as ex:
-            futures = {
-                ex.submit(load_tiff, p): i
-                for i, p in enumerate(image_paths)
-            }
+            futures = {ex.submit(load_tiff, p): i for i, p in enumerate(image_paths)}
 
             for fut in as_completed(futures):
                 i = futures[fut]
                 self.volumes[i] = fut.result()
 
         with ThreadPoolExecutor(max_workers=num_preload_workers) as ex:
-            futures = {
-                ex.submit(load_tiff, p): i
-                for i, p in enumerate(mask_paths)
-            }
+            futures = {ex.submit(load_tiff, p): i for i, p in enumerate(mask_paths)}
 
             for fut in as_completed(futures):
                 i = futures[fut]
@@ -932,7 +899,6 @@ class OrganoidPatchDatasetGPUTCell(Dataset):
 
                 self.mask_volumes[i] = mask
                 self.fg_voxels[i] = np.argwhere(mask > 0)
-            
 
     def __len__(self):
         return self.total_samples
@@ -946,24 +912,27 @@ class OrganoidPatchDatasetGPUTCell(Dataset):
         D, H, W = vol.shape
         ps_d, ps_h, ps_w = self.patch_size
 
-        if random.random() < self.fg_sampling_prob and len(self.fg_voxels[volume_idx]) > 0:
-            
+        if (
+            random.random() < self.fg_sampling_prob
+            and len(self.fg_voxels[volume_idx]) > 0
+        ):
             # foreground-centered patch
-            z, y, x = self.fg_voxels[volume_idx][np.random.randint(len(self.fg_voxels[volume_idx]))]
+            z, y, x = self.fg_voxels[volume_idx][
+                np.random.randint(len(self.fg_voxels[volume_idx]))
+            ]
 
             d0 = np.clip(z - ps_d // 2, 0, D - ps_d)
             h0 = np.clip(y - ps_h // 2, 0, H - ps_h)
             w0 = np.clip(x - ps_w // 2, 0, W - ps_w)
 
         else:
-            
             # random patch
             d0 = random.randint(0, max(D - ps_d, 0))
             h0 = random.randint(0, max(H - ps_h, 0))
             w0 = random.randint(0, max(W - ps_w, 0))
 
-        patch_img = vol[d0:d0+ps_d, h0:h0+ps_h, w0:w0+ps_w]
-        patch_mask = mask[d0:d0+ps_d, h0:h0+ps_h, w0:w0+ps_w]
+        patch_img = vol[d0 : d0 + ps_d, h0 : h0 + ps_h, w0 : w0 + ps_w]
+        patch_mask = mask[d0 : d0 + ps_d, h0 : h0 + ps_h, w0 : w0 + ps_w]
 
         patch_img = (patch_img - patch_img.mean()) / (patch_img.std() + 1e-6)
 
@@ -971,4 +940,3 @@ class OrganoidPatchDatasetGPUTCell(Dataset):
         patch_mask = torch.from_numpy(patch_mask).unsqueeze(0).float()
 
         return {"image": patch_img, "mask": patch_mask}
-    

@@ -14,10 +14,9 @@ directory does not already exist.
 import argparse
 import subprocess
 import sys
-import shlex
 from pathlib import Path
-from AdaptFM.model.registry import _conda_prefix
 
+from AdaptFM.model.registry import _conda_prefix
 
 ENV_NAME = "sammed3d_adapt"
 PYTHON_VERSION = "3.10"
@@ -61,12 +60,11 @@ def _run(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, check=check)
 
 
-def _conda_run(env: str, cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
+def _conda_run(
+    env: str, cmd: list[str], check: bool = True
+) -> subprocess.CompletedProcess:
     full_cmd = ["conda", "run", "-n", env, "--no-capture-output"] + cmd
     return _run(full_cmd, check=check)
-
-
-
 
 
 def _write_conda_hooks(env: str, sammed3d_root: Path, adaptfm_root: Path) -> None:
@@ -139,8 +137,8 @@ def main() -> None:
     # Resolve paths (CLI args take priority, then interactive prompt)
     cwd = Path.cwd()
 
-    sammed3d_root = (cwd.parent / "SAM-Med3D")
-    adaptfm_root: Path =cwd
+    sammed3d_root = cwd.parent / "SAM-Med3D"
+    adaptfm_root: Path = cwd
     sammed3d_root = sammed3d_root.expanduser().resolve()
     adaptfm_root = adaptfm_root.expanduser().resolve()
 
@@ -156,20 +154,26 @@ def main() -> None:
     )
     if ENV_NAME in env_check.stdout:
         print(f"Environment '{ENV_NAME}' already exists — skipping creation.")
-        print("To reinstall from scratch, run:  conda env remove -n sammed3d_adapt and adaptfm-install-sammed3d")
+        print(
+            "To reinstall from scratch, run:  conda env remove -n sammed3d_adapt and adaptfm-install-sammed3d"
+        )
         # Still (re-)write the hooks in case the paths changed
         print("\nUpdating conda activation hooks …")
         _write_conda_hooks(ENV_NAME, sammed3d_root, adaptfm_root)
         sys.exit(0)
 
     # Create bare environment
-    _run([
-        "conda", "create",
-        "-n", ENV_NAME,
-        f"python={PYTHON_VERSION}",
-        "-y",
-    ])
-    
+    _run(
+        [
+            "conda",
+            "create",
+            "-n",
+            ENV_NAME,
+            f"python={PYTHON_VERSION}",
+            "-y",
+        ]
+    )
+
     prefix = _conda_prefix(ENV_NAME)
     config_path = Path.home() / ".adaptfm" / f"{ENV_NAME}.prefix"
     config_path.write_text(prefix + "\n")
