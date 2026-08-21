@@ -1,9 +1,11 @@
-from AdaptFM.gui.widgets.sam_card import SamCard
-from typing import Callable
+from collections.abc import Callable
 from pathlib import Path
 
-_INSTALLED_COLOR   = "#4caf50"
-_WARNING_COLOR     = "#f44336"
+from AdaptFM.gui.widgets.sam_card import SamCard
+
+_INSTALLED_COLOR = "#4caf50"
+_WARNING_COLOR = "#f44336"
+
 
 class SSVTCard(SamCard):
     def __init__(
@@ -40,9 +42,8 @@ class SSVTCard(SamCard):
         self._requires_pytorch = False
         self._import_name = None
 
-
     def _probe(self) -> bool:
-        
+
         REPO_ROOT = Path(__file__).parent.parent.parent
         ssvt_dir = REPO_ROOT / "SSVT" / "checkpoint"
         checkpoint = ssvt_dir / "SSVT.pth"
@@ -55,10 +56,12 @@ class SSVTCard(SamCard):
 
         if exit_code == 0:
             self._log("\n✓ Done (exit 0)", color=_INSTALLED_COLOR, bold=True)
-            self._installed=self._probe()
+            self._installed = self._probe()
 
         else:
-            self._log(f"\n✗ Exited with code {exit_code}", color=_WARNING_COLOR, bold=True)
+            self._log(
+                f"\n✗ Exited with code {exit_code}", color=_WARNING_COLOR, bold=True
+            )
 
         self._pending_op = None
         self._refresh_badge()

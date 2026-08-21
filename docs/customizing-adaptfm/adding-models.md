@@ -18,73 +18,76 @@ There are two parts to defining training: Creating a new model specification cla
 - Define a prepare_dataset method that preprocesses your data. Do any normalization required by your model here. It should return a dictionary with specific parameters you intend to use for training. Example from CellposeSAMSpec
 
 ```python
-    def prepare_dataset(self, dataset_manager, output_dir,params):
+def prepare_dataset(self, dataset_manager, output_dir, params):
 
-        import random
-        import tifffile as tiff
-        output_dir = Path(output_dir)
+    import random
+    import tifffile as tiff
 
-        training_dir = output_dir / "training"
-        testing_dir  = output_dir / "testing"
+    output_dir = Path(output_dir)
 
-        training_dir.mkdir(parents=True, exist_ok=True)
-        testing_dir.mkdir(parents=True, exist_ok=True)
+    training_dir = output_dir / "training"
+    testing_dir = output_dir / "testing"
 
-        # -------------------------
-        # 1. Train / test split
-        # -------------------------
-        samples = dataset_manager.samples.copy()
-        random.shuffle(samples)
+    training_dir.mkdir(parents=True, exist_ok=True)
+    testing_dir.mkdir(parents=True, exist_ok=True)
 
-        split_idx = int(0.8 * len(samples))
-        train_samples = samples[:split_idx]
-        test_samples  = samples[split_idx:]
+    # -------------------------
+    # 1. Train / test split
+    # -------------------------
+    samples = dataset_manager.samples.copy()
+    random.shuffle(samples)
 
-        # -------------------------
-        # 2. Helper to write slices
-        # -------------------------
-        def write_slices(samples, out_dir):
-            for s in samples:
-                img = tiff.imread(s["image"])    # shape: (z, y, x)
-                mask = tiff.imread(s["mask"])    # same shape
+    split_idx = int(0.8 * len(samples))
+    train_samples = samples[:split_idx]
+    test_samples = samples[split_idx:]
 
-                base_name = Path(s["image"]).stem  # no suffix
+    # -------------------------
+    # 2. Helper to write slices
+    # -------------------------
+    def write_slices(samples, out_dir):
+        for s in samples:
+            img = tiff.imread(s["image"])  # shape: (z, y, x)
+            mask = tiff.imread(s["mask"])  # same shape
 
-                for z in range(img.shape[0]):
-                    img_out  = out_dir / f"{base_name}_z{z}.tiff"
-                    mask_out = out_dir / f"{base_name}_z{z}_seg.tiff"
+            base_name = Path(s["image"]).stem  # no suffix
 
-                    tiff.imwrite(img_out, img[z], compression="zlib")
-                    tiff.imwrite(mask_out, mask[z], compression="zlib")
+            for z in range(img.shape[0]):
+                img_out = out_dir / f"{base_name}_z{z}.tiff"
+                mask_out = out_dir / f"{base_name}_z{z}_seg.tiff"
 
-        # -------------------------
-        # 3. Write datasets
-        # -------------------------
-        write_slices(train_samples, training_dir)
-        write_slices(test_samples, testing_dir)
+                tiff.imwrite(img_out, img[z], compression="zlib")
+                tiff.imwrite(mask_out, mask[z], compression="zlib")
 
-        return {
-            "train_dir": training_dir,
-            "test_dir": testing_dir,
-        }
+    # -------------------------
+    # 3. Write datasets
+    # -------------------------
+    write_slices(train_samples, training_dir)
+    write_slices(test_samples, testing_dir)
+
+    return {
+        "train_dir": training_dir,
+        "test_dir": testing_dir,
+    }
 ```
 
 - Now create a training command that specifies anything returned by your prepare_dataset dictionary. Example:
 
 ```python
-    def training_command(self, dataset_info, params, run_dir):
-        """
-        CellposeSAM training is Python API–based, not CLI-based.
-        So we call a small wrapper script inside the env.
-        """
-        return [
-            "python",
-            f"{self.training_wrapper_path}",
-            "--train_dir", str(dataset_info["train_dir"]),
-            "--test_dir", str(dataset_info["test_dir"]),
-            "--params", json.dumps(params),
-        ]
-
+def training_command(self, dataset_info, params, run_dir):
+    """
+    CellposeSAM training is Python API–based, not CLI-based.
+    So we call a small wrapper script inside the env.
+    """
+    return [
+        "python",
+        f"{self.training_wrapper_path}",
+        "--train_dir",
+        str(dataset_info["train_dir"]),
+        "--test_dir",
+        str(dataset_info["test_dir"]),
+        "--params",
+        json.dumps(params),
+    ]
 ```
 
 - Navigate to AdaptFM > model > foundation_models - create a new folder for your model and add train_wrapper.py and inference_wrapper.py files (see AdaptFM > model > foundation_models > cellposeSAM > train_wrapper.py as example for what to include in these scripts). In short, it should call the training or inference function used by your new model.

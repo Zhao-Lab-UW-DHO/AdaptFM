@@ -1,19 +1,30 @@
-
 from __future__ import annotations
+
 import json
 import os
-import sys
 import signal
+import sys
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, Optional
-from qtpy.QtCore import Qt, QProcess, QProcessEnvironment, QThread, QTimer
+
+from qtpy.QtCore import QProcess, QProcessEnvironment, Qt, QThread, QTimer
 from qtpy.QtGui import QFont, QTextCursor
 from qtpy.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, 
-    QLabel, QPushButton, QSpinBox,
-    QListWidget, QFrame, QTextEdit,
-    QFileDialog, QSplitter, QProgressBar, QComboBox,
-    QMessageBox,QTableWidget,QTableWidgetItem
+    QComboBox,
+    QFileDialog,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QSpinBox,
+    QSplitter,
+    QTableWidget,
+    QTableWidgetItem,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
 )
 
 from AdaptFM.gui.widgets.metrics_widget import MetricRegistry
@@ -22,15 +33,15 @@ from AdaptFM.gui.widgets.metrics_widget import MetricRegistry
 # Colours
 # ---------------------------------------------------------------------------
 
-_GREEN  = "#4caf50"
-_AMBER  = "#ff9800"
-_RED    = "#f44336"
-_BLUE   = "#42a5f5"
-_BG     = "#2b2b2b"
-_BG2    = "#1e1e1e"
-_BD     = "#444"
-_TEXT   = "#e8e8e8"
-_MUTED  = "#888"
+_GREEN = "#4caf50"
+_AMBER = "#ff9800"
+_RED = "#f44336"
+_BLUE = "#42a5f5"
+_BG = "#2b2b2b"
+_BG2 = "#1e1e1e"
+_BD = "#444"
+_TEXT = "#e8e8e8"
+_MUTED = "#888"
 
 # Global dark stylesheet applied to every widget in the window
 _WINDOW_STYLE = f"""
@@ -72,10 +83,10 @@ _WINDOW_STYLE = f"""
 """
 
 
-
 # ---------------------------------------------------------------------------
 # Base widget
 # ---------------------------------------------------------------------------
+
 
 class BenchmarkWidget:
     """
@@ -89,27 +100,26 @@ class BenchmarkWidget:
 
     WINDOW_TITLE = "Benchmarking"
 
-
     def __init__(self):
-        self.metric                       = None
-        self.ground_truth: Optional[Path] = None
-        self.output_dir:  Optional[Path] = None
-        self.param_widgets: dict         = {}
-        self._predictions: dict          = {}
-        self.registry=MetricRegistry
+        self.metric = None
+        self.ground_truth: Path | None = None
+        self.output_dir: Path | None = None
+        self.param_widgets: dict = {}
+        self._predictions: dict = {}
+        self.registry = MetricRegistry
         self.registry_title = "Metric"
 
-        self._process: Optional[QProcess]       = None
-        self._param_thread: Optional[QThread]   = None
-        self._process_chain: list               = []
-        self._chain_env: dict                   = {}
-        self._chain_on_done: Optional[Callable] = None
-        self._param_load_id: int                = 0
+        self._process: QProcess | None = None
+        self._param_thread: QThread | None = None
+        self._process_chain: list = []
+        self._chain_env: dict = {}
+        self._chain_on_done: Callable | None = None
+        self._param_load_id: int = 0
 
         self.widget = QWidget()
         self.widget.setWindowTitle(self.WINDOW_TITLE)
         self.widget.setWindowFlags(self.widget.windowFlags() | Qt.Window)
-        
+
         # Intercept close events to kill threads, but DO NOT delete the C++ object
         self.widget.closeEvent = self._on_close
 
@@ -139,7 +149,9 @@ class BenchmarkWidget:
 
         # Splitter: controls top, log bottom
         splitter = QSplitter(Qt.Vertical)
-        splitter.setStyleSheet(f"QSplitter::handle {{ background: {_BD}; height: 2px; }}")
+        splitter.setStyleSheet(
+            f"QSplitter::handle {{ background: {_BD}; height: 2px; }}"
+        )
         root.addWidget(splitter)
 
         # ── Controls ────────────────────────────────────────────────── #
@@ -175,15 +187,12 @@ class BenchmarkWidget:
         processes_row.addStretch()
         ctrl.addLayout(processes_row)
 
-
         self._pred_table = QTableWidget()
         self._pred_table.setColumnCount(2)
         self._pred_table.setHorizontalHeaderLabels(["Display Name", "Folder Path"])
         self._pred_table.horizontalHeader().setStretchLastSection(True)
         self._pred_table.setStyleSheet(_combo_style())
         self._pred_table.setEditTriggers(QTableWidget.AllEditTriggers)
-
-
 
         self._add_btn = QPushButton("Add Prediction Folder")
         self._add_btn.setStyleSheet(_secondary_btn_style())
@@ -197,7 +206,6 @@ class BenchmarkWidget:
         ctrl.addWidget(_section_label("Predictions"))
         ctrl.addWidget(self._pred_table)
         self._pred_table.itemChanged.connect(self._on_pred_item_changed)
-
 
         pred_btn_row = QHBoxLayout()
         pred_btn_row.addWidget(self._add_btn)
@@ -224,7 +232,9 @@ class BenchmarkWidget:
         log_hdr.addStretch()
         clear_btn = QPushButton("Clear")
         clear_btn.setFixedWidth(50)
-        clear_btn.setStyleSheet(f"color: {_MUTED}; font-size: 10px; border: none; background: transparent;")
+        clear_btn.setStyleSheet(
+            f"color: {_MUTED}; font-size: 10px; border: none; background: transparent;"
+        )
         clear_btn.clicked.connect(self._clear_log)
         log_hdr.addWidget(clear_btn)
         log_layout.addLayout(log_hdr)
@@ -275,7 +285,7 @@ class BenchmarkWidget:
         self._metric_combo.currentTextChanged.connect(self._on_metric_selected)
         initial = self._metric_combo.currentText()
         if initial:
-            QTimer.singleShot(0, lambda: self._on_metric_selected())
+            QTimer.singleShot(0, self._on_metric_selected)
 
         self._pred_table.setStyleSheet(f"""
             QTableWidget {{
@@ -315,12 +325,12 @@ class BenchmarkWidget:
         lbl.setWordWrap(True)
         setattr(self, lbl_attr, lbl)
         row.addWidget(lbl, stretch=1)
-        
+
         btn = QPushButton("Browse…")
         btn.setFixedWidth(80)
         btn.setStyleSheet(_secondary_btn_style())
         btn.clicked.connect(slot)
-        
+
         # Keep python reference alive on self to prevent GC disconnection
         setattr(self, f"{lbl_attr}_btn", btn)
         row.addWidget(btn)
@@ -330,26 +340,24 @@ class BenchmarkWidget:
     # Model selection & thread lifecycle
     # ------------------------------------------------------------------
 
-
-# ------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # Model Selection & Parameter Management
     # ------------------------------------------------------------------
     def _set_param_section_visible(self, visible: bool):
-            """Toggle visibility for all widgets in the Parameters panel."""
-            if hasattr(self, "_param_title_lbl") and self._param_title_lbl:
-                self._param_title_lbl.setVisible(visible)
-            if hasattr(self, "_param_status_lbl") and self._param_status_lbl:
-                self._param_status_lbl.setVisible(visible)
-            if hasattr(self, "_param_scroll") and self._param_scroll:
-                self._param_scroll.setVisible(visible)
-            if hasattr(self, "_load_params_btn") and self._load_params_btn:
-                self._load_params_btn.setVisible(visible)
-            if not visible and hasattr(self, "_param_progress") and self._param_progress:
-                self._param_progress.setVisible(False)
+        """Toggle visibility for all widgets in the Parameters panel."""
+        if hasattr(self, "_param_title_lbl") and self._param_title_lbl:
+            self._param_title_lbl.setVisible(visible)
+        if hasattr(self, "_param_status_lbl") and self._param_status_lbl:
+            self._param_status_lbl.setVisible(visible)
+        if hasattr(self, "_param_scroll") and self._param_scroll:
+            self._param_scroll.setVisible(visible)
+        if hasattr(self, "_load_params_btn") and self._load_params_btn:
+            self._load_params_btn.setVisible(visible)
+        if not visible and hasattr(self, "_param_progress") and self._param_progress:
+            self._param_progress.setVisible(False)
 
     def _on_metric_selected(self):
         self.metric = self._metric_combo.currentText()
-
 
     # ------------------------------------------------------------------
     # Directory selectors (Non-native dialogs + Safe exception handling)
@@ -357,36 +365,36 @@ class BenchmarkWidget:
 
     def _select_ground_truth(self):
 
-        if self.metric == 'Compare Counts':
-            self.ground_truth, _ = QFileDialog.getOpenFileName(None, "Select Ground Truth File",
-                                                  options=QFileDialog.DontUseNativeDialog)
-            
+        if self.metric == "Compare Counts":
+            self.ground_truth, _ = QFileDialog.getOpenFileName(
+                None,
+                "Select Ground Truth File",
+                options=QFileDialog.DontUseNativeDialog,
+            )
+
         else:
-            self.ground_truth = QFileDialog.getExistingDirectory(None, "Select Ground Truth Folder",
-                                                    options=QFileDialog.DontUseNativeDialog)
-            
+            self.ground_truth = QFileDialog.getExistingDirectory(
+                None,
+                "Select Ground Truth Folder",
+                options=QFileDialog.DontUseNativeDialog,
+            )
+
         if self.ground_truth:
-        
             self._dataset_lbl.setText(str(self.ground_truth))
             self._dataset_lbl.setStyleSheet(f"color: {_TEXT}; font-size: 11px;")
 
     def _select_output_folder(self, *args):
         folder = QFileDialog.getExistingDirectory(
-            None,
-            "Select output directory",
-            options=QFileDialog.DontUseNativeDialog
+            None, "Select output directory", options=QFileDialog.DontUseNativeDialog
         )
         if folder:
             self.output_dir = Path(folder)
             self._output_lbl.setText(str(self.output_dir))
             self._output_lbl.setStyleSheet(f"color: {_TEXT}; font-size: 11px;")
 
-
-    
     def _add_prediction_folder(self):
         path = QFileDialog.getExistingDirectory(
-            None, "Select Prediction Folder",
-            options=QFileDialog.DontUseNativeDialog
+            None, "Select Prediction Folder", options=QFileDialog.DontUseNativeDialog
         )
         if not path:
             return
@@ -397,7 +405,7 @@ class BenchmarkWidget:
             return
 
         # Default display name = folder name
-        display_name = os.path.basename(path)
+        display_name = Path(path).name
 
         # Ensure unique display name
         base = display_name
@@ -414,10 +422,12 @@ class BenchmarkWidget:
         self._pred_table.insertRow(row)
 
         name_item = QTableWidgetItem(display_name)
-        name_item.setToolTip("✏️ Edit display name") # Updated tooltip
+        name_item.setToolTip("✏️ Edit display name")  # Updated tooltip
         self._pred_table.setItem(row, 0, name_item)
         path_item = QTableWidgetItem(path)
-        path_item.setFlags(path_item.flags() & ~Qt.ItemIsEditable) # Strip editable flag
+        path_item.setFlags(
+            path_item.flags() & ~Qt.ItemIsEditable
+        )  # Strip editable flag
         path_item.setToolTip(path)
         self._pred_table.setItem(row, 1, path_item)
 
@@ -492,74 +502,91 @@ class BenchmarkWidget:
             self._log_line(f"[error] {exc}", color=_RED)
 
     def _run_workflow(self):
-        
+
         if self.ground_truth is None:
-            self._log_line("⚠  Please select a ground truth folder or file.", color=_AMBER)
+            self._log_line(
+                "⚠  Please select a ground truth folder or file.", color=_AMBER
+            )
             return
 
         if self._pred_table.rowCount() == 0:
-            self._log_line("⚠  Please select a set of predictions to analyze", color=_AMBER)
+            self._log_line(
+                "⚠  Please select a set of predictions to analyze", color=_AMBER
+            )
             return
-        
+
         predictions_json = json.dumps(self._predictions)
         num_processes = str(self._cpu_spin.value())
 
         benchmark_cmd = [
-            sys.executable, "-m","AdaptFM.gui.run_metric_subprocess",
-            "--metric",self.metric,
-            "--gt_dir",self.ground_truth,
-            "--models_json",predictions_json,
-            "--num_processes", num_processes,
-            "--output_dir",self.output_dir
+            sys.executable,
+            "-m",
+            "AdaptFM.gui.run_metric_subprocess",
+            "--metric",
+            self.metric,
+            "--gt_dir",
+            self.ground_truth,
+            "--models_json",
+            predictions_json,
+            "--num_processes",
+            num_processes,
+            "--output_dir",
+            self.output_dir,
         ]
 
         self._start_process(
             benchmark_cmd[0],
             benchmark_cmd[1:],
-            label=f'Benchmarking with [{self.metric}]',
-            on_done=self._on_benchmark_done
+            label=f"Benchmarking with [{self.metric}]",
+            on_done=self._on_benchmark_done,
         )
-   
 
-    def _extra_controls(self) -> Optional[QWidget]:
+    def _extra_controls(self) -> QWidget | None:
         return None
 
     def _on_terminate_clicked(self):
         if not (self._process and self._process.state() != QProcess.NotRunning):
             return
         reply = QMessageBox.question(
-            self.widget, "Terminate process",
+            self.widget,
+            "Terminate process",
             "Terminate the running process?\nAny unsaved progress will be lost.",
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No,
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
         )
         if reply == QMessageBox.Yes:
             self._kill_process()
 
     def _kill_process(self):
-            if self._process is None or self._process.state() == QProcess.NotRunning:
-                return
+        if self._process is None or self._process.state() == QProcess.NotRunning:
+            return
 
-            pid = self._process.processId()
-            if pid and hasattr(os, "killpg") and hasattr(os, "getpgid") and hasattr(os, "getpid"):
-                try:
-                    child_pgid = os.getpgid(pid)
-                    gui_pgid = os.getpgid(os.getpid())
+        pid = self._process.processId()
+        if (
+            pid
+            and hasattr(os, "killpg")
+            and hasattr(os, "getpgid")
+            and hasattr(os, "getpid")
+        ):
+            try:
+                child_pgid = os.getpgid(pid)
+                gui_pgid = os.getpgid(os.getpid())
 
-                    # Only kill the process group if it is distinct from the main GUI process group
-                    if child_pgid != gui_pgid:
-                        os.killpg(child_pgid, signal.SIGKILL)
-                    else:
-                        os.kill(pid, signal.SIGKILL)
-                except (ProcessLookupError, PermissionError, OSError):
-                    pass
+                # Only kill the process group if it is distinct from the main GUI process group
+                if child_pgid != gui_pgid:
+                    os.killpg(child_pgid, signal.SIGKILL)
+                else:
+                    os.kill(pid, signal.SIGKILL)
+            except (ProcessLookupError, PermissionError, OSError):
+                pass
 
-            # Fallback to standard Qt QProcess termination
-            self._process.kill()
-            self._process.waitForFinished(2000)
+        # Fallback to standard Qt QProcess termination
+        self._process.kill()
+        self._process.waitForFinished(2000)
 
-            self._log_line("\n■  Process terminated by user.", color=_RED, bold=True)
-            self._set_busy(False)
-            self._process_chain.clear()
+        self._log_line("\n■  Process terminated by user.", color=_RED, bold=True)
+        self._set_busy(False)
+        self._process_chain.clear()
 
     def _on_close(self, event):
         """Cleanup running threads and processes when the window is closed."""
@@ -597,13 +624,13 @@ class BenchmarkWidget:
     # ------------------------------------------------------------------
 
     def _start_process(
-            self,
-            program: str,
-            args: list,
-            label: str = "",
-            env_extra: Optional[dict] = None,
-            on_done: Optional[Callable[[int], None]] = None,
-        ):
+        self,
+        program: str,
+        args: list,
+        label: str = "",
+        env_extra: dict | None = None,
+        on_done: Callable[[int], None] | None = None,
+    ):
         self._set_busy(True)
         self._log_line(f"\n▶  {label or program}", bold=True)
 
@@ -629,7 +656,7 @@ class BenchmarkWidget:
             text = str(data)
         self._log_append(text)
 
-    def _on_step_done(self, exit_code: int, on_done: Optional[Callable]):
+    def _on_step_done(self, exit_code: int, on_done: Callable | None):
         if exit_code == 0:
             self._log_line("✓  Done (exit 0)", color=_GREEN, bold=True)
         else:
@@ -649,11 +676,11 @@ class BenchmarkWidget:
     def _run_chain(
         self,
         steps: list,
-        env_extra: Optional[dict] = None,
-        on_all_done: Optional[Callable[[int], None]] = None,
+        env_extra: dict | None = None,
+        on_all_done: Callable[[int], None] | None = None,
     ):
         self._process_chain = list(steps)
-        self._chain_env     = env_extra or {}
+        self._chain_env = env_extra or {}
         self._chain_on_done = on_all_done
         self._run_next_in_chain()
 
@@ -665,7 +692,9 @@ class BenchmarkWidget:
             return
         program, args, label = self._process_chain.pop(0)
         self._start_process(
-            program, args, label=label,
+            program,
+            args,
+            label=label,
             env_extra=self._chain_env,
             on_done=self._on_chain_step_done,
         )
@@ -679,18 +708,19 @@ class BenchmarkWidget:
             return
         self._run_next_in_chain()
 
-
     def _on_benchmark_done(self, exit_code: int):
         self._set_busy(False)
         if exit_code == 0:
             self._log_line(
-                f"\n✓  Benchmarking complete",
-                color=_GREEN, bold=True,
+                "\n✓  Benchmarking complete",
+                color=_GREEN,
+                bold=True,
             )
         else:
             self._log_line(
                 f"\n✗  Benchmarking failed (exit {exit_code}).",
-                color=_RED, bold=True,
+                color=_RED,
+                bold=True,
             )
 
     # ------------------------------------------------------------------
@@ -719,10 +749,12 @@ class BenchmarkWidget:
             b_c = "</b>" if bold else ""
             c_o = f'<span style="color:{color};">' if color else ""
             c_c = "</span>" if color else ""
-            safe = (text.replace("&", "&amp;")
-                        .replace("<", "&lt;")
-                        .replace(">", "&gt;")
-                        .replace("\n", "<br>"))
+            safe = (
+                text.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\n", "<br>")
+            )
             self._log.insertHtml(f"{b_o}{c_o}{safe}{c_c}{b_c}<br>")
         else:
             self._log.insertPlainText(text + "\n")
@@ -735,6 +767,7 @@ class BenchmarkWidget:
 # ---------------------------------------------------------------------------
 # Style helpers (exported so subclasses can use them)
 # ---------------------------------------------------------------------------
+
 
 def _section_label(text: str) -> QLabel:
     lbl = QLabel(text)
@@ -755,11 +788,11 @@ def _hline() -> QFrame:
 
 def _combo_style() -> str:
     return (
-        f"QComboBox {{ background: #1e1e1e; color: #d4d4d4;"
-        f" border: 1px solid #555; border-radius: 4px; padding: 4px 8px; }}"
-        f"QComboBox::drop-down {{ border: none; }}"
-        f"QComboBox QAbstractItemView {{ background: #2b2b2b; color: #d4d4d4;"
-        f" selection-background-color: #3c3c3c; }}"
+        "QComboBox { background: #1e1e1e; color: #d4d4d4;"
+        " border: 1px solid #555; border-radius: 4px; padding: 4px 8px; }"
+        "QComboBox::drop-down { border: none; }"
+        "QComboBox QAbstractItemView { background: #2b2b2b; color: #d4d4d4;"
+        " selection-background-color: #3c3c3c; }"
     )
 
 
@@ -770,5 +803,3 @@ def _secondary_btn_style() -> str:
         "QPushButton:hover { background: #4a4a4a; }"
         "QPushButton:disabled { color: #555; background: #2a2a2a; }"
     )
-
-

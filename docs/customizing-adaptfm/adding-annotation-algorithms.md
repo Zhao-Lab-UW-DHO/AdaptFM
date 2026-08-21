@@ -18,7 +18,12 @@ class Watershed3D(SegmentationAlgorithmSpec):
     def tunable_params(self):
         return {
             "min_distance": {"type": "int", "default": 5, "min": 1, "max": 50},
-            "remove_small_objects": {"type": "int", "default": 50, "min": 0, "max": 10000},
+            "remove_small_objects": {
+                "type": "int",
+                "default": 50,
+                "min": 0,
+                "max": 10000,
+            },
         }
 
     def run(self, volume, params):
@@ -29,7 +34,9 @@ class Watershed3D(SegmentationAlgorithmSpec):
         from skimage.morphology import remove_small_objects
 
         distance = ndi.distance_transform_edt(volume)
-        local_maxi = peak_local_max(distance, min_distance=params["min_distance"], labels=volume)
+        local_maxi = peak_local_max(
+            distance, min_distance=params["min_distance"], labels=volume
+        )
         markers = np.zeros_like(volume, dtype=int)
         for i, coord in enumerate(local_maxi, 1):
             markers[tuple(coord)] = i

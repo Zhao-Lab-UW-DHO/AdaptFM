@@ -1,17 +1,18 @@
 # training_utils.py — add DiceScore here so it's importable without
 # lighter's project module registration
 
-import torch
-import torch.nn as nn
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
+import pytorch_lightning as pl
+import torch
+from lighter.utils.types.enums import Mode
 from lighter_zoo import SegResNet
 from monai.metrics import DiceHelper
+from torch import Tensor, nn
 from torchmetrics import Metric
 from torchmetrics.utilities import dim_zero_cat
-from torch import Tensor
-from lighter.utils.types.enums import Mode
-import pytorch_lightning as pl
+
 
 class DiceScore(Metric):
     def __init__(self, include_background: bool = False, per_class: bool = False):
@@ -19,7 +20,6 @@ class DiceScore(Metric):
         reduction = "mean_batch" if per_class else "mean"
         self.metric = DiceHelper(
             include_background=include_background,
-
             reduction=reduction,
             get_not_nans=False,
             ignore_empty=True,
@@ -33,7 +33,7 @@ class DiceScore(Metric):
 
     def compute(self) -> Tensor:
         return dim_zero_cat(self.dice)
-    
+
 
 class ModeFixer(pl.Callback):
     def on_train_epoch_start(self, trainer, pl_module):
@@ -66,15 +66,13 @@ def get_adaptfm_datalist(csv_file: str, split: str) -> list:
     df = df[df["split"] == split]
     return df[["id", "image", "label"]].to_dict(orient="records")
 
+
 def launch_training(
-        batch_size: int=2,
-        max_epochs:int =300,
-        learning_rate:float =0.0002,
-        num_workers:int=8,
-        cache_dir:str=str(Path.cwd() / "cache_dir")
-        
+    batch_size: int = 2,
+    max_epochs: int = 300,
+    learning_rate: float = 0.0002,
+    num_workers: int = 8,
+    cache_dir: str = str(Path.cwd() / "cache_dir"),
 ):
 
     return
-
-

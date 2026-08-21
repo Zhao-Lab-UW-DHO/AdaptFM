@@ -1,10 +1,12 @@
 import argparse
+import logging
+from pathlib import Path
+
+import numpy as np
 import segment3D.parameters as uSegment3D_params
 import segment3D.usegment3d as uSegment3D
-from pathlib import Path
 import tifffile as tiff
-import numpy as np
-import logging
+
 
 def get_all_planes(input_dir: Path):
     """
@@ -26,11 +28,11 @@ def get_all_planes(input_dir: Path):
 
     def get_tiff_files(directory: Path):
         return {
-            f.stem: f 
-            for f in directory.iterdir() 
-            if f.is_file() 
-            and f.suffix.lower() in ('.tif', '.tiff') 
-            and not f.name.startswith('.')  # hidden files
+            f.stem: f
+            for f in directory.iterdir()
+            if f.is_file()
+            and f.suffix.lower() in (".tif", ".tiff")
+            and not f.name.startswith(".")  # hidden files
         }
 
     xy_files = get_tiff_files(xy_dir)
@@ -54,11 +56,10 @@ def get_all_planes(input_dir: Path):
         results[name] = {
             "xy": np.asarray(xy_stack),
             "yz": np.asarray(yz_stack),
-            "xz": np.asarray(xz_stack)
+            "xz": np.asarray(xz_stack),
         }
 
     return results
-
 
 
 def run_postprocessing(input_dir: Path, output_dir: Path):
@@ -67,12 +68,20 @@ def run_postprocessing(input_dir: Path, output_dir: Path):
 
     for image_name, planes in all_images.items():
         try:
-            indirect_aggregation_params = uSegment3D_params.get_2D_to_3D_aggregation_params()
-            indirect_aggregation_params['indirect_method']['dtform_method'] = 'edt'
+            indirect_aggregation_params = (
+                uSegment3D_params.get_2D_to_3D_aggregation_params()
+            )
+            indirect_aggregation_params["indirect_method"]["dtform_method"] = "edt"
 
-            assert planes["xy"].ndim == 3, f"Error, 2D predictions must be 3D (a stack of planes), found dimensions: {planes["xy"].ndim}"
-            assert planes["xz"].ndim == 3, f"Error, 2D predictions must be 3D (a stack of planes), found dimensions: {planes["xz"].ndim}"
-            assert planes["yz"].ndim == 3, f"Error, 2D predictions must be 3D (a stack of planes), found dimensions: {planes["yz"].ndim}"
+            assert planes["xy"].ndim == 3, (
+                f"Error, 2D predictions must be 3D (a stack of planes), found dimensions: {planes['xy'].ndim}"
+            )
+            assert planes["xz"].ndim == 3, (
+                f"Error, 2D predictions must be 3D (a stack of planes), found dimensions: {planes['xz'].ndim}"
+            )
+            assert planes["yz"].ndim == 3, (
+                f"Error, 2D predictions must be 3D (a stack of planes), found dimensions: {planes['yz'].ndim}"
+            )
 
             segmentation3D, (probability3D, gradients3D) = (
                 uSegment3D.aggregate_2D_to_3D_segmentation_indirect_method(
@@ -81,7 +90,7 @@ def run_postprocessing(input_dir: Path, output_dir: Path):
                     precomputed_binary=None,
                     params=indirect_aggregation_params,
                     savefolder=None,
-                    basename=None
+                    basename=None,
                 )
             )
 
@@ -91,15 +100,11 @@ def run_postprocessing(input_dir: Path, output_dir: Path):
         except Exception as e:
             print(f"Unable to merge planes on image {image_name}: {e}")
 
-    return
 
-
-if __name__ =='__main__':
-
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_dir")
-    parser.add_argument('--output_dir')
-
+    parser.add_argument("--output_dir")
 
     args = parser.parse_args()
 

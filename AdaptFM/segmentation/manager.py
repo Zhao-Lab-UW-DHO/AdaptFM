@@ -1,9 +1,11 @@
 from dataclasses import dataclass
-import os
 from datetime import datetime
+from pathlib import Path
+
 import tifffile as tiff
-import json
+
 from AdaptFM.segmentation.fourier.nuc_seg import run_nuclear_segmentation
+
 
 @dataclass
 class AutoSegParams:
@@ -43,43 +45,46 @@ class SegmentationManager:
         self.last_segmentation = seg
 
         if record:
-            self.history.append({
-                "params": self.params.__dict__.copy(),
-                "path": self.vm.path,
-                "shape": seg.shape
-            })
+            self.history.append(
+                {
+                    "params": self.params.__dict__.copy(),
+                    "path": self.vm.path,
+                    "shape": seg.shape,
+                }
+            )
 
         return seg
 
-    def save_for_training(self, save_dir, filename_base=None, manual_seg=None, save_image: bool = None):
+    def save_for_training(
+        self, save_dir, filename_base=None, manual_seg=None, save_image: bool = None
+    ):
 
-            os.makedirs(save_dir, exist_ok=True)
+        Path(save_dir).mkdir(parents=True, exist_ok=True)
 
-            # --- filenames ---
-            if filename_base is None:
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                filename_base = f"volume_{timestamp}"
+        # --- filenames ---
+        if filename_base is None:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename_base = f"volume_{timestamp}"
 
-            vol_path = os.path.join(save_dir, f"{filename_base}.tiff")
-            seg_path = os.path.join(save_dir, f"{filename_base}_seg.tiff")
+        vol_path = str(Path(save_dir) / f"{filename_base}.tiff")
+        seg_path = str(Path(save_dir) / f"{filename_base}_seg.tiff")
 
-            # --- get data ---
-            
-            segmentation = manual_seg if manual_seg is not None else self.last_segmentation
+        # --- get data ---
 
-            # --- save volume & segmentation ---
-            if save_image:
+        segmentation = manual_seg if manual_seg is not None else self.last_segmentation
 
-                volume = self.vm.get_eager()
+        # --- save volume & segmentation ---
+        if save_image:
+            volume = self.vm.get_eager()
 
-                tiff.imwrite(vol_path, volume.astype(volume.dtype))
-            else:
-                print("Warning: in order to run model training AdaptFM requires a specific organization of files to link labels to data\n" \
-                    "saving the image alongside the segmentation (with the same base name) is recommended."
-                )
-            tiff.imwrite(seg_path, segmentation.astype(segmentation.dtype))
+            tiff.imwrite(vol_path, volume.astype(volume.dtype))
+        else:
+            print(
+                "Warning: in order to run model training AdaptFM requires a specific organization of files to link labels to data\n"
+                "saving the image alongside the segmentation (with the same base name) is recommended."
+            )
+        tiff.imwrite(seg_path, segmentation.astype(segmentation.dtype))
 
-            # --- save metadata ---
+        # --- save metadata ---
 
-
-            return vol_path, seg_path
+        return vol_path, seg_path

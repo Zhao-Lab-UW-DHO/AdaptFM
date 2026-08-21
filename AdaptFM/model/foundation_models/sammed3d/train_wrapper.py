@@ -1,12 +1,15 @@
 # set up environment
 import argparse
 import datetime
+import json
 import logging
 import os
 import random
 from contextlib import nullcontext
-import json
+from pathlib import Path
+
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
@@ -16,18 +19,13 @@ import torch.multiprocessing as mp
 import torch.nn.functional as F
 import torchio as tio
 from monai.losses import DiceCELoss
+from segment_anything.build_sam3D import sam_model_registry3D
 from torch.backends import cudnn
-from torch.cuda import amp
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data.distributed import DistributedSampler
 from tqdm import tqdm
-
-from segment_anything.build_sam3D import sam_model_registry3D
 from utils.click_method import get_next_click3D_torch_2
 from utils.data_loader import Dataset_Union_ALL, Union_Dataloader
-
-
-join = os.path.join
 
 
 def initialize_globals(args):
@@ -44,13 +42,15 @@ def initialize_globals(args):
     args.device = device
 
     logger = logging.getLogger(__name__)
-    LOG_OUT_DIR = join(args.work_dir, args.task_name)
-    os.makedirs(LOG_OUT_DIR, exist_ok=True)
+    LOG_OUT_DIR = str(Path(args.work_dir) / args.task_name)
+    Path(LOG_OUT_DIR).mkdir(exist_ok=True)
 
     click_methods = {"random": get_next_click3D_torch_2}
 
-    MODEL_SAVE_PATH = join(args.work_dir, args.task_name)
-    os.makedirs(MODEL_SAVE_PATH, exist_ok=True)
+    MODEL_SAVE_PATH = str(
+        Path(args.work_dir) / args.task_name
+    )  # seems the same as LOG_OUT_DIR above
+    Path(MODEL_SAVE_PATH).mkdir(exist_ok=True)
 
     random.seed(2023)
     np.random.seed(2023)
@@ -63,7 +63,7 @@ def main(args):
     initialize_globals(args)
     device_config(args)
 
-    mp.set_sharing_strategy('file_system')
+    mp.set_sharing_strategy("file_system")
 
     if args.multi_gpu:
         mp.spawn(main_worker, nprocs=args.world_size, args=(args,))
@@ -80,7 +80,6 @@ def main(args):
         trainer.train()
 
 
-
 def build_model(args):
     sam_model = sam_model_registry3D[args.model_type](checkpoint=None).to(device)
     if args.multi_gpu:
@@ -91,16 +90,19 @@ def build_model(args):
 def get_dataloaders(args):
     train_dataset = Dataset_Union_ALL(
         paths=img_datas,
-        transform=tio.Compose([
-            tio.ToCanonical(),
-            tio.CropOrPad(mask_name='label',
-                          target_shape=(args.img_size, args.img_size,
-                                        args.img_size)),  # crop only object region
-            tio.RandomFlip(axes=(0, 1, 2)),
-        ]),
-        threshold=1000)
-    
-    
+        transform=tio.Compose(
+            [
+                tio.ToCanonical(),
+                tio.CropOrPad(
+                    mask_name="label",
+                    target_shape=(args.img_size, args.img_size, args.img_size),
+                ),  # crop only object region
+                tio.RandomFlip(axes=(0, 1, 2)),
+            ]
+        ),
+        threshold=1000,
+    )
+
     if args.multi_gpu:
         train_sampler = DistributedSampler(train_dataset)
         shuffle = False
@@ -121,7 +123,6 @@ def get_dataloaders(args):
 
 
 class BaseTrainer:
-
     def __init__(self, model, dataloaders, args):
 
         self.model = model
@@ -137,22 +138,27 @@ class BaseTrainer:
         self.set_loss_fn()
         self.set_optimizer()
         self.set_lr_scheduler()
-        if (args.resume):
+        if args.resume:
             self.init_checkpoint(
-                join(self.args.work_dir, self.args.task_name, 'sam_model_latest.pth'))
+                str(
+                    Path(self.args.work_dir)
+                    / self.args.task_name
+                    / "sam_model_latest.pth"
+                )
+            )
         else:
             self.init_checkpoint(self.args.checkpoint)
 
         self.norm_transform = tio.ZNormalization(masking_method=lambda x: x > 0)
 
     def set_loss_fn(self):
-        #self.seg_loss = DiceCELoss(sigmoid=True, squared_pred=True, reduction='mean')
+        # self.seg_loss = DiceCELoss(sigmoid=True, squared_pred=True, reduction='mean')
         self.seg_loss = DiceCELoss(
             sigmoid=False,
             softmax=True,
-            to_onehot_y=True,      # converts integer gt to one-hot internally
+            to_onehot_y=True,  # converts integer gt to one-hot internally
             squared_pred=True,
-            reduction='mean'
+            reduction="mean",
         )
 
     def set_optimizer(self):
@@ -164,66 +170,76 @@ class BaseTrainer:
         self.optimizer = torch.optim.AdamW(
             [
                 {
-                    'params': sam_model.image_encoder.parameters()
+                    "params": sam_model.image_encoder.parameters()
                 },  # , 'lr': self.args.lr * 0.1},
                 {
-                    'params': sam_model.prompt_encoder.parameters(),
-                    'lr': self.args.lr * 0.1
+                    "params": sam_model.prompt_encoder.parameters(),
+                    "lr": self.args.lr * 0.1,
                 },
                 {
-                    'params': sam_model.mask_decoder.parameters(),
-                    'lr': self.args.lr * 0.1
+                    "params": sam_model.mask_decoder.parameters(),
+                    "lr": self.args.lr * 0.1,
                 },
             ],
             lr=self.args.lr,
             betas=(0.9, 0.999),
-            weight_decay=self.args.weight_decay)
+            weight_decay=self.args.weight_decay,
+        )
 
     def set_lr_scheduler(self):
         if self.args.lr_scheduler == "multisteplr":
-            self.lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer,
-                                                                     self.args.step_size,
-                                                                     self.args.gamma)
+            self.lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
+                self.optimizer, self.args.step_size, self.args.gamma
+            )
         elif self.args.lr_scheduler == "steplr":
-            self.lr_scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer,
-                                                                self.args.step_size[0],
-                                                                self.args.gamma)
-        elif self.args.lr_scheduler == 'coswarm':
+            self.lr_scheduler = torch.optim.lr_scheduler.StepLR(
+                self.optimizer, self.args.step_size[0], self.args.gamma
+            )
+        elif self.args.lr_scheduler == "coswarm":
             self.lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
-                self.optimizer)
+                self.optimizer
+            )
         else:
             self.lr_scheduler = torch.optim.lr_scheduler.LinearLR(self.optimizer, 0.1)
 
     def init_checkpoint(self, ckp_path):
         last_ckpt = None
-        if os.path.exists(ckp_path):
+        if Path(ckp_path).exists():
             if self.args.multi_gpu:
                 dist.barrier()
-                last_ckpt = torch.load(ckp_path, map_location=self.args.device, weights_only=False)
+                last_ckpt = torch.load(
+                    ckp_path, map_location=self.args.device, weights_only=False
+                )
             else:
-                last_ckpt = torch.load(ckp_path, map_location=self.args.device, weights_only=False)
+                last_ckpt = torch.load(
+                    ckp_path, map_location=self.args.device, weights_only=False
+                )
 
         if last_ckpt:
-            if (self.args.allow_partial_weight):
+            if self.args.allow_partial_weight:
                 if self.args.multi_gpu:
-                    self.model.module.load_state_dict(last_ckpt['model_state_dict'], strict=False)
+                    self.model.module.load_state_dict(
+                        last_ckpt["model_state_dict"], strict=False
+                    )
                 else:
-                    self.model.load_state_dict(last_ckpt['model_state_dict'], strict=False)
+                    self.model.load_state_dict(
+                        last_ckpt["model_state_dict"], strict=False
+                    )
             else:
                 if self.args.multi_gpu:
-                    self.model.module.load_state_dict(last_ckpt['model_state_dict'])
+                    self.model.module.load_state_dict(last_ckpt["model_state_dict"])
                 else:
-                    self.model.load_state_dict(last_ckpt['model_state_dict'])
+                    self.model.load_state_dict(last_ckpt["model_state_dict"])
             if not self.args.resume:
                 self.start_epoch = 0
             else:
-                self.start_epoch = last_ckpt['epoch']
-                self.optimizer.load_state_dict(last_ckpt['optimizer_state_dict'])
-                self.lr_scheduler.load_state_dict(last_ckpt['lr_scheduler_state_dict'])
-                self.losses = last_ckpt['losses']
-                self.dices = last_ckpt['dices']
-                self.best_loss = last_ckpt['best_loss']
-                self.best_dice = last_ckpt['best_dice']
+                self.start_epoch = last_ckpt["epoch"]
+                self.optimizer.load_state_dict(last_ckpt["optimizer_state_dict"])
+                self.lr_scheduler.load_state_dict(last_ckpt["lr_scheduler_state_dict"])
+                self.losses = last_ckpt["losses"]
+                self.dices = last_ckpt["dices"]
+                self.best_loss = last_ckpt["best_loss"]
+                self.best_dice = last_ckpt["best_dice"]
             print(f"Loaded checkpoint from {ckp_path} (epoch {self.start_epoch})")
         else:
             self.start_epoch = 0
@@ -242,9 +258,13 @@ class BaseTrainer:
                 "best_dice": self.best_dice,
                 "args": self.args,
                 "used_datas": img_datas,
-            }, join(MODEL_SAVE_PATH, f"sam_model_{describe}.pth"))
+            },
+            str(Path(MODEL_SAVE_PATH) / f"sam_model_{describe}.pth"),
+        )
 
-    def batch_forward(self, sam_model, image_embedding, gt3D, low_res_masks, points=None):
+    def batch_forward(
+        self, sam_model, image_embedding, gt3D, low_res_masks, points=None
+    ):
 
         sparse_embeddings, dense_embeddings = sam_model.prompt_encoder(
             points=points,
@@ -258,14 +278,15 @@ class BaseTrainer:
             dense_prompt_embeddings=dense_embeddings,  # (B, 256, 64, 64)
             multimask_output=False,
         )
-        prev_masks = F.interpolate(low_res_masks,
-                                   size=gt3D.shape[-3:],
-                                   mode='trilinear',
-                                   align_corners=False)
+        prev_masks = F.interpolate(
+            low_res_masks, size=gt3D.shape[-3:], mode="trilinear", align_corners=False
+        )
         return low_res_masks, prev_masks
 
     def get_points(self, prev_masks, gt3D):
-        batch_points, batch_labels = click_methods[self.args.click_type](prev_masks, gt3D)
+        batch_points, batch_labels = click_methods[self.args.click_type](
+            prev_masks, gt3D
+        )
 
         # multiclass returns lists with variable length — handle both cases
         if len(batch_points) == 0:
@@ -294,20 +315,29 @@ class BaseTrainer:
         prev_masks = torch.zeros_like(gt3D).to(gt3D.device).float()
         low_res_masks = F.interpolate(
             prev_masks.float(),
-            size=(args.img_size // 4, args.img_size // 4, args.img_size // 4)
+            size=(args.img_size // 4, args.img_size // 4, args.img_size // 4),
         )
         random_insert = np.random.randint(2, 9)
 
         for num_click in range(num_clicks):
             points_input, labels_input = self.get_points(prev_masks, gt3D)
 
-            if num_click == random_insert or num_click == num_clicks - 1 or points_input is None:
+            if (
+                num_click == random_insert
+                or num_click == num_clicks - 1
+                or points_input is None
+            ):
                 low_res_masks, prev_masks = self.batch_forward(
-                    sam_model, image_embedding, gt3D, low_res_masks, points=None)
+                    sam_model, image_embedding, gt3D, low_res_masks, points=None
+                )
             else:
                 low_res_masks, prev_masks = self.batch_forward(
-                    sam_model, image_embedding, gt3D, low_res_masks,
-                    points=[points_input, labels_input])
+                    sam_model,
+                    image_embedding,
+                    gt3D,
+                    low_res_masks,
+                    points=[points_input, labels_input],
+                )
 
             loss = self.seg_loss(prev_masks, gt3D)
             return_loss += loss
@@ -321,16 +351,16 @@ class BaseTrainer:
         """
         num_classes = prev_masks.shape[1]
         pred_labels = prev_masks.argmax(dim=1)  # (B, D, H, W)
-        true_labels = gt3D.squeeze(1)           # (B, D, H, W)
+        true_labels = gt3D.squeeze(1)  # (B, D, H, W)
 
         dice_list = []
         for c in range(1, num_classes):  # skip background class 0
             for i in range(gt3D.shape[0]):
-                pred_c = (pred_labels[i] == c)
-                gt_c   = (true_labels[i] == c)
+                pred_c = pred_labels[i] == c
+                gt_c = true_labels[i] == c
 
                 intersection = (pred_c & gt_c).sum().item()
-                union        = pred_c.sum().item() + gt_c.sum().item()
+                union = pred_c.sum().item() + gt_c.sum().item()
 
                 if union == 0:
                     continue  # skip if class absent in both
@@ -362,11 +392,13 @@ class BaseTrainer:
             except Exception as e:
                 print(f"Error processing batch at step {step}: {e}")
             # import pdb; pdb.set_trace()
-            my_context = self.model.no_sync if self.args.rank != - \
-                1 and step % self.args.accumulation_steps != 0 else nullcontext
+            my_context = (
+                self.model.no_sync
+                if self.args.rank != -1 and step % self.args.accumulation_steps != 0
+                else nullcontext
+            )
 
             with my_context():
-
                 image3D = self.norm_transform(image3D.squeeze(dim=1))
                 image3D = image3D.unsqueeze(dim=1)
                 image3D = image3D.to(device)
@@ -382,10 +414,9 @@ class BaseTrainer:
 
                     pred_list = []
 
-                    prev_masks, loss = self.interaction(sam_model,
-                                                        image_embedding,
-                                                        gt3D,
-                                                        num_clicks=11)
+                    prev_masks, loss = self.interaction(
+                        sam_model, image_embedding, gt3D, num_clicks=11
+                    )
 
                 epoch_loss += loss.item()
                 epoch_dice += self.get_dice_score(prev_masks, gt3D)
@@ -408,15 +439,18 @@ class BaseTrainer:
 
             if not self.args.multi_gpu or (self.args.multi_gpu and self.args.rank == 0):
                 if step % self.args.accumulation_steps == 0 and step != 0:
-                    print(f'Epoch: {epoch}, Step: {step}, Loss: {print_loss}, Dice: {print_dice}')
+                    print(
+                        f"Epoch: {epoch}, Step: {step}, Loss: {print_loss}, Dice: {print_dice}"
+                    )
                     if print_dice > self.step_best_dice:
                         self.step_best_dice = print_dice
                         if print_dice > 0.9:
-                            self.save_checkpoint(epoch,
-                                                 sam_model.state_dict(),
-                                                 describe=f'{epoch}_step_dice:{print_dice}_best')
-                    if print_loss < self.step_best_loss:
-                        self.step_best_loss = print_loss
+                            self.save_checkpoint(
+                                epoch,
+                                sam_model.state_dict(),
+                                describe=f"{epoch}_step_dice:{print_dice}_best",
+                            )
+                    self.step_best_loss = min(self.step_best_loss, print_loss)
 
         epoch_loss /= step + 1
         epoch_dice /= step + 1
@@ -429,9 +463,9 @@ class BaseTrainer:
     def plot_result(self, plot_data, description, save_name):
         plt.plot(plot_data)
         plt.title(description)
-        plt.xlabel('Epoch')
-        plt.ylabel(f'{save_name}')
-        plt.savefig(join(MODEL_SAVE_PATH, f'{save_name}.png'))
+        plt.xlabel("Epoch")
+        plt.ylabel(f"{save_name}")
+        plt.savefig(Path(MODEL_SAVE_PATH) / f"{save_name}.png")
         plt.close()
 
     def train(self):
@@ -439,13 +473,15 @@ class BaseTrainer:
         self.scaler = torch.cuda.amp.GradScaler(enabled=use_cuda)
 
         for epoch in range(self.start_epoch, self.args.num_epochs):
-            print(f'Epoch: {epoch}/{self.args.num_epochs - 1}')
+            print(f"Epoch: {epoch}/{self.args.num_epochs - 1}")
 
             if self.args.multi_gpu:
                 dist.barrier()
                 self.dataloaders.sampler.set_epoch(epoch)
             num_clicks = np.random.randint(1, 21)
-            epoch_loss, epoch_iou, epoch_dice, pred_list = self.train_epoch(epoch, num_clicks)
+            epoch_loss, epoch_iou, epoch_dice, pred_list = self.train_epoch(
+                epoch, num_clicks
+            )
 
             if self.lr_scheduler is not None:
                 self.lr_scheduler.step()
@@ -455,9 +491,11 @@ class BaseTrainer:
             if not self.args.multi_gpu or (self.args.multi_gpu and self.args.rank == 0):
                 self.losses.append(epoch_loss)
                 self.dices.append(epoch_dice)
-                print(f'EPOCH: {epoch}, Loss: {epoch_loss}')
-                print(f'EPOCH: {epoch}, Dice: {epoch_dice}')
-                logger.info(f'Epoch\t {epoch}\t : loss: {epoch_loss}, dice: {epoch_dice}')
+                print(f"EPOCH: {epoch}, Loss: {epoch_loss}")
+                print(f"EPOCH: {epoch}, Dice: {epoch_dice}")
+                logger.info(
+                    f"Epoch\t {epoch}\t : loss: {epoch_loss}, dice: {epoch_dice}"
+                )
 
                 if self.args.multi_gpu:
                     state_dict = self.model.module.state_dict()
@@ -465,29 +503,35 @@ class BaseTrainer:
                     state_dict = self.model.state_dict()
 
                 # save latest checkpoint
-                self.save_checkpoint(epoch, state_dict, describe='latest')
+                self.save_checkpoint(epoch, state_dict, describe="latest")
 
                 # save train loss best checkpoint
                 if epoch_loss < self.best_loss:
                     self.best_loss = epoch_loss
-                    self.save_checkpoint(epoch, state_dict, describe='loss_best')
+                    self.save_checkpoint(epoch, state_dict, describe="loss_best")
 
                 # save train dice best checkpoint
                 if epoch_dice > self.best_dice:
                     self.best_dice = epoch_dice
-                    self.save_checkpoint(epoch, state_dict, describe='dice_best')
+                    self.save_checkpoint(epoch, state_dict, describe="dice_best")
 
-                self.plot_result(self.losses, 'Dice + Cross Entropy Loss', 'Loss')
-                self.plot_result(self.dices, 'Dice', 'Dice')
-        logger.info('=====================================================================')
-        logger.info(f'Best loss: {self.best_loss}')
-        logger.info(f'Best dice: {self.best_dice}')
-        logger.info(f'Total loss: {self.losses}')
-        logger.info(f'Total dice: {self.dices}')
-        logger.info('=====================================================================')
-        logger.info(f'args : {self.args}')
-        logger.info(f'Used datasets : {img_datas}')
-        logger.info('=====================================================================')
+                self.plot_result(self.losses, "Dice + Cross Entropy Loss", "Loss")
+                self.plot_result(self.dices, "Dice", "Dice")
+        logger.info(
+            "====================================================================="
+        )
+        logger.info(f"Best loss: {self.best_loss}")
+        logger.info(f"Best dice: {self.best_dice}")
+        logger.info(f"Total loss: {self.losses}")
+        logger.info(f"Total dice: {self.dices}")
+        logger.info(
+            "====================================================================="
+        )
+        logger.info(f"args : {self.args}")
+        logger.info(f"Used datasets : {img_datas}")
+        logger.info(
+            "====================================================================="
+        )
 
 
 def init_seeds(seed=0, cuda_deterministic=True):
@@ -514,7 +558,7 @@ def device_config(args):
 
 
 def main_worker(rank, args):
-    setup(rank, args.world_size,args)
+    setup(rank, args.world_size, args)
 
     torch.cuda.set_device(rank)
     args.num_workers = int(args.num_workers / args.ngpus_per_node)
@@ -523,12 +567,14 @@ def main_worker(rank, args):
 
     init_seeds(2023 + rank)
 
-    cur_time = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-    logging.basicConfig(format='[%(asctime)s] - %(message)s',
-                        datefmt='%Y/%m/%d %H:%M:%S',
-                        level=logging.INFO if rank in [-1, 0] else logging.WARN,
-                        filemode='w',
-                        filename=os.path.join(LOG_OUT_DIR, f'output_{cur_time}.log'))
+    cur_time = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    logging.basicConfig(
+        format="[%(asctime)s] - %(message)s",
+        datefmt="%Y/%m/%d %H:%M:%S",
+        level=logging.INFO if rank in [-1, 0] else logging.WARNING,
+        filemode="w",
+        filename=str(Path(LOG_OUT_DIR) / f"output_{cur_time}.log"),
+    )
 
     dataloaders = get_dataloaders(args)
     model = build_model(args)
@@ -537,18 +583,22 @@ def main_worker(rank, args):
     cleanup()
 
 
-def setup(rank, world_size,args):
+def setup(rank, world_size, args):
     # initialize the process group
-    dist.init_process_group(backend='nccl',
-                            init_method=f'tcp://127.0.0.1:{args.port}',
-                            world_size=world_size,
-                            rank=rank)
+    dist.init_process_group(
+        backend="nccl",
+        init_method=f"tcp://127.0.0.1:{args.port}",
+        world_size=world_size,
+        rank=rank,
+    )
 
 
 def cleanup():
     dist.destroy_process_group()
 
-#dummy function with parameters and their defaults
+
+# dummy function with parameters and their defaults
+
 
 def launch_training(
     task_name: str = "union_train",
@@ -558,14 +608,12 @@ def launch_training(
     checkpoint: str = "ckpt/sam_med3d.pth",
     device: str = "cuda",
     work_dir: str = "work_dir",
-
     # train
     num_workers: int = 24,
     gpu_ids: list[int] = [0, 1],
     multi_gpu: bool = False,
     resume: bool = False,
     allow_partial_weight: bool = False,
-
     # lr_scheduler
     lr_scheduler: str = "multisteplr",
     step_size: list[int] = [120, 180],
@@ -580,20 +628,19 @@ def launch_training(
 ):
     return
 
-if __name__ == '__main__':
 
+if __name__ == "__main__":
     print(os.getpid())
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--params')
-    parser.add_argument('--dataset_dir')
-    parser.add_argument('--output_path')
+    parser.add_argument("--params")
+    parser.add_argument("--dataset_dir")
+    parser.add_argument("--output_path")
     args = parser.parse_args()
 
     params = json.loads(args.params)
 
     for key, value in params.items():
-
         # --- FIX: robust gpu_ids parsing ---
         if key == "gpu_ids":
             # Case 1: already a list
@@ -601,7 +648,9 @@ if __name__ == '__main__':
                 value = [int(v) for v in value]
 
             # Case 2: string like "[6]" or "[3,4]"
-            elif isinstance(value, str) and value.startswith("[") and value.endswith("]"):
+            elif (
+                isinstance(value, str) and value.startswith("[") and value.endswith("]")
+            ):
                 value = [int(v) for v in value.strip("[]").split(",")]
 
             # Case 3: single int as string "6"
@@ -620,8 +669,8 @@ if __name__ == '__main__':
         # -----------------------------------
 
         # Convert booleans
-        if isinstance(value, str) and value.lower() in ['true', 'false']:
-            value = value.lower() == 'true'
+        if isinstance(value, str) and value.lower() in ["true", "false"]:
+            value = value.lower() == "true"
 
         # Convert numbers based on type hints
         elif isinstance(value, str) and key in launch_training.__annotations__:
@@ -637,17 +686,17 @@ if __name__ == '__main__':
     if hasattr(args, "gpu_ids") and args.gpu_ids:
         os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(str(i) for i in args.gpu_ids)
 
+    original_images_path = str(Path(args.dataset_dir) / "imagesTr")
+    labels_path = str(Path(args.dataset_dir) / "labelsTr")
 
-    original_images_path = os.path.join(args.dataset_dir,'imagesTr')
-    labels_path = os.path.join(args.dataset_dir,'labelsTr')
+    original_images = [
+        str(file) for file in Path(original_images_path).iterdir() if file.is_file()
+    ]
+    labeled_images = [
+        str(file) for file in Path(labels_path).iterdir() if file.is_file()
+    ]
 
-    original_images = [os.path.join(original_images_path,file) for file in os.listdir(original_images_path)]
-    labeled_images  =[os.path.join(labels_path,file) for file in os.listdir(labels_path)]
     img_datas = original_images + labeled_images
     img_datas = [args.dataset_dir]
-    
-
 
     main(args)
-
-

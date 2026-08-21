@@ -11,12 +11,13 @@ with the build specified in ~/.adaptfm/pytorch_cmd.txt.
 Run `adaptfm-set-pytorch` first if that file does not exist yet.
 """
 
+import os
+import shlex
 import subprocess
 import sys
 from pathlib import Path
-import shlex
-import os
-from AdaptFM.model.registry import _conda_prefix,_read_prefix
+
+from AdaptFM.model.registry import _conda_prefix, _read_prefix
 
 ENV_NAME = "cellsam_adapt"
 PYTHON_VERSION = "3.10"
@@ -24,7 +25,7 @@ PYTORCH_CMD_FILE = Path.home() / ".adaptfm" / "pytorch_cmd.txt"
 
 
 def _wrap_with_conda(conda_env, cmd: list[str]) -> list[str]:
-    python_bin = os.path.join(conda_env, "bin", "python")
+    python_bin = str(Path(conda_env) / "bin" / "python")
     # cmd is typically ["python", "script.py", ...args]
     # replace the "python" at the front with the env's absolute python binary
     if cmd[0] == "python":
@@ -32,12 +33,15 @@ def _wrap_with_conda(conda_env, cmd: list[str]) -> list[str]:
     else:
         return [python_bin, *cmd]
 
+
 def _run(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
     print(f"  + {' '.join(cmd)}")
     return subprocess.run(cmd, check=check)
 
 
-def _conda_run(env: str, cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
+def _conda_run(
+    env: str, cmd: list[str], check: bool = True
+) -> subprocess.CompletedProcess:
     """Run a command inside a conda environment."""
     full_cmd = ["conda", "run", "-n", env, "--no-capture-output"] + cmd
     return _run(full_cmd, check=check)
@@ -53,8 +57,6 @@ def _read_pytorch_cmd() -> list[str]:
         print(f"ERROR: {PYTORCH_CMD_FILE} is empty. Run `adaptfm-set-pytorch` again.")
         sys.exit(1)
     return shlex.split(raw)
-
-
 
 
 def main() -> None:
@@ -87,23 +89,33 @@ def main() -> None:
     print(f"PyTorch command: {' '.join(pytorch_cmd)}\n")
 
     # Create bare environment
-    _run([
-        "conda", "create",
-        "-n", ENV_NAME,
-        f"python={PYTHON_VERSION}",
-        "-y",
-    ])
+    _run(
+        [
+            "conda",
+            "create",
+            "-n",
+            ENV_NAME,
+            f"python={PYTHON_VERSION}",
+            "-y",
+        ]
+    )
 
     prefix = _conda_prefix(ENV_NAME)
     config_path = Path.home() / ".adaptfm" / f"{ENV_NAME}.prefix"
     config_path.write_text(prefix + "\n")
-    print(f"  Wrote env prefix to {config_path}")   
+    print(f"  Wrote env prefix to {config_path}")
 
     # Install CellSAM (this drags in a default torch/torchvision)
     print("\n--- Installing CellSAM ---")
     _conda_run(
         ENV_NAME,
-        ["python", "-m", "pip", "install", "git+https://github.com/vanvalenlab/cellSAM.git"]
+        [
+            "python",
+            "-m",
+            "pip",
+            "install",
+            "git+https://github.com/vanvalenlab/cellSAM.git",
+        ],
     )
 
     # Remove the default torch/torchvision that CellSAM bundled
@@ -111,7 +123,7 @@ def main() -> None:
     _conda_run(
         ENV_NAME,
         ["pip", "uninstall", "-y", "torch", "torchvision"],
-        check=False,   # OK if they were never installed under these names
+        check=False,  # OK if they were never installed under these names
     )
 
     # Install the user's preferred PyTorch build
@@ -119,10 +131,7 @@ def main() -> None:
     _conda_run(ENV_NAME, pytorch_cmd)
 
     print("\n--- Installing usegment3D for CellSAM ---")
-    _conda_run(
-        ENV_NAME,
-        ["python", "-m", "pip", "install", "u-Segment3D"]
-    )
+    _conda_run(ENV_NAME, ["python", "-m", "pip", "install", "u-Segment3D"])
 
     print(f"\n✓ CellSAM environment '{ENV_NAME}' created successfully.")
     print(f"  Activate with:  conda activate {ENV_NAME}\n")
@@ -133,31 +142,38 @@ def main() -> None:
         while True:
             access_token = input("DeepCell Access Token: ").strip()
             if not access_token:
-                print("  Access token cannot be empty. Reference the CellSAM github on how to get a token.")
+                print(
+                    "  Access token cannot be empty. Reference the CellSAM github on how to get a token."
+                )
                 continue
             break
 
-    cmd = ["python","-m","AdaptFM.model.foundation_models.cellSAM.get_model_first","--access_token",access_token]
+    cmd = [
+        "python",
+        "-m",
+        "AdaptFM.model.foundation_models.cellSAM.get_model_first",
+        "--access_token",
+        access_token,
+    ]
 
     env = os.environ.copy()
-    working_dir = os.getcwd()
+    working_dir = str(Path.cwd())
     env["PYTHONPATH"] = working_dir
 
-
     get_model_cmd = [
-            "conda", "run", "-p", _read_prefix(ENV_NAME),
-            "--no-capture-output",
-            *cmd
-        ]
-    results = subprocess.Popen(
-        get_model_cmd,
-        env=env
-    )
+        "conda",
+        "run",
+        "-p",
+        _read_prefix(ENV_NAME),
+        "--no-capture-output",
+        *cmd,
+    ]
+    results = subprocess.Popen(get_model_cmd, env=env)
     print(results.stdout)
     print(results.stderr)
 
+    print("CellSAM successfully installed")
 
-    print('CellSAM successfully installed')
 
 if __name__ == "__main__":
     main()

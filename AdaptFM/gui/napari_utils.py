@@ -1,6 +1,8 @@
 from itertools import product
+
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtWidgets import QFrame
+
 
 def update_or_create_image(viewer, name, data, layer_type="image", **kwargs):
     if name in viewer.layers:
@@ -71,8 +73,7 @@ def update_or_create_labels(
         )
 
 
-
-def expand_param_grid( user_values):
+def expand_param_grid(user_values):
     keys = []
     values = []
 
@@ -87,6 +88,48 @@ def expand_param_grid( user_values):
     for combo in product(*values):
         yield dict(zip(keys, combo))
 
+
+from qtpy.QtCore import QEvent, QObject
+
+
+class ParentWindowWatcher(QObject):
+    def __init__(self, parent_window, child_widget):
+        super().__init__(parent_window)
+
+        self.parent_window = parent_window
+        self.child_widget = child_widget
+
+        self._was_visible = False
+
+        self.parent_window.installEventFilter(self)
+
+    def eventFilter(self, obj, event):
+
+        if obj is self.parent_window:
+            if event.type() == QEvent.Type.WindowStateChange:
+                if self.parent_window.isMinimized():
+                    # Remember whether the widget was open
+                    # before Napari was minimized.
+                    self._was_visible = self.child_widget.isVisible()
+
+                    if self._was_visible:
+                        self.child_widget.showMinimized()
+
+                else:
+                    # Napari has been restored.
+                    if self._was_visible:
+                        self.child_widget.showNormal()
+                        self.child_widget.raise_()
+                        self.child_widget.activateWindow()
+
+                    self._was_visible = False
+
+            elif event.type() == QEvent.Type.Close:
+                self.child_widget.close()
+
+        return super().eventFilter(obj, event)
+
+
 def qt_widget_obj_exists(widget) -> bool:
     """Check if a Qt widget object still exists and has not been deleted by C++."""
     if widget is None:
@@ -97,9 +140,9 @@ def qt_widget_obj_exists(widget) -> bool:
     except (RuntimeError, AttributeError):
         return False
 
+
 # --- FIX 2: Enforce top-to-bottom placement using splitDockWidget ---
-def reorder_docks(viewer,
-                    widget_specs):
+def reorder_docks(viewer, widget_specs):
     """Force Session -> Annotation -> Save from top to bottom."""
 
     qt_window = viewer.window._qt_window
@@ -126,10 +169,7 @@ def reorder_docks(viewer,
     # This is important: splitDockWidget() should operate on
     # docks that are already part of the Qt dock layout.
     for dock in active_docks:
-        qt_window.addDockWidget(
-            Qt.RightDockWidgetArea,
-            dock
-        )
+        qt_window.addDockWidget(Qt.RightDockWidgetArea, dock)
 
     # Now explicitly construct the vertical hierarchy:
     #
@@ -140,16 +180,11 @@ def reorder_docks(viewer,
     # Save
     #
     for i in range(1, len(active_docks)):
-        qt_window.splitDockWidget(
-            active_docks[i - 1],
-            active_docks[i],
-            Qt.Vertical
-        )
+        qt_window.splitDockWidget(active_docks[i - 1], active_docks[i], Qt.Vertical)
 
     # Make sure the docks are actually visible
     for dock in active_docks:
         dock.show()
-
 
 
 def highlight_dock(dock):
@@ -193,10 +228,7 @@ def highlight_dock(dock):
     """)
 
     # Cover the actual widget, not its parent/container
-    QTimer.singleShot(
-        0,
-        lambda: frame.setGeometry(target.rect())
-    )
+    QTimer.singleShot(0, lambda: frame.setGeometry(target.rect()))
     frame.raise_()
     frame.show()
     frame.update()
@@ -210,10 +242,9 @@ def highlight_dock(dock):
 
     QTimer.singleShot(1200, remove_highlight)
 
+
 # Master handler for restoring or focusing a specific widget
-def restore_or_focus_widget(spec_idx: int,
-                            widget_specs :dict,
-                            viewer ):
+def restore_or_focus_widget(spec_idx: int, widget_specs: dict, viewer):
     spec = widget_specs[spec_idx]
     dock = spec["dock"]
 
@@ -224,31 +255,25 @@ def restore_or_focus_widget(spec_idx: int,
 
     else:
         spec["dock"] = viewer.window.add_dock_widget(
-            spec["create_fn"](),
-            area="right",
-            name=spec["name"]
+            spec["create_fn"](), area="right", name=spec["name"]
         )
 
         dock = spec["dock"]
 
-    reorder_docks(viewer,widget_specs)
+    reorder_docks(viewer, widget_specs)
 
     # Give Qt time to finish the dock layout
-    QTimer.singleShot(
-        100,
-        lambda d=dock: highlight_dock(d)
-    )
+    QTimer.singleShot(100, lambda d=dock: highlight_dock(d))
 
-def restore_all_widgets(viewer,widget_specs):
+
+def restore_all_widgets(viewer, widget_specs):
     # Restore/recreate every widget
     for spec in widget_specs:
         dock = spec["dock"]
 
         if not qt_widget_obj_exists(dock):
             spec["dock"] = viewer.window.add_dock_widget(
-                spec["create_fn"](),
-                area="right",
-                name=spec["name"]
+                spec["create_fn"](), area="right", name=spec["name"]
             )
         else:
             dock.setFloating(False)
@@ -256,7 +281,7 @@ def restore_all_widgets(viewer,widget_specs):
             dock.show()
 
     # Rebuild the canonical order
-    reorder_docks(viewer,widget_specs)
+    reorder_docks(viewer, widget_specs)
 
     # Highlight all widgets
     for spec in widget_specs:
@@ -264,4 +289,3 @@ def restore_all_widgets(viewer,widget_specs):
 
         if qt_widget_obj_exists(dock):
             highlight_dock(dock)
-

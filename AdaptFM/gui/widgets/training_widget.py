@@ -1,65 +1,214 @@
-from AdaptFM.gui.napari_utils import expand_param_grid
-from AdaptFM.gui.widgets.model_widget import ModelWorkflowWidget
-from qtpy.QtWidgets import QFileDialog
-from qtpy.QtWidgets import QInputDialog
+"""
+training_widget.py
+------------------
+Training workflow window.
+
+Flow
+----
+1. User selects model, dataset folder, output folder, GPU.
+2. User optionally loads / edits parameters.
+3. Click Run →
+     a. model.prepare_dataset()  (Python, on a QThread)
+     b. For nnUNet: preprocessing step via QProcess, then training via QProcess
+     c. All other models: single training QProcess
+4. Live stdout streams into the log panel.
+5. "Terminate" kills the process (and its process group) at any time.
+"""
+
+from __future__ import annotations
 
 from pathlib import Path
 
-class TrainingWidget(ModelWorkflowWidget):
-    TAG_LABEL = "Training tag"
-    
-    def __init__(self,dataset_manager):
-        super().__init__(dataset_manager)
-        self.widget.setWindowTitle("Training")  
+from qtpy.QtCore import QObject, QThread, Signal
 
-    def _run(self):
-        if self.model is None or self.dataset_dir is None:
-            raise RuntimeError("Model and dataset must be selected")
+from AdaptFM.gui.widgets.model_widget import (
+    _AMBER,
+    _GREEN,
+    _RED,
+    ModelWorkflowWidget,
+)
+from AdaptFM.model.nnUNetV2Spec import NNUNetV2ModelSpec
+from AdaptFM.model.registry import MODEL_REGISTRY
+
+# ---------------------------------------------------------------------------
+# Background worker: prepare_dataset() can do heavy file I/O
+# ---------------------------------------------------------------------------
+
+
+class _PrepareWorker(QObject):
+    finished = Signal(object)  # dataset_info (any type the model returns)
+    error = Signal(str)
+
+    def __init__(self, model, dataset_manager, output_dir, params):
+        super().__init__()
+        self._model = model
+        self._dataset_manager = dataset_manager
+        self._output_dir = output_dir
+        self._params = params
+
+    def run(self):
+        try:
+            result = self._model.prepare_dataset(
+                self._dataset_manager,
+                self._output_dir,
+                params=self._params,
+            )
+            self.finished.emit(result)
+        except TypeError:
+            # Some models don't accept params kwarg — try without
+            try:
+                result = self._model.prepare_dataset(
+                    self._dataset_manager,
+                    self._output_dir,
+                )
+                self.finished.emit(result)
+            except Exception as exc:
+                self.error.emit(str(exc))
+        except Exception as exc:
+            self.error.emit(str(exc))
+
+
+# ---------------------------------------------------------------------------
+# TrainingWidget
+# ---------------------------------------------------------------------------
+
+
+class TrainingWidget(ModelWorkflowWidget):
+    WINDOW_TITLE = "Training"
+    SKIP_PARAMS = False
+
+    def __init__(self, dataset_manager):
+        self._prep_thread: QThread | None = None
+        self._prep_worker: _PrepareWorker | None = None
+        self.output_dir: Path | None = None
+        super().__init__(dataset_manager)
+
+    # ------------------------------------------------------------------
+    # Workflow
+    # ------------------------------------------------------------------
+
+    def _build(self):
+        super()._build()
+
+        # Patch model section
+        self._model_combo.clear()
+
+        for model_name, model_spec in MODEL_REGISTRY.items():
+            if model_spec.supports_training:
+                self._model_combo.addItem(model_name)
+
+    def _run_workflow(self):
+        # Already validated by base: model set, output_dir set, no process running
+        if self.dataset_dir is None:
+            self._log_line("⚠  Please select a dataset folder.", color=_AMBER)
+            return
+
+        conda_env = (
+            Path(self.model.conda_env) if self.model.conda_env is not None else None
+        )
+        if (
+            conda_env is None or not conda_env.is_dir()
+        ):  # none comes first else err on the dircheck
+            raise RuntimeError(
+                f"{self.model.conda_env} not installed. "
+                "You must first install the environment with the environment manager before using."
+            )
 
         params = self.collect_params()
-
-        output_dir = Path(QFileDialog.getExistingDirectory(
-            None, "Select output directory"
-        ))
-        
-        gpu, returned_ok = QInputDialog.getInt(
-            None,
-            "Select GPU",
-            "GPU index:",
-            value=0,
-            min=0,
-            max=16,   # adjust if you want
-            step=1,
-        )
-
-        if not returned_ok:
-            return
-        
+        gpu = self._gpu_spin.value()
         params["gpu"] = gpu
 
-        prepared_dataset = self.model.prepare_dataset(
-            self.dataset_manager,
-            output_dir,
-            params=params
+        self._log_line(
+            f"Preparing dataset for {self.model.name}…",
+            color="#aaa",
         )
+        self._set_busy(True)
 
+        # Parent thread to widget to keep it alive past this method's
+        # return. deleteLater() + None-clear clean up after it finishes.
+        self._prep_thread = QThread(self.widget)
+        self._prep_worker = _PrepareWorker(
+            self.model, self.dataset_manager, self.output_dir, dict(params)
+        )
+        self._prep_worker.moveToThread(self._prep_thread)
+        self._prep_thread.started.connect(self._prep_worker.run)
+        self._prep_worker.finished.connect(
+            lambda info: self._on_dataset_ready(info, params, gpu)
+        )
+        self._prep_worker.error.connect(self._on_prepare_error)
+        self._prep_worker.finished.connect(self._prep_thread.quit)
+        self._prep_worker.error.connect(self._prep_thread.quit)
+        self._prep_thread.finished.connect(self._prep_thread.deleteLater)
+        self._prep_thread.finished.connect(lambda: setattr(self, "_prep_thread", None))
+        self._prep_thread.start()
 
-        if self.model.name =='nnUNetV2' or self.model.name =="Merlin nnUNet":
+    def _on_prepare_error(self, msg: str):
+        self._set_busy(False)
+        self._log_line(f"[dataset error] {msg}", color=_RED)
 
-            preprocess_proc = self.model.run_preprocessing(
-                dataset_dir=prepared_dataset,
+    def _on_dataset_ready(self, dataset_info, params: dict, gpu: int):
+        self._log_line("✓  Dataset ready.", color=_GREEN)
+
+        env_extra = {"CUDA_VISIBLE_DEVICES": str(gpu)}
+
+        # Build the conda-wrapped command list
+        training_cmd = self.model.training_command(
+            dataset_info, params, self.output_dir
+        )
+        full_train_cmd = self.model._wrap_with_conda(training_cmd)
+
+        if isinstance(self.model, NNUNetV2ModelSpec):
+            # nnUNet: preprocess → train (sequential chain)
+            preprocess_cmd = self.model.preprocessing_command(
+                dataset_dir=dataset_info,
                 params=params,
-                output_dir=output_dir
-                )
-            
-        # Block until preprocessing is done
-            return_code = preprocess_proc.wait()
-            
-            if return_code != 0:
-                raise RuntimeError(f"Preprocessing failed with return code {return_code}")
+                output_dir=self.output_dir,
+            )
+            full_pre_cmd = self.model._wrap_with_conda(preprocess_cmd)
 
-        self.model.run_training(
-            dataset_info=prepared_dataset,
-            params=params,
-            run_dir=output_dir
-        )
+            self._run_chain(
+                steps=[
+                    (full_pre_cmd[0], full_pre_cmd[1:], "Preprocessing"),
+                    (full_train_cmd[0], full_train_cmd[1:], "Training"),
+                ],
+                env_extra=env_extra,
+                on_all_done=self._on_training_done,
+            )
+        else:
+            self._start_process(
+                full_train_cmd[0],
+                full_train_cmd[1:],
+                label=f"Training  [{self.model.name}]",
+                env_extra=env_extra,
+                on_done=self._on_training_done,
+            )
+
+    def _on_training_done(self, exit_code: int):
+        self._set_busy(False)
+        if exit_code == 0:
+            self._log_line(
+                f"\n✓  Training complete. Output: {self.output_dir}",
+                color=_GREEN,
+                bold=True,
+            )
+        else:
+            self._log_line(
+                f"\n✗  Training failed (exit {exit_code}).",
+                color=_RED,
+                bold=True,
+            )
+
+    # ------------------------------------------------------------------
+    # Terminate override: also stop any in-flight prep thread
+    # ------------------------------------------------------------------
+
+    def _on_terminate_clicked(self):
+        # If dataset prep is still running, stop it first
+        if self._prep_thread and self._prep_thread.isRunning():
+            self._prep_thread.quit()
+            self._prep_thread.wait(2000)
+            self._log_line("■  Dataset preparation cancelled.", color=_RED)
+            self._set_busy(False)
+            return
+        # Otherwise delegate to base (kills QProcess)
+        super()._on_terminate_clicked()

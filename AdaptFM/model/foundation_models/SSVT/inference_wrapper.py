@@ -1,19 +1,24 @@
-import torch
-import tifffile
-from pathlib import Path
-from tqdm import tqdm
 import argparse
-import numpy as np
-from AdaptFM.SSVT.Vit_class import ViTEncoder3D,MAE3DSegmentation,MAE3DLinearProbeDecoder,MAE3DUNetDecoderBig
-from AdaptFM.SSVT.utils import read_tiff,sliding_window_inference
+from pathlib import Path
+
+import tifffile
+import torch
+from tqdm import tqdm
+
+from AdaptFM.SSVT.utils import read_tiff, sliding_window_inference
+from AdaptFM.SSVT.Vit_class import (
+    MAE3DSegmentation,
+    MAE3DUNetDecoderBig,
+    ViTEncoder3D,
+)
 
 
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--checkpoint')
+    parser.add_argument("--checkpoint")
     parser.add_argument("--test_dir")
-    parser.add_argument('--output_path')
+    parser.add_argument("--output_path")
 
     args = parser.parse_args()
     test_dir = args.test_dir
@@ -21,25 +26,25 @@ def main():
     checkpoint = args.checkpoint
     output_path = Path(output_path)
 
-    #baseline SSVT is hard-coded based on how it was pretrained
-    device = 'cuda'
+    # baseline SSVT is hard-coded based on how it was pretrained
+    device = "cuda"
 
-    encoder = ViTEncoder3D(patch_size = (2,16,16),
-                           embed_dim = 768,
-                           depth = 8,
-                           num_heads=8).to(device)
-    
-    #initialize decoder based on fixed parameters
+    encoder = ViTEncoder3D(
+        patch_size=(2, 16, 16), embed_dim=768, depth=8, num_heads=8
+    ).to(device)
 
-    dummy_patch = torch.zeros(1, 1, *(4,128,128), device=device)
+    # initialize decoder based on fixed parameters
+
+    dummy_patch = torch.zeros(1, 1, *(4, 128, 128), device=device)
     with torch.no_grad():
         _, patch_grid = encoder(dummy_patch, return_grid=True)
 
+    decoder = MAE3DUNetDecoderBig(
+        embed_dim=768, patch_grid=patch_grid
+    )  # change to MAE3DUNetDecoder if you want the UNET decoder for more complex segmentation tasks
+    model = MAE3DSegmentation(encoder, decoder).to(device)
 
-    decoder = MAE3DUNetDecoderBig(embed_dim=768,patch_grid=patch_grid) #change to MAE3DUNetDecoder if you want the UNET decoder for more complex segmentation tasks
-    model = MAE3DSegmentation(encoder,decoder).to(device)
-
-    #load model checkpoint
+    # load model checkpoint
     ckpt = torch.load(checkpoint, map_location=device)
     model.load_state_dict(ckpt)
     model.eval()
@@ -53,10 +58,10 @@ def main():
         seg_np, _ = sliding_window_inference(
             model,
             vol,
-            patch_size=(4,128,128),
-            stride=(16,32,32),
+            patch_size=(4, 128, 128),
+            stride=(16, 32, 32),
             device=device,
-            threshold=0.5
+            threshold=0.5,
         )
 
         out_path = output_path / path.name

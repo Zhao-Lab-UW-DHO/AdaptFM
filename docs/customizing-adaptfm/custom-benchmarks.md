@@ -33,8 +33,8 @@ class DiceScore(Metric):
 
             # match files by order (or implement matching by name if needed)
             for gt_file, pred_file in zip(gt_files, model_files):
-                gt = tiff.imread(gt_file) > 0        # binarize
-                pred = tiff.imread(pred_file) > 0    # binarize
+                gt = tiff.imread(gt_file) > 0  # binarize
+                pred = tiff.imread(pred_file) > 0  # binarize
                 intersection = (gt & pred).sum()
                 union = gt.sum() + pred.sum()
                 dice = 2 * intersection / union if union > 0 else 1.0

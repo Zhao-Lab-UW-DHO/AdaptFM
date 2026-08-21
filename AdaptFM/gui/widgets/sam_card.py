@@ -5,24 +5,32 @@ main AdaptFM environment (not a separate conda env). Deliberately bypasses
 ENV_REGISTRY / probe_all / _on_action — there is no conda env here, and it
 should never be able to reach a `conda env remove` code path.
 """
+
 from __future__ import annotations
 
 import importlib.util
 import shutil
-from typing import Callable
 import sys
-from qtpy.QtCore import Qt, Signal, QProcess
+from collections.abc import Callable
+from pathlib import Path
+
+from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import (
-    QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QMessageBox, QSizePolicy,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QMessageBox,
+    QPushButton,
+    QSizePolicy,
+    QVBoxLayout,
 )
 
-_INSTALLED_COLOR   = "#4caf50"
+_INSTALLED_COLOR = "#4caf50"
 _UNINSTALLED_COLOR = "#9e9e9e"
-_WARNING_COLOR     = "#f44336"
-_UPDATE_COLOR      = "#ff9800"
-_CARD_BG_DARK      = "#2b2b2b"
-_CARD_BORDER       = "#444"
+_WARNING_COLOR = "#f44336"
+_UPDATE_COLOR = "#ff9800"
+_CARD_BG_DARK = "#2b2b2b"
+_CARD_BORDER = "#444"
 
 
 class SamCard(QFrame):
@@ -35,14 +43,14 @@ class SamCard(QFrame):
         key: str,
         display_name: str,
         description: str,
-        import_name: str,        # e.g. "sam2" — used to detect install
-        install_command: str,    # e.g. "adaptfm-install-sam2"
+        import_name: str,  # e.g. "sam2" — used to detect install
+        install_command: str,  # e.g. "adaptfm-install-sam2"
         uninstall_command: str,  # e.g. "adaptfm-uninstall-sam2"
         requires_pytorch: bool,
         log_fn: Callable[..., None],
         run_process_fn: Callable[..., None],
         parent=None,
-        source_dir
+        source_dir,
     ):
         super().__init__(parent)
         self._key = key
@@ -97,9 +105,10 @@ class SamCard(QFrame):
 
         if self._requires_pytorch:
             from AdaptFM.gui.widgets.pytorch_config_widget import PYTORCH_CMD_FILE
+
             if PYTORCH_CMD_FILE.exists() and PYTORCH_CMD_FILE.read_text().strip():
                 warn_text = (
-                    '⚠  Uses a custom PyTorch build  '
+                    "⚠  Uses a custom PyTorch build  "
                     f'<a href="configure" style="color:{_UPDATE_COLOR}; font-size:10px;">change</a>'
                 )
             else:
@@ -128,14 +137,18 @@ class SamCard(QFrame):
     def _refresh_badge(self):
         if self._installed:
             self._badge.setText("● Installed")
-            self._badge.setStyleSheet(f"color: {_INSTALLED_COLOR}; font-size: 11px; font-weight: 600;")
+            self._badge.setStyleSheet(
+                f"color: {_INSTALLED_COLOR}; font-size: 11px; font-weight: 600;"
+            )
             self._action_btn.setText("Uninstall")
             self._action_btn.setStyleSheet(
                 "background: #555; color: #fff; border-radius: 4px; padding: 4px 10px;"
             )
         else:
             self._badge.setText("○ Not installed")
-            self._badge.setStyleSheet(f"color: {_UNINSTALLED_COLOR}; font-size: 11px; font-weight: 600;")
+            self._badge.setStyleSheet(
+                f"color: {_UNINSTALLED_COLOR}; font-size: 11px; font-weight: 600;"
+            )
             self._action_btn.setText("Install")
             self._action_btn.setStyleSheet(
                 f"background: {_INSTALLED_COLOR}; color: #000; border-radius: 4px;"
@@ -148,14 +161,15 @@ class SamCard(QFrame):
         else:
             self._on_install_clicked()
 
-# Helper to reliably resolve commands in the current Python environment
+    # Helper to reliably resolve commands in the current Python environment
     def _find_exe(self, cmd: str) -> str | None:
         exe = shutil.which(cmd)
         if exe:
             return exe
-        
+
         # Fallback to current Python interpreter's bin/Scripts directory
         from pathlib import Path
+
         bin_dir = Path(sys.executable).parent
         candidate = bin_dir / cmd
         if candidate.exists():
@@ -171,10 +185,11 @@ class SamCard(QFrame):
         if not exe:
             self._log(
                 f"[error] Command '{self._install_command}' not found on PATH or in environment. "
-                f"Did you run `pip install -e .`?", color=_WARNING_COLOR,
+                f"Did you run `pip install -e .`?",
+                color=_WARNING_COLOR,
             )
             return
-        
+
         self.set_busy(True)  # Lock UI during execution
         self._log(f"\n▶ {self._install_command}", bold=True)
         self._pending_op = "install"
@@ -182,25 +197,29 @@ class SamCard(QFrame):
 
     def _on_uninstall_clicked(self):
         reply = QMessageBox.question(
-            self, "Confirm uninstall",
+            self,
+            "Confirm uninstall",
             f"Uninstall {self._display_name}?\n\n"
             f"This removes the package (and its cloned source checkpoint) from "
             f"the AdaptFM environment. No conda environment is affected.",
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No,
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
         )
         if reply != QMessageBox.Yes:
             return
-        
+
         exe = self._find_exe(self._uninstall_command)
         if not exe:
-            self._log(f"[error] Command '{self._uninstall_command}' not found on PATH or in environment.", color=_WARNING_COLOR)
+            self._log(
+                f"[error] Command '{self._uninstall_command}' not found on PATH or in environment.",
+                color=_WARNING_COLOR,
+            )
             return
-        
+
         self.set_busy(True)  # Lock UI during execution
         self._log(f"\n▶ {self._uninstall_command}", bold=True)
         self._pending_op = "uninstall"
         self._run_process(exe, [], label=self._display_name, on_done=self._on_op_done)
-
 
     # def _on_op_done(self, exit_code: int):
     #     import importlib
@@ -221,7 +240,7 @@ class SamCard(QFrame):
     #     self.set_busy(False)  # <--- Re-enable widget interaction
     #     self._refresh_badge()
 
-    def _resolve_package_root(self) -> Optional[Path]:
+    def _resolve_package_root(self) -> Path | None:
         """Handle both flat (<repo>/sam2/) and src-layout (<repo>/src/sam2/) checkouts."""
         if self._source_dir is None:
             return None
@@ -260,11 +279,12 @@ class SamCard(QFrame):
                     color=_WARNING_COLOR,
                 )
         else:
-            self._log(f"\n✗ Exited with code {exit_code}", color=_WARNING_COLOR, bold=True)
+            self._log(
+                f"\n✗ Exited with code {exit_code}", color=_WARNING_COLOR, bold=True
+            )
 
         self._pending_op = None
         self._refresh_badge()
-
 
     def set_busy(self, busy: bool):
         self.setEnabled(not busy)

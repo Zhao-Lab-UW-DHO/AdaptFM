@@ -8,12 +8,12 @@ The user's custom PyTorch pip command is read from ~/.adaptfm/pytorch_cmd.txt.
 Run `adaptfm-set-pytorch` first if that file does not exist yet.
 """
 
+import shlex
 import subprocess
 import sys
 from pathlib import Path
-import shlex
-from AdaptFM.model.registry import _conda_prefix
 
+from AdaptFM.model.registry import _conda_prefix
 
 ENV_NAME = "Merlin_nnUNet_adapt"
 PYTHON_VERSION = "3.10"
@@ -39,7 +39,9 @@ def _run(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, check=check)
 
 
-def _conda_run(env: str, cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
+def _conda_run(
+    env: str, cmd: list[str], check: bool = True
+) -> subprocess.CompletedProcess:
     """Run a command inside a conda environment."""
     full_cmd = ["conda", "run", "-n", env, "--no-capture-output"] + cmd
     return _run(full_cmd, check=check)
@@ -63,7 +65,7 @@ def install_merlin_nnunet(repo_dir: Path, env_name: str):
     print("\n--- Running pip install -e . ---")
     result1 = subprocess.run(
         ["conda", "run", "-n", env_name, "pip", "install", "-e", str(repo_dir)],
-        check=True
+        check=True,
     )
     if result1.returncode == 0:
         print("✓ pip install -e . completed successfully.")
@@ -74,8 +76,7 @@ def install_merlin_nnunet(repo_dir: Path, env_name: str):
     print("\n--- Running download_weights.py ---")
     download_script = repo_dir / "download_weights.py"
     result2 = subprocess.run(
-        ["conda", "run", "-n", env_name, "python", str(download_script)],
-        check=True
+        ["conda", "run", "-n", env_name, "python", str(download_script)], check=True
     )
     if result2.returncode == 0:
         print("✓ download_weights.py executed successfully.")
@@ -122,8 +123,8 @@ def main() -> None:
 
     cwd = Path.cwd()
 
-    merlin_root = (cwd.parent / "Merlin-nnUNet")
-    adaptfm_root: Path =cwd
+    merlin_root = cwd.parent / "Merlin-nnUNet"
+    adaptfm_root: Path = cwd
     merlin_root = merlin_root.expanduser().resolve()
     adaptfm_root = adaptfm_root.expanduser().resolve()
 
@@ -139,7 +140,9 @@ def main() -> None:
     )
     if ENV_NAME in env_check.stdout:
         print(f"Environment '{ENV_NAME}' already exists — skipping creation.")
-        print("To reinstall from scratch, run:  conda env remove -n Merlin_nnUNet_adapt")
+        print(
+            "To reinstall from scratch, run:  conda env remove -n Merlin_nnUNet_adapt"
+        )
         sys.exit(0)
 
     # Read user's custom PyTorch command
@@ -147,12 +150,16 @@ def main() -> None:
     print(f"PyTorch command: {' '.join(pytorch_cmd)}\n")
 
     # Create bare environment
-    _run([
-        "conda", "create",
-        "-n", ENV_NAME,
-        f"python={PYTHON_VERSION}",
-        "-y",
-    ])
+    _run(
+        [
+            "conda",
+            "create",
+            "-n",
+            ENV_NAME,
+            f"python={PYTHON_VERSION}",
+            "-y",
+        ]
+    )
 
     prefix = _conda_prefix(ENV_NAME)
     config_path = Path.home() / ".adaptfm" / f"{ENV_NAME}.prefix"
@@ -166,8 +173,8 @@ def main() -> None:
     # Install merlin-vlm
     print("\n--- Installing merlin-vlm ---")
     _conda_run(ENV_NAME, ["pip", "install", "merlin-vlm"])
-    
-        # Clone Merlin-nnUNet if the directory doesn't already contain the repo
+
+    # Clone Merlin-nnUNet if the directory doesn't already contain the repo
     print("\n--- Cloning Merlin-nnUNet ---")
     if (merlin_root / ".git").exists():
         print(f"  Merlin-nnUNet already cloned at {merlin_root} — skipping.")
@@ -175,12 +182,10 @@ def main() -> None:
         merlin_root.mkdir(parents=True, exist_ok=True)
         _run(["git", "clone", MERLIN_REPO, str(merlin_root)])
 
-
     print("\n--- Writing conda environment hooks ---")
     _write_conda_hooks(ENV_NAME, merlin_root, adaptfm_root)
-    
-    install_merlin_nnunet(merlin_root, env_name="Merlin_nnUNet_adapt")
 
+    install_merlin_nnunet(merlin_root, env_name="Merlin_nnUNet_adapt")
 
     print(f"\n✓ nnUNet environment '{ENV_NAME}' created successfully.")
     print(f"  Activate with:  conda activate {ENV_NAME}\n")

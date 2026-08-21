@@ -1,12 +1,12 @@
-import glob
-import os
-import random
-import tifffile as tiff
-import shutil
 import json
+import random
+import shutil
 from pathlib import Path
-import SimpleITK as sitk
+
+import tifffile as tiff
+
 from AdaptFM.dataset.dataset_utils import construct_nnUNet_folders, write_nnUNet_json
+
 
 class DatasetManager:
     def __init__(self, folder=None):
@@ -18,43 +18,40 @@ class DatasetManager:
             self.load_from_folder(folder)
 
     def load_from_folder(self, folder):
-            self.folder = folder
+        self.folder = Path(folder)
 
-            # Supported image extensions
-            exts = ["*.tif", "*.tiff", "*.nii", "*.nii.gz"]
+        # Supported image extensions
+        exts = ["*.tif", "*.tiff", "*.nii", "*.nii.gz"]
 
-            # Collect all matching files
-            image_paths = []
-            for ext in exts:
-                image_paths.extend(glob.glob(os.path.join(folder, ext)))
+        # Collect all matching files
+        image_paths = []
+        for ext in exts:
+            image_paths.extend(self.folder.glob(ext))
 
-            image_paths = sorted(image_paths)
+        image_paths = sorted(image_paths)
 
-            for img_path in image_paths:
-                # Skip mask files
-                if img_path.endswith("_seg.tif") or img_path.endswith("_seg.tiff") or \
-                img_path.endswith("_seg.nii") or img_path.endswith("_seg.nii.gz"):
-                    continue
+        for img_path in image_paths:
+            filename = img_path.name
 
-                # Determine extension
-                base, ext = os.path.splitext(img_path)
+            # Handle multi-dot extensions
+            if filename.endswith(".nii.gz"):
+                ext = ".nii.gz"
+                stem = filename[:-7]
+            else:
+                ext = img_path.suffix
+                stem = img_path.stem
 
-                # Handle .nii.gz (double extension)
-                if ext == ".gz" and base.endswith(".nii"):
-                    base = base[:-4]   # remove ".nii"
-                    ext = ".nii.gz"
+            if stem.endswith("_seg"):
+                continue
 
-                # Construct mask path
-                mask_path = base + "_seg" + ext
+            mask_path = img_path.with_name(f"{stem}_seg{ext}")
 
-                if not os.path.exists(mask_path):
-                    continue
+            if not mask_path.exists():
+                continue
 
-                self.samples.append({
-                    "id": os.path.basename(base),
-                    "image": img_path,
-                    "mask": mask_path
-                })
+            self.samples.append(
+                {"id": stem, "image": str(img_path), "mask": str(mask_path)}
+            )
 
     def iter_samples(self, shuffle=True):
         samples = self.samples.copy()
@@ -66,71 +63,64 @@ class DatasetManager:
 
             yield img, mask
 
-    def export_for_framework(self, framework="nnunet", out_folder=None,params=None):
+    def export_for_framework(self, framework="nnunet", out_folder=None, params=None):
         # copy files to nnunet folder structure or return lists of paths
-        
-        os.makedirs(out_folder,exist_ok=True)
+
+        Path(out_folder).mkdir(parents=True, exist_ok=True)
+
         print(params)
-        if framework =='nnunet':
-            return self._export_nnunet(out_folder,params=params)
+        if framework == "nnunet":
+            return self._export_nnunet(out_folder, params=params)
         else:
-            return self._export_simple_pairs(out_folder,framework)
-        
-    
-    def _export_nnunet(self,out_folder,file_ending='.tiff',channel=0,params=None):
+            return self._export_simple_pairs(out_folder, framework)
 
-        
-        setID = int(params['Set ID'])
-        setName = params['Set Name']
+    def _export_nnunet(self, out_folder, file_ending=".tiff", channel=0, params=None):
 
-        paths = construct_nnUNet_folders(
-            out_folder, setID=setID, setName=setName
-        )
+        setID = int(params["Set ID"])
+        setName = params["Set Name"]
 
-        imagesTr = paths['imagesTr']
-        labelsTr = paths['labelsTr']
+        paths = construct_nnUNet_folders(out_folder, setID=setID, setName=setName)
 
-        name_mapping= {}
+        imagesTr = paths["imagesTr"]
+        labelsTr = paths["labelsTr"]
+
+        name_mapping = {}
 
         for idx, s in enumerate(self.samples):
-
             case_id = f"{setName}_{idx:03d}"
 
-            img_dst = os.path.join(imagesTr, f"{case_id}_0000.tiff")
-            lbl_dst = os.path.join(labelsTr, f"{case_id}.tiff")
+            img_dst = str(Path(imagesTr) / f"{case_id}_0000.tiff")
+            lbl_dst = str(Path(labelsTr) / f"{case_id}.tiff")
 
             shutil.copy(s["image"], img_dst)
             shutil.copy(s["mask"], lbl_dst)
 
             name_mapping[s["image"]] = img_dst
 
-        json_path = os.path.join(imagesTr, "name_mapping.json")
-        with open(json_path, "w") as f:
+        json_path = str(Path(imagesTr) / "name_mapping.json")
+        with Path(json_path).open("w", encoding="utf-8") as f:
             json.dump(name_mapping, f, indent=4)
 
         write_nnUNet_json(
-            base_dir = out_folder,
+            base_dir=out_folder,
             setName=setName,
-            setID = setID,
+            setID=setID,
             file_ending=file_ending,
-            channel=channel
-            
+            channel=channel,
         )
 
-        return out_folder 
-
+        return out_folder
 
     def _export_simple_pairs(self, out_folder, framework):
-        img_dir = os.path.join(out_folder, "images")
-        msk_dir = os.path.join(out_folder, "masks")
+        out_folder_path = Path(out_folder)
+        img_dir = out_folder_path / "images"
+        msk_dir = out_folder_path / "masks"
 
-        os.makedirs(img_dir, exist_ok=True)
-        os.makedirs(msk_dir, exist_ok=True)
+        img_dir.mkdir(parents=True, exist_ok=True)
+        msk_dir.mkdir(parents=True, exist_ok=True)
 
         for s in self.samples:
-            shutil.copy(s["image"], os.path.join(img_dir, os.path.basename(s["image"])))
-            shutil.copy(s["mask"], os.path.join(msk_dir, os.path.basename(s["mask"])))
+            shutil.copy(s["image"], img_dir / Path(s["image"]).name)
+            shutil.copy(s["mask"], msk_dir / Path(s["mask"]).name)
 
-        return Path(out_folder)
-
-        
+        return out_folder_path

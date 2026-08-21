@@ -1,24 +1,25 @@
-from pathlib import Path
-import subprocess
 import shutil
+from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent
+
 
 def install_ssvt():
 
     from huggingface_hub import snapshot_download
 
     ssvt_dir = REPO_ROOT / "SSVT" / "checkpoint"
-    ssvt_dir.mkdir(parents=True,exist_ok=True)
+    ssvt_dir.mkdir(parents=True, exist_ok=True)
 
     snapshot_download(
-        repo_id='hbakhtiar/SSVT_Organoids',
-        repo_type='model',
-        allow_patterns='SSVT.pth',  # Only download the checkpoint
-        local_dir=ssvt_dir  # Add destination folder
+        repo_id="hbakhtiar/SSVT_Organoids",
+        repo_type="model",
+        allow_patterns="SSVT.pth",  # Only download the checkpoint
+        local_dir=ssvt_dir,  # Add destination folder
     )
 
     print(f"SSVT downloaded in {ssvt_dir}")
+
 
 def uninstall_ssvt():
 
@@ -35,5 +36,3 @@ def uninstall_ssvt():
         print(f"Removed: {ssvt_dir}")
     except Exception as e:
         print(f"Failed to remove {ssvt_dir}: {e}")
-
-    

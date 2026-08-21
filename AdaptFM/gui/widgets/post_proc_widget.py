@@ -1,99 +1,108 @@
+"""
+inference_widget.py
+-------------------
+Inference workflow window.
+
+Flow
+----
+1. User selects model, dataset folder, output folder, GPU.
+2. User selects a model checkpoint file.
+3. Click Run → single QProcess running the model's conda-wrapped
+   inference command, with live stdout in the log panel.
+4. Terminate kills the process at any time.
+"""
+
+from __future__ import annotations
+
 from pathlib import Path
 
-from qtpy.QtWidgets import QWidget, QVBoxLayout,QComboBox,QLabel,QFileDialog,QPushButton,QInputDialog
+from qtpy.QtCore import QTimer
+from qtpy.QtWidgets import QLabel
+
+from AdaptFM.gui.widgets.model_widget import (
+    _AMBER,
+    _GREEN,
+    _RED,
+    ModelWorkflowWidget,
+)
 from AdaptFM.postprocessing.post_proc_registry import POSTPROC_REGISTRY
 
 
-"""Widget has three parts
-1. pick a pipeline
-2. pick a folder to process
-3. pick an output folder""" 
+class PostProcessingWidget(ModelWorkflowWidget):
+    WINDOW_TITLE = "Post Processing"
+    SKIP_PARAMS = True
 
-class PostProcessingWidget(QWidget):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, dataset_manager):
+        self.registry = POSTPROC_REGISTRY
+        self.registry_title = "Post Processing"
 
-        self.setWindowTitle("Post Processing")
-        self.resize(500, 500)   # Make widget larger when it opens
+        super().__init__(dataset_manager)
 
-        self.folder2process = None
-        self.output_folder = None
+        self.output_dir: Path | None = None
+        self.dataset_dir: Path | None = None
 
-        self.layout = QVBoxLayout()
-        self.setLayout(self.layout)
+    def _build(self):
+        super()._build()
 
-        # Pipeline dropdown
-        self.postproc_dropdown = QComboBox()
-        self.postproc_dropdown.addItems(POSTPROC_REGISTRY.keys())
-        self.layout.addWidget(self.postproc_dropdown)
+        # Patch model section
+        self._model_combo.clear()
+        self._model_combo.addItems(list(POSTPROC_REGISTRY.keys()))
 
-        self._build_dir_selector()
-        self._build_run_button()
+        # Rename label
+        for lbl in self.widget.findChildren(QLabel):
+            if lbl.text() == "Model":
+                lbl.setText("Post Processing")
+                break
 
-    # ---------- Directory selector ----------
-    def _build_dir_selector(self):
-        # Input folder button
-        btn_in = QPushButton("Select input folder")
-        btn_in.clicked.connect(
-            lambda: self._select_folder("Select a folder to process", "folder2process")
+        # Hide params AFTER base class fires its initial model-selected event
+        QTimer.singleShot(0, lambda: self._set_param_section_visible(False))
+
+    # ------------------------------------------------------------------
+    # Workflow
+    # ------------------------------------------------------------------
+
+    def _run_workflow(self):
+        if self.dataset_dir is None:
+            self._log_line("⚠  Please select a dataset folder.", color=_AMBER)
+            return
+
+        params = self.collect_params()
+        gpu = self._gpu_spin.value()
+        params["gpu"] = gpu
+
+        env_extra = {"CUDA_VISIBLE_DEVICES": str(gpu)}
+
+        post_process_cmd = [
+            "python",
+            "-m",
+            f"{self.model.module_path}",
+            "--input_dir",
+            self.dataset_dir,
+            "--output_dir",
+            self.output_dir,
+        ]
+
+        full_cmd = self.model._wrap_with_conda(post_process_cmd)
+
+        self._start_process(
+            full_cmd[0],
+            full_cmd[1:],
+            label=f"Postprocessing with  [{self.model.name}]",
+            env_extra=env_extra,
+            on_done=self._on_postproc_done,
         )
-        self.layout.addWidget(btn_in)
 
-        # Label to show selected input folder
-        self.in_label = QLabel("Input folder: None")
-        self.layout.addWidget(self.in_label)
-
-        # Output folder button
-        btn_out = QPushButton("Select output folder")
-        btn_out.clicked.connect(
-            lambda: self._select_folder("Select an output folder", "output_folder")
-        )
-        self.layout.addWidget(btn_out)
-
-        # Label to show selected output folder
-        self.out_label = QLabel("Output folder: None")
-        self.layout.addWidget(self.out_label)
-
-    # ---------- Folder selection ----------
-    def _select_folder(self, prompt, attr_name):
-        folder = QFileDialog.getExistingDirectory(None, prompt)
-        if folder:
-            setattr(self, attr_name, Path(folder))
-
-            # Update the correct label
-            if attr_name == "folder2process":
-                self.in_label.setText(f"Input folder: {folder}")
-            elif attr_name == "output_folder":
-                self.out_label.setText(f"Output folder: {folder}")
-
-    # ---------- Run button ----------
-    def _build_run_button(self):
-        btn = QPushButton("Run")
-        btn.clicked.connect(self._run)
-        self.layout.addWidget(btn)
-
-    def _run(self):
-        if self.folder2process is None or self.output_folder is None:
-            raise RuntimeError("Select an input and output folder")
-        
-        self.output_folder.mkdir(parents=True,exist_ok=True)
-
-        pipeline_name = self.postproc_dropdown.currentText()
-
-        pipeline = POSTPROC_REGISTRY[pipeline_name]
-
-
-        gpu, returned_ok = QInputDialog.getInt(
-            None,
-            "Select GPU",
-            "GPU:",
-            value=0,
-            min=0,
-            max=16,   # adjust if you want
-            step=1,
-        )
-        pipeline.run_postprocess(self.folder2process,
-                        self.output_folder,gpu)
-        
-
-
+    def _on_postproc_done(self, exit_code: int):
+        self._set_busy(False)
+        if exit_code == 0:
+            self._log_line(
+                f"\n✓  Post processing complete. Output: {self.output_dir}",
+                color=_GREEN,
+                bold=True,
+            )
+        else:
+            self._log_line(
+                f"\n✗  Post processing failed (exit {exit_code}).",
+                color=_RED,
+                bold=True,
+            )

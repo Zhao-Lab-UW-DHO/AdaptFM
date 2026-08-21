@@ -8,14 +8,15 @@ Usage (after `pip install -e .`):
 
 """
 
+import shlex
 import subprocess
 import sys
 from pathlib import Path
-import shlex
+
 from AdaptFM.model.registry import _conda_prefix
 
 ENV_NAME = "CTFM_adapt"
-PYTHON_VERSION = "3.10" #guessting that this wroks
+PYTHON_VERSION = "3.10"  # guessting that this wroks
 PYTORCH_CMD_FILE = Path.home() / ".adaptfm" / "pytorch_cmd.txt"
 CTFM_REPO = "https://github.com/project-lighter/CT-FM.git"
 
@@ -37,7 +38,9 @@ def _run(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, check=check)
 
 
-def _conda_run(env: str, cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
+def _conda_run(
+    env: str, cmd: list[str], check: bool = True
+) -> subprocess.CompletedProcess:
     """Run a command inside a conda environment."""
     full_cmd = ["conda", "run", "-n", env, "--no-capture-output"] + cmd
     return _run(full_cmd, check=check)
@@ -53,8 +56,6 @@ def _read_pytorch_cmd() -> list[str]:
         print(f"ERROR: {PYTORCH_CMD_FILE} is empty. Run `adaptfm-set-pytorch` again.")
         sys.exit(1)
     return shlex.split(raw)
-
-
 
 
 def _write_conda_hooks(env: str, ctfm_root: Path, adaptfm_root: Path) -> None:
@@ -107,8 +108,8 @@ def main() -> None:
 
     cwd = Path.cwd()
 
-    ctfm_root = (cwd.parent / "CT-FM")
-    adaptfm_root: Path =cwd
+    ctfm_root = cwd.parent / "CT-FM"
+    adaptfm_root: Path = cwd
     ctfm_root = ctfm_root.expanduser().resolve()
     adaptfm_root = adaptfm_root.expanduser().resolve()
 
@@ -117,31 +118,33 @@ def main() -> None:
     print(f"PyTorch command: {' '.join(pytorch_cmd)}\n")
 
     # Create bare environment
-    _run([
-        "conda", "create",
-        "-n", ENV_NAME,
-        f"python={PYTHON_VERSION}",
-        "-y",
-    ])
+    _run(
+        [
+            "conda",
+            "create",
+            "-n",
+            ENV_NAME,
+            f"python={PYTHON_VERSION}",
+            "-y",
+        ]
+    )
 
     prefix = _conda_prefix(ENV_NAME)
     config_path = Path.home() / ".adaptfm" / f"{ENV_NAME}.prefix"
     config_path.write_text(prefix + "\n")
-    print(f"  Wrote env prefix to {config_path}")   
+    print(f"  Wrote env prefix to {config_path}")
 
-    # Install CTFM_adapt 
+    # Install CTFM_adapt
     print("\n--- Installing CTFM_adapt ---")
     _conda_run(ENV_NAME, ["python", "-m", "pip", "install", "lighter-zoo", "-U"])
 
-
-        # Remove the default torch/torchvision that cellpose bundled
+    # Remove the default torch/torchvision that cellpose bundled
     print("\n--- Removing default torch/torchvision ---")
     _conda_run(
         ENV_NAME,
         ["pip", "uninstall", "-y", "torch", "torchvision"],
-        check=False,   # OK if they were never installed under these names
+        check=False,  # OK if they were never installed under these names
     )
-
 
     # Install the user's preferred PyTorch build
     print("\n--- Installing user-specified PyTorch ---")
@@ -155,9 +158,11 @@ def main() -> None:
         _run(["git", "clone", CTFM_REPO, str(ctfm_root)])
 
     print("\n--- Installing dependencies ---")
-    _conda_run(ENV_NAME, ["python", "-m", "pip", "install", "-r", str(ctfm_root / "requirements.txt")])
+    _conda_run(
+        ENV_NAME,
+        ["python", "-m", "pip", "install", "-r", str(ctfm_root / "requirements.txt")],
+    )
 
-    
     # Write conda activate/deactivate hooks
     print("\n--- Writing conda environment hooks ---")
     _write_conda_hooks(ENV_NAME, ctfm_root, adaptfm_root)
