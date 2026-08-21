@@ -150,7 +150,7 @@ class SegmentationWidget:
             @magicgui(call_button="Run auto-segmentation on folder")
             def run_folder_button():
                 folder = QFileDialog.getExistingDirectory(
-                    None,
+                    self.widget,
                     "Select folder containing images",
                     ""
                 )
@@ -197,7 +197,7 @@ class SegmentationWidget:
                 )
 
                 reply = QMessageBox.question(
-                    None,
+                    self.widget,
                     "Confirm Batch Processing",
                     msg,
                     QMessageBox.Yes | QMessageBox.No
