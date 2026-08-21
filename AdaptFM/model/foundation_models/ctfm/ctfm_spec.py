@@ -321,8 +321,6 @@ class CTFMSpec(FoundationModelSpec):
 
             self.nested_set(override, ["system"], {
 
-                "model": None,
-                "optimizer": None,
                 "_target_": "lighter.System",
 
                 # Model: pretrained CT-FM SegResNet with reinitialized head
@@ -468,7 +466,7 @@ class CTFMSpec(FoundationModelSpec):
             })
 
             output_file = str(run_dir / "override.yaml")
-            with open(output_file, "w") as f:
+            with Path(output_file).open("w") as f:
                 yaml.safe_dump(override, f, default_flow_style=False, sort_keys=False)
 
             return output_file
@@ -512,8 +510,8 @@ class CTFMSpec(FoundationModelSpec):
         subprocess.Popen(
             cmd,
             cwd=ctfm_root,
-            stdout=open(run_dir / "stdout.log", "w"),
-            stderr=open(run_dir / "stderr.log", "w"),
+            stdout=(Path(run_dir) / "stdout.log").open("w", encoding="utf-8"),
+            stderr=(Path(run_dir) / "stderr.log").open("w", encoding="utf-8"),
             start_new_session=True,
             env=env
         )
@@ -546,8 +544,8 @@ class CTFMSpec(FoundationModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(Path(output_dir) / "stdout.log").open("w", encoding="utf-8"),
+            stderr=(Path(output_dir) / "stderr.log").open("w", encoding="utf-8"),
             start_new_session=True,
             env=env
         )

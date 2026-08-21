@@ -1,4 +1,6 @@
 # Imports
+from pathlib import Path
+
 import torch
 from lighter_zoo import SegResNet
 from monai.transforms import (
@@ -74,11 +76,13 @@ def main(
     ])
 
 
-    for image_name in os.listdir(test_dir):
-
+    for p in Path(test_dir).iterdir():
+        image_name = p.name
         print(image_name)
+
+        image_path = str(p)
             
-        image_path = os.path.join(test_dir,image_name)
+        image_path = str(Path(test_dir) / image_name)
         input_tensor = preprocess(image_path)
 
         with torch.no_grad():

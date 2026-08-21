@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from magicgui import magicgui
 from magicgui.widgets import Container, Label
 from napari import Viewer
@@ -159,8 +161,8 @@ class SegmentationWidget:
                     return
                 # Collect image files
                 image_paths = sorted([
-                    p for p in glob(os.path.join(folder, "*"))
-                    if p.lower().endswith((".tif", ".tiff", ".nii.gz"))
+                    p for p in Path(folder).iterdir()
+                    if p.is_file() and p.name.lower().endswith((".tif", ".tiff", ".nii.gz"))
                 ])
                 if not image_paths:
                     show_info("No images found in folder.")
@@ -173,9 +175,9 @@ class SegmentationWidget:
                 out_dir = getattr(self.sm, "selected_output_folder", None)
 
                 if out_dir:
-                    out_dir = os.path.abspath(out_dir)
+                    out_dir = str(Path(out_dir).resolve())
 
-                if not out_dir or not os.path.isdir(out_dir):
+                if not out_dir or not Path(out_dir).is_dir():
                     show_info("You must select an output folder")
                     return
                 save_images = getattr(self.sm, "selected_save_image", True)
@@ -214,7 +216,7 @@ class SegmentationWidget:
                 @thread_worker
                 def _run_batch(paths, algo, params, out_dir):
                     results = []
-                    os.makedirs(out_dir, exist_ok=True)
+                    Path(out_dir).mkdir(parents=True, exist_ok=True)
 
                     # Pull "save image alongside segmentation" from the save widget's
                     # last-synced value; default True to match the save widget's own default
@@ -225,7 +227,7 @@ class SegmentationWidget:
                         for ext in (".nii.gz", ".tif", ".tiff"):
                             if filename.lower().endswith(ext):
                                 return filename[: -len(ext)]
-                        return os.path.splitext(filename)[0]
+                        return Path(filename).stem
 
                     for path in paths:
                         try:
@@ -234,23 +236,21 @@ class SegmentationWidget:
                                 img = img.compute()
                             seg = algo.run(img, params)
 
-                            orig_name = os.path.basename(path)
+                            orig_name = Path(path).name
                             base = _strip_known_ext(orig_name)
                             seg_name = f"{base}_seg.tiff"
-                            seg_path = os.path.join(out_dir, seg_name)
+                            seg_path = str(Path(out_dir) / seg_name)
 
                             try:
                                 tiff.imwrite(seg_path, seg.astype(seg.dtype))
-                                
                             except Exception as e:
                                 print(f"Failed to save {seg_path}: {e}")
 
                             if save_image:
                                 img_name = f"{base}.tiff"
-                                img_path = os.path.join(out_dir, img_name)
+                                img_path = str(Path(out_dir) / img_name)
                                 try:
                                     tiff.imwrite(img_path, img)
-                                    
                                 except Exception as e:
                                     print(f"Failed to save {img_path}: {e}")
 

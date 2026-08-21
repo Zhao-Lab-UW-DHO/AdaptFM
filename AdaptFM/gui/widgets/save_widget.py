@@ -36,12 +36,12 @@ class SaveWidget:
             save_image={"label": "Save image alongside segmentation (Recommended)"}
         )
         def widget(
-            save_dir=Path(".").resolve(),
+            save_dir: Path = None,
             filename_base="",
             segmentation_layer: Labels = None,
             save_image: bool = True
         ):
-            
+            save_dir = Path(save_dir or Path.cwd()).resolve()
             if segmentation_layer is None:
                 show_info("Error: No segmentation layer selected.")
                 return

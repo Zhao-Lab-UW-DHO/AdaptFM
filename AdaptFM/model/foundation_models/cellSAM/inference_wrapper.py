@@ -1,4 +1,5 @@
 import argparse
+from pathlib import Path
 import numpy as np
 import os
 from cellSAM import segment_cellular_image
@@ -56,10 +57,11 @@ def run_inference(test_dir, output_path):#     import multiprocessing as mp
 
     model = get_model(model='cellsam_extra')
     model = model.to("cuda")  
-    for image_name in os.listdir(test_dir):
-   # moves entire model to GPU
-        
-        image_path = os.path.join(test_dir,image_name)
+    for p in Path(test_dir).iterdir():
+        image_name = p.name
+        # moves entire model to GPU
+
+        image_path = str(p)
         image = tiff.imread(image_path)
 
         try:
@@ -77,7 +79,7 @@ def run_inference(test_dir, output_path):#     import multiprocessing as mp
                 savefolder=None,
                 basename=None
             )
-            image_output_path = os.path.join(output_path,image_name)
+            image_output_path = str(Path(output_path) / image_name)
             tiff.imwrite(image_output_path,segmentation3D)
         except Exception as e:
             print(f"Segmentation Failed for {image_name}")

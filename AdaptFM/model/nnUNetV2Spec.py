@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from AdaptFM.model.model_spec import ModelSpec
 import os
 import subprocess
@@ -73,9 +75,9 @@ class NNUNetV2ModelSpec(ModelSpec):
         gpu = params['gpu']
 
         env = os.environ.copy()
-        env['nnUNet_raw'] = os.path.join(dataset_dir,'nnUNet_raw')
-        env['nnUNet_preprocessed'] = os.path.join(dataset_dir,'nnUNet_preprocessed')
-        env['nnUNet_results'] =os.path.join(dataset_dir,'nnUNet_results')
+        env['nnUNet_raw'] = str(Path(dataset_dir) / 'nnUNet_raw')
+        env['nnUNet_preprocessed'] = str(Path(dataset_dir) / 'nnUNet_preprocessed')
+        env['nnUNet_results'] = str(Path(dataset_dir) / 'nnUNet_results')
         env['CUDA_VISIBLE_DEVICES'] = str(gpu)
 
 
@@ -85,8 +87,8 @@ class NNUNetV2ModelSpec(ModelSpec):
 
         process= subprocess.Popen(
             cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(output_dir / "stdout.log").open(mode='w'),
+            stderr=(output_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )
@@ -112,12 +114,12 @@ class NNUNetV2ModelSpec(ModelSpec):
 
         gpu = params['gpu']
         env = os.environ.copy()
-        env['nnUNet_raw'] = os.path.join(dataset_info,'nnUNet_raw')
-        env['nnUNet_preprocessed'] = os.path.join(dataset_info,'nnUNet_preprocessed')
-        env['nnUNet_results'] =os.path.join(dataset_info,'nnUNet_results')
+        env['nnUNet_raw'] = str(Path(dataset_info) / 'nnUNet_raw')
+        env['nnUNet_preprocessed'] = str(Path(dataset_info) / 'nnUNet_preprocessed')
+        env['nnUNet_results'] = str(Path(dataset_info) / 'nnUNet_results')
         env['CUDA_VISIBLE_DEVICES'] = str(gpu)
 
-        with open(run_dir / "params.json", "w") as f:
+        with (Path(run_dir) / 'params.json').open('w') as f:
             json.dump(params, f, indent=4)
 
         training_commnad = self.training_command(params)
@@ -129,8 +131,8 @@ class NNUNetV2ModelSpec(ModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(run_dir / "stdout.log", "w"),
-            stderr=open(run_dir / "stderr.log", "w"),
+            stdout=(run_dir / "stdout.log").open(mode='w'),
+            stderr=(run_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )
@@ -141,29 +143,22 @@ class NNUNetV2ModelSpec(ModelSpec):
         nnUNet_raw, nnUNet_preprocessed, and nnUNet_results.
         Return that directory or None.
         """
-        current = os.path.abspath(start_dir)
+        required_dirs = ("nnUNet_raw", "nnUNet_preprocessed", "nnUNet_results")
+        current = Path(start_dir).resolve()
 
-        while True:
-            raw = os.path.join(current, "nnUNet_raw")
-            pre = os.path.join(current, "nnUNet_preprocessed")
-            res = os.path.join(current, "nnUNet_results")
-
-            if all(os.path.isdir(p) for p in [raw, pre, res]):
-                return current
-
-            parent = os.path.dirname(current)
-            if parent == current:  # reached filesystem root
-                return None
-
-            current = parent
+        for p in (current, *current.parents):
+            if all((p / folder).is_dir() for folder in required_dirs):
+                return str(p)
+        return None
 
     def parse_dataset_name(self,path):
         """
         Given a path inside a nnUNet dataset folder, return (dataset_id, dataset_name).
         Example: /.../Dataset001_TEST/imagesTs → ('001', 'TEST')
         """
-        path = os.path.abspath(path)
-        parts = path.split(os.sep)
+        p = Path(path).resolve()
+        path = str(p)
+        parts = list(p.parts)
 
         # Find the folder that matches the nnUNet dataset naming pattern
         for p in reversed(parts):
@@ -177,20 +172,20 @@ class NNUNetV2ModelSpec(ModelSpec):
 
 
 
-    def dataset_is_inside_raw(self,dataset_dir, nnunet_base):
+    def dataset_is_inside_raw(self, dataset_dir, nnunet_base) -> bool:
         """
         Check that dataset_dir is somewhere inside nnUNet_raw.
         """
-        raw_dir = os.path.abspath(os.path.join(nnunet_base, "nnUNet_raw"))
-        dataset_dir = os.path.abspath(dataset_dir)
-
-        return os.path.commonpath([dataset_dir, raw_dir]) == raw_dir
+        raw_dir = (Path(nnunet_base) / "nnUNet_raw").resolve()
+        dataset_path = Path(dataset_dir).resolve()
+        return dataset_path.is_relative_to(raw_dir)
 
 
     def run_inference(self, dataset_dir, checkpoint, output_dir, params):
 
         gpu = params["gpu"]
         env = os.environ.copy()
+
 
         # 1. Find nearest nnUNet base directory
         nnunet_base = self.find_nnUNet_base(dataset_dir)
@@ -209,9 +204,9 @@ class NNUNetV2ModelSpec(ModelSpec):
 
 
         # 3. Set environment variables
-        env["nnUNet_raw"] = os.path.join(nnunet_base, "nnUNet_raw")
-        env["nnUNet_preprocessed"] = os.path.join(nnunet_base, "nnUNet_preprocessed")
-        env["nnUNet_results"] = os.path.join(nnunet_base, "nnUNet_results")
+        env['nnUNet_raw'] = str(Path(nnunet_base) / 'nnUNet_raw')
+        env['nnUNet_preprocessed'] = str(Path(nnunet_base) / 'nnUNet_preprocessed')
+        env['nnUNet_results'] = str(Path(nnunet_base) / 'nnUNet_results')
 
 
         if gpu is not None:
@@ -227,8 +222,8 @@ class NNUNetV2ModelSpec(ModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(output_dir / "stdout.log").open(mode='w'),
+            stderr=(output_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )
@@ -236,7 +231,7 @@ class NNUNetV2ModelSpec(ModelSpec):
 
     def inference_command(self, params,dataset_dir, output_dir,checkpoint):
         
-        ckpt_name = os.path.basename(checkpoint)
+        ckpt_name = Path(checkpoint).name
 
         return [
             'nnUNetv2_predict',
@@ -311,9 +306,9 @@ class MerlinNNUNetV2ModelSpec(NNUNetV2ModelSpec):
         gpu = params['gpu']
 
         env = os.environ.copy()
-        env['nnUNet_raw'] = os.path.join(dataset_dir,'nnUNet_raw')
-        env['nnUNet_preprocessed'] = os.path.join(dataset_dir,'nnUNet_preprocessed')
-        env['nnUNet_results'] =os.path.join(dataset_dir,'nnUNet_results')
+        env["nnUNet_raw"] = str(Path(dataset_dir) / "nnUNet_raw")
+        env["nnUNet_preprocessed"] = str(Path(dataset_dir) / "nnUNet_preprocessed")
+        env["nnUNet_results"] = str(Path(dataset_dir) / "nnUNet_results")
         env['CUDA_VISIBLE_DEVICES'] = str(gpu)
 
 
@@ -328,8 +323,8 @@ class MerlinNNUNetV2ModelSpec(NNUNetV2ModelSpec):
 
         transform_proc= subprocess.Popen(
             transform_cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(Path(output_dir) / "stdout.log").open("w", encoding="utf-8"),
+            stderr=(Path(output_dir) / "stderr.log").open("w", encoding="utf-8"),
             start_new_session=True,
             env=env
         )
@@ -348,8 +343,8 @@ class MerlinNNUNetV2ModelSpec(NNUNetV2ModelSpec):
 
         process= subprocess.Popen(
             cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(Path(output_dir) / "stdout.log").open("w", encoding="utf-8"),
+            stderr=(Path(output_dir) / "stderr.log").open("w", encoding="utf-8"),
             start_new_session=True,
             env=env
         )
@@ -382,7 +377,7 @@ class MerlinNNUNetV2ModelSpec(NNUNetV2ModelSpec):
 
     def inference_command(self, params,imagesTs, output_dir,checkpoint):
         
-        ckpt_name = os.path.basename(checkpoint)
+        ckpt_name = Path(checkpoint).name
 
         return [
             'nnUNetv2_predict',
@@ -401,9 +396,9 @@ class MerlinNNUNetV2ModelSpec(NNUNetV2ModelSpec):
         gpu = params['gpu']
         env = os.environ.copy()
 
-        env['nnUNet_raw'] = os.path.join(output_dir,'nnUNet_raw')
-        env['nnUNet_preprocessed'] = os.path.join(output_dir,'nnUNet_preprocessed')
-        env['nnUNet_results'] =os.path.join(output_dir,'nnUNet_results')
+        env["nnUNet_raw"] = str(Path(output_dir) / "nnUNet_raw")
+        env["nnUNet_preprocessed"] = str(Path(output_dir) / "nnUNet_preprocessed")
+        env["nnUNet_results"] = str(Path(output_dir) / "nnUNet_results")
 
         if gpu is not None:
             env["CUDA_VISIBLE_DEVICES"] = str(gpu)     
@@ -420,8 +415,8 @@ class MerlinNNUNetV2ModelSpec(NNUNetV2ModelSpec):
 
         transform_proc= subprocess.Popen(
             transform_cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(Path(output_dir) / "stdout.log").open("w", encoding="utf-8"),
+            stderr=(Path(output_dir) / "stderr.log").open("w", encoding="utf-8"),
             start_new_session=True,
             env=env
         )
@@ -448,8 +443,8 @@ class MerlinNNUNetV2ModelSpec(NNUNetV2ModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(Path(output_dir) / "stdout.log").open("w", encoding="utf-8"),
+            stderr=(Path(output_dir) / "stderr.log").open("w", encoding="utf-8"),
             start_new_session=True,
             env=env
         )

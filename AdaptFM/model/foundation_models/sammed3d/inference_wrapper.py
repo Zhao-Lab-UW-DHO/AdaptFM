@@ -7,6 +7,7 @@ Going forward we will only support repos that can be installed as a package
 import copy
 import os
 import os.path as osp
+from pathlib import Path
 import re
 import argparse
 import numpy as np
@@ -380,14 +381,14 @@ def validate_paired_img_gt(model, img_path, gt_path, output_path,
     torch.manual_seed(seed)
     np.random.seed(seed)
 
-    os.makedirs(osp.dirname(output_path), exist_ok=True)
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
 
     exist_categories, final_pred = get_category_list_and_zero_mask(gt_path)
     _, gt_meta = read_arr_from_nifti(gt_path, get_meta_info=True)
     subject, meta_info = get_subject_and_meta_info(img_path, gt_path)
 
     for category_index in exist_categories:
-        print(f"Category {category_index} | {osp.basename(img_path)}")
+        print(f"Category {category_index} | {Path(img_path).name}")
 
         cls_pred = infer_full_volume(
             model,
@@ -416,26 +417,27 @@ def main():
 
     test_dir = args.test_dir
 
-    raw_images_path = osp.join(test_dir,'imagesTr')
-    labels_path = osp.join(test_dir,'labelsTr')
+    raw_images_path = str(Path(test_dir) / 'imagesTr')
+    labels_path = str(Path(test_dir) / 'labelsTr')
 
     output_path = args.output_path
     checkpoint = args.checkpoint
 
     model = medim.create_model("SAM-Med3D", pretrained=True, checkpoint_path=checkpoint)
-    images = [f for f in os.listdir(raw_images_path) if f.endswith('.nii.gz')]
+    images = [f.name for f in Path(raw_images_path).iterdir() 
+              if f.is_file() and f.name.endswith('.nii.gz')]
 
 
 
 
     for image in images:
-        img_path = osp.join(raw_images_path,image)
-        gt_path = osp.join(labels_path,image)
-        out_path = osp.join(output_path,image)
+        img_path = str(Path(raw_images_path) / image)
+        gt_path = str(Path(labels_path) / image)
+        out_path = str(Path(output_path) / image)
         
 
 
-        if not osp.exists(gt_path):
+        if not Path(gt_path).exists():
             print(f"GT not found for {image}, skipping.")
             continue
 

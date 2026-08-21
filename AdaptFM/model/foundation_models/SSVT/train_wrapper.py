@@ -79,12 +79,12 @@ def main():
     # Dataset & DataLoader
     # -----------------------------
     image_paths = sorted(
-        [os.path.join(args.train_raw_images, f) for f in os.listdir(args.train_raw_images)],
-        key=lambda p: os.path.basename(p).replace('.tiff', '')
+        [str(f) for f in Path(args.train_raw_images).iterdir() if f.is_file()],
+        key=lambda p: Path(p).stem
     )
     mask_paths = sorted(
-        [os.path.join(args.train_mask_images, f) for f in os.listdir(args.train_mask_images)],
-        key=lambda p: os.path.basename(p).replace('_seg.tiff', '')
+        [str(f) for f in Path(args.train_mask_images).iterdir() if f.is_file()],
+        key=lambda p: Path(p).stem.replace('_seg', '')
     )
 
     dataset = OrganoidPatchDatasetGPU(
@@ -184,18 +184,18 @@ def main():
         print(f"[Fine-tuning] Epoch {epoch+1} Loss: {running_loss/len(loader):.4f}, "
             f"Voxel Dice: {running_dice/len(loader):.4f}")
 
-    torch.save(model.state_dict(), os.path.join(args.output_path,"final_model.pt"))
+    torch.save(model.state_dict(), str(Path(args.output_path) / "final_model.pt"))
 
      # ---- Iterate over validation volumes ----
 
 
     val_image_paths = sorted(
-        [os.path.join(args.val_raw_images, f) for f in os.listdir(args.val_raw_images)],
-        key=lambda p: os.path.basename(p).replace('.tiff', '')
+        [str(f) for f in Path(args.val_raw_images).iterdir() if f.is_file()],
+        key=lambda p: Path(p).stem
     )
     mask_image_paths = sorted(
-        [os.path.join(args.val_mask_images, f) for f in os.listdir(args.val_mask_images)],
-        key=lambda p: os.path.basename(p).replace('_seg.tiff', '')
+        [str(f) for f in Path(args.val_mask_images).iterdir() if f.is_file()],
+        key=lambda p: Path(p).stem.replace('_seg', '')
     )
     
     total_dice = 0

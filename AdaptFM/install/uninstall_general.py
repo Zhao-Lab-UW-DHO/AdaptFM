@@ -90,13 +90,13 @@ def main() -> None:
 
     # 3. Clean up the .adaptfm prefix file
     if config_path.exists():
-        print(f"\n--- Removing tracking file ---")
+        print("\n--- Removing tracking file ---")
         config_path.unlink()
         print(f"  Removed {config_path}")
 
     # 4. Safely handle cloned repositories
     if cloned_repos:
-        print(f"\n--- Checking Cloned Repositories ---")
+        print("\n--- Checking Cloned Repositories ---")
         for repo in cloned_repos:
             # Quick safety guard: Don't accidentally delete the current working directory
             if repo == Path.cwd().resolve():

@@ -3,6 +3,7 @@ import argparse
 import datetime
 import logging
 import os
+from pathlib import Path
 import random
 from contextlib import nullcontext
 import json
@@ -27,9 +28,6 @@ from utils.click_method import get_next_click3D_torch_2
 from utils.data_loader import Dataset_Union_ALL, Union_Dataloader
 
 
-join = os.path.join
-
-
 def initialize_globals(args):
     global device, logger, LOG_OUT_DIR, click_methods, MODEL_SAVE_PATH
 
@@ -44,13 +42,13 @@ def initialize_globals(args):
     args.device = device
 
     logger = logging.getLogger(__name__)
-    LOG_OUT_DIR = join(args.work_dir, args.task_name)
-    os.makedirs(LOG_OUT_DIR, exist_ok=True)
+    LOG_OUT_DIR = str(Path(args.work_dir) / args.task_name)
+    Path(LOG_OUT_DIR).mkdir(exist_ok=True)
 
     click_methods = {"random": get_next_click3D_torch_2}
 
-    MODEL_SAVE_PATH = join(args.work_dir, args.task_name)
-    os.makedirs(MODEL_SAVE_PATH, exist_ok=True)
+    MODEL_SAVE_PATH = str(Path(args.work_dir) / args.task_name) # seems the same as LOG_OUT_DIR above
+    Path(MODEL_SAVE_PATH).mkdir(exist_ok=True)
 
     random.seed(2023)
     np.random.seed(2023)
@@ -139,7 +137,8 @@ class BaseTrainer:
         self.set_lr_scheduler()
         if (args.resume):
             self.init_checkpoint(
-                join(self.args.work_dir, self.args.task_name, 'sam_model_latest.pth'))
+                str(Path(self.args.work_dir) / self.args.task_name / 'sam_model_latest.pth')
+            )
         else:
             self.init_checkpoint(self.args.checkpoint)
 
@@ -196,7 +195,7 @@ class BaseTrainer:
 
     def init_checkpoint(self, ckp_path):
         last_ckpt = None
-        if os.path.exists(ckp_path):
+        if Path(ckp_path).exists():
             if self.args.multi_gpu:
                 dist.barrier()
                 last_ckpt = torch.load(ckp_path, map_location=self.args.device, weights_only=False)
@@ -242,7 +241,7 @@ class BaseTrainer:
                 "best_dice": self.best_dice,
                 "args": self.args,
                 "used_datas": img_datas,
-            }, join(MODEL_SAVE_PATH, f"sam_model_{describe}.pth"))
+            }, str(Path(MODEL_SAVE_PATH) / f"sam_model_{describe}.pth"))
 
     def batch_forward(self, sam_model, image_embedding, gt3D, low_res_masks, points=None):
 
@@ -431,7 +430,7 @@ class BaseTrainer:
         plt.title(description)
         plt.xlabel('Epoch')
         plt.ylabel(f'{save_name}')
-        plt.savefig(join(MODEL_SAVE_PATH, f'{save_name}.png'))
+        plt.savefig(Path(MODEL_SAVE_PATH) / f'{save_name}.png')
         plt.close()
 
     def train(self):
@@ -524,11 +523,13 @@ def main_worker(rank, args):
     init_seeds(2023 + rank)
 
     cur_time = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-    logging.basicConfig(format='[%(asctime)s] - %(message)s',
-                        datefmt='%Y/%m/%d %H:%M:%S',
-                        level=logging.INFO if rank in [-1, 0] else logging.WARN,
-                        filemode='w',
-                        filename=os.path.join(LOG_OUT_DIR, f'output_{cur_time}.log'))
+    logging.basicConfig(
+        format='[%(asctime)s] - %(message)s',
+        datefmt='%Y/%m/%d %H:%M:%S',
+        level=logging.INFO if rank in [-1, 0] else logging.WARN,
+        filemode='w',
+        filename= str(Path(LOG_OUT_DIR) / f'output_{cur_time}.log')
+    )
 
     dataloaders = get_dataloaders(args)
     model = build_model(args)
@@ -638,11 +639,12 @@ if __name__ == '__main__':
         os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(str(i) for i in args.gpu_ids)
 
 
-    original_images_path = os.path.join(args.dataset_dir,'imagesTr')
-    labels_path = os.path.join(args.dataset_dir,'labelsTr')
+    original_images_path = str(Path(args.dataset_dir) / 'imagesTr')
+    labels_path = str(Path(args.dataset_dir) / 'labelsTr')
 
-    original_images = [os.path.join(original_images_path,file) for file in os.listdir(original_images_path)]
-    labeled_images  =[os.path.join(labels_path,file) for file in os.listdir(labels_path)]
+    original_images = [str(file) for file in Path(original_images_path).iterdir() if file.is_file()]
+    labeled_images  = [str(file) for file in Path(labels_path).iterdir() if file.is_file()]
+    
     img_datas = original_images + labeled_images
     img_datas = [args.dataset_dir]
     

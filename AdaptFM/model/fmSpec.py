@@ -32,7 +32,7 @@ class FoundationModelSpec(ModelSpec):
 
         if not raw_env: # if none,
             raise RuntimeError(
-            f"This model is not installed. "
+            "This model is not installed. "
             "You must first install the environment with the environment manager before using."
             )
 
@@ -111,8 +111,8 @@ class MicroSAMSpec(FoundationModelSpec):
         training_dir = output_dir / "training"
         seg_dir = output_dir / "segmentations"
 
-        training_dir.mkdir(exist_ok=True)
-        seg_dir.mkdir(exist_ok=True)
+        training_dir.mkdir(parents=True, exist_ok=True)
+        seg_dir.mkdir(parents=True, exist_ok=True)
 
         for s in dataset_manager.samples:
             img = tiff.imread(s["image"])
@@ -123,14 +123,14 @@ class MicroSAMSpec(FoundationModelSpec):
             shutil.copy(s["mask"], seg_dir / mask_name)
 
 
-        raw_paths = [os.path.join(training_dir, f) for f in os.listdir(training_dir)]
-        label_paths = [os.path.join(seg_dir, f) for f in os.listdir(seg_dir)]
+        raw_paths = [str(f) for f in Path(training_dir).iterdir() if f.is_file()]
+        label_paths = [str(f) for f in Path(seg_dir).iterdir() if f.is_file()]
 
-        raw_dict = {os.path.basename(p): p for p in raw_paths}
+        raw_dict = {Path(p).name: p for p in raw_paths}
 
         label_dict = {}
         for p in label_paths:
-            fname = os.path.basename(p)
+            fname = Path(p).name
             if fname.endswith("_seg.tiff"):
                 base = fname.replace("_seg.tiff", ".tiff")
                 label_dict[base] = p
@@ -170,7 +170,7 @@ class MicroSAMSpec(FoundationModelSpec):
     def run_training(self, dataset_info, params, run_dir):
         run_dir.mkdir(parents=True, exist_ok=True)
 
-        with open(run_dir / "params.json", "w") as f:
+        with (Path(run_dir) / 'params.json').open('w') as f:
             json.dump(params, f, indent=4)
 
         gpu = params.pop("gpu", None)
@@ -184,8 +184,8 @@ class MicroSAMSpec(FoundationModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(run_dir / "stdout.log", "w"),
-            stderr=open(run_dir / "stderr.log", "w"),
+            stdout=(run_dir / "stdout.log").open(mode='w'),
+            stderr=(run_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )
@@ -221,8 +221,8 @@ class MicroSAMSpec(FoundationModelSpec):
         cmd = self._wrap_with_conda(inference_cmd)
         subprocess.Popen(
             cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(output_dir / "stdout.log").open(mode='w'),
+            stderr=(output_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )
@@ -300,7 +300,7 @@ class CellposeSAMSpec(FoundationModelSpec):
     def run_training(self, dataset_info, params, run_dir):
         run_dir.mkdir(parents=True, exist_ok=True)
 
-        with open(run_dir / "params.json", "w") as f:
+        with (Path(run_dir) / 'params.json').open('w') as f:
             json.dump(params, f, indent=4)
 
         gpu = params['gpu']
@@ -314,8 +314,8 @@ class CellposeSAMSpec(FoundationModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(run_dir / "stdout.log", "w"),
-            stderr=open(run_dir / "stderr.log", "w"),
+            stdout=(run_dir / "stdout.log").open(mode='w'),
+            stderr=(run_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )
@@ -352,8 +352,8 @@ class CellposeSAMSpec(FoundationModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(output_dir / "stdout.log").open(mode='w'),
+            stderr=(output_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )
@@ -434,7 +434,7 @@ class SSVTSpec(FoundationModelSpec):
     def run_training(self, dataset_info, params, run_dir):
         run_dir.mkdir(parents=True, exist_ok=True)
 
-        with open(run_dir / "params.json", "w") as f:
+        with (Path(run_dir) / 'params.json').open('w') as f:
             json.dump(params, f, indent=4)
 
         gpu = params.pop("gpu", None)
@@ -448,8 +448,8 @@ class SSVTSpec(FoundationModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(run_dir / "stdout.log", "w"),
-            stderr=open(run_dir / "stderr.log", "w"),
+            stdout=(run_dir / "stdout.log").open(mode='w'),
+            stderr=(run_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )
@@ -486,8 +486,8 @@ class SSVTSpec(FoundationModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(output_dir / "stdout.log").open(mode='w'),
+            stderr=(output_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )
@@ -502,28 +502,29 @@ class Sammed3DSpec(FoundationModelSpec):
 
     def prepare_dataset(self, dataset_manager, output_dir,params):
 
-        imagesTrFolder = os.path.join(dataset_manager.folder,'imagesTr')
-        labelsTrFolder = os.path.join(dataset_manager.folder,'labelsTr')
-        os.makedirs(imagesTrFolder,exist_ok=True)
-        os.makedirs(labelsTrFolder,exist_ok=True)
+        imagesTrFolder = Path(dataset_manager.folder) / 'imagesTr'
+        labelsTrFolder = Path(dataset_manager.folder) / 'labelsTr'
 
-        tiff_images = [file for file in os.listdir(dataset_manager.folder) if file.endswith(('.tif','.tiff'))]
+        imagesTrFolder.mkdir(parents=True, exist_ok=True)
+        labelsTrFolder.mkdir(parents=True, exist_ok=True)
+
+        tiff_images = [file.name for file in Path(dataset_manager.folder).iterdir() if file.is_file() and file.suffix.lower() in ('.tif', '.tiff')]
 
         for tiff_file in tiff_images:
-            tiff_image_path = os.path.join(dataset_manager.folder,tiff_file)
+            tiff_image_path = Path(dataset_manager.folder) / tiff_file
             tiff_image = tiff.imread(tiff_image_path)
             tiff_image = sitk.GetImageFromArray(tiff_image)
 
-            nii_name = tiff_file.replace('_seg', '').replace('.tiff', '.nii.gz')
+            nii_name = Path(tiff_file).stem.replace('_seg', '') + '.nii.gz'
 
             if '_seg.tiff' in tiff_file:
-                nii_path = os.path.join(labelsTrFolder,nii_name)
+                nii_path = Path(labelsTrFolder) / nii_name
 
-            if '_seg.tiff' not in tiff_file:
-                nii_path = os.path.join(imagesTrFolder,nii_name)
+            else:
+                nii_path = Path(imagesTrFolder) / nii_name
 
-            sitk.WriteImage(tiff_image,nii_path)
-            os.remove(tiff_image_path)        
+            sitk.WriteImage(tiff_image, str(nii_path))
+            Path(tiff_image_path).unlink()
 
         return {"dataset_dir": dataset_manager.folder}
     
@@ -546,7 +547,7 @@ class Sammed3DSpec(FoundationModelSpec):
     def run_training(self, dataset_info, params, run_dir):
         run_dir.mkdir(parents=True, exist_ok=True)
 
-        with open(run_dir / "params.json", "w") as f:
+        with (Path(run_dir) / 'params.json').open('w') as f:
             json.dump(params, f, indent=4)
 
         gpu = params.pop("gpu", None)
@@ -560,8 +561,8 @@ class Sammed3DSpec(FoundationModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(run_dir / "stdout.log", "w"),
-            stderr=open(run_dir / "stderr.log", "w"),
+            stdout=(run_dir / "stdout.log").open(mode='w'),
+            stderr=(run_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )
@@ -598,8 +599,8 @@ class Sammed3DSpec(FoundationModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(output_dir / "stdout.log").open(mode='w'),
+            stderr=(output_dir / "stderr.log").open(mode='w'),
             start_new_session=True,
             env=env
         )
@@ -637,8 +638,8 @@ class CellSAMSpec(FoundationModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(Path(output_dir) / "stdout.log").open("w", encoding="utf-8"),
+            stderr=(Path(output_dir) / "stderr.log").open("w", encoding="utf-8"),
             start_new_session=True,
             env=env
         )
@@ -651,22 +652,24 @@ class BMEXSpec(FoundationModelSpec):
 
 
     def prepare_dataset(self, dataset_manager, output_dir, params):
+        out_path = Path(output_dir)
+        images_tr_dir = out_path / "imagesTr"
+        labels_tr_dir = out_path / "labelsTr"
 
-        imagesTrFolder = os.path.join(output_dir, 'imagesTr')
-        labelsTrFolder = os.path.join(output_dir, 'labelsTr')
-        os.makedirs(imagesTrFolder, exist_ok=True)
-        os.makedirs(labelsTrFolder, exist_ok=True)
-        os.makedirs(output_dir, exist_ok=True)
+        images_tr_dir.mkdir(parents=True, exist_ok=True)
+        labels_tr_dir.mkdir(parents=True, exist_ok=True)
 
+        source_dir = Path(dataset_manager.folder)
         image_files = [
-            f for f in os.listdir(dataset_manager.folder)
-            if f.endswith((".tif", ".tiff", ".nii.gz"))
+            p.name for p in source_dir.iterdir()
+            if p.is_file() and p.name.endswith((".tif", ".tiff", ".nii.gz"))
         ]
+
         # base_name -> {"image": ..., "label": ...}
         pairs = {}
 
         for image_file in image_files:
-            input_path = os.path.join(dataset_manager.folder, image_file)
+            input_path = str(source_dir / image_file)
 
             if image_file.endswith(".nii.gz"):
                 nii_name = image_file.replace("_seg.nii.gz", ".nii.gz")
@@ -682,13 +685,13 @@ class BMEXSpec(FoundationModelSpec):
             base_name = nii_name  # same root for image/label since '_seg' was stripped
 
             if is_label:
-                nii_path = os.path.join(labelsTrFolder, nii_name)
-                rel_path = os.path.join('labelsTr', nii_name)
-                pairs.setdefault(base_name, {})['label'] = rel_path
+                nii_path = str(labels_tr_dir / nii_name)
+                rel_path = str(Path("labelsTr") / nii_name)
+                pairs.setdefault(base_name, {})["label"] = rel_path
             else:
-                nii_path = os.path.join(imagesTrFolder, nii_name)
-                rel_path = os.path.join('imagesTr', nii_name)
-                pairs.setdefault(base_name, {})['image'] = rel_path
+                nii_path = str(images_tr_dir / nii_name)
+                rel_path = str(Path("imagesTr") / nii_name)
+                pairs.setdefault(base_name, {})["image"] = rel_path
 
             if image_file.endswith(".nii.gz"):
                 shutil.copy2(input_path, nii_path)
@@ -696,7 +699,7 @@ class BMEXSpec(FoundationModelSpec):
                 img = tiff.imread(input_path)
                 img = sitk.GetImageFromArray(img)
                 sitk.WriteImage(img, nii_path)
-                
+
         # only keep complete image/label pairs
         complete_pairs = [
             {"image": entry["image"], "label": entry["label"]}
@@ -716,12 +719,12 @@ class BMEXSpec(FoundationModelSpec):
 
         dataset_dict = {
             "training": training_pairs,
-            "validation": validation_pairs
+            "validation": validation_pairs,
         }
 
-        dataset_dict_path = os.path.join(output_dir, "json_list.json")
+        dataset_dict_path = str(out_path / "json_list.json")
 
-        with open(dataset_dict_path, "w") as file:
+        with Path(dataset_dict_path).open("w", encoding="utf-8") as file:
             json.dump(dataset_dict, file, indent=4)
 
         dataset_dir = Path(dataset_manager.folder).parent
@@ -746,7 +749,7 @@ class BMEXSpec(FoundationModelSpec):
     def run_training(self, dataset_info, params, run_dir):
         run_dir.mkdir(parents=True, exist_ok=True)
 
-        with open(run_dir / "params.json", "w") as f:
+        with (run_dir / "params.json").open("w", encoding="utf-8") as f:
             json.dump(params, f, indent=4)
 
         gpu = params.pop("gpu", None)
@@ -760,8 +763,8 @@ class BMEXSpec(FoundationModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(run_dir / "stdout.log", "w"),
-            stderr=open(run_dir / "stderr.log", "w"),
+            stdout=(Path(run_dir) / "stdout.log").open("w", encoding="utf-8"),
+            stderr=(Path(run_dir) / "stderr.log").open("w", encoding="utf-8"),
             start_new_session=True,
             env=env
         )
@@ -794,8 +797,8 @@ class BMEXSpec(FoundationModelSpec):
 
         subprocess.Popen(
             cmd,
-            stdout=open(output_dir / "stdout.log", "w"),
-            stderr=open(output_dir / "stderr.log", "w"),
+            stdout=(Path(output_dir) / "stdout.log").open("w", encoding="utf-8"),
+            stderr=(Path(output_dir) / "stderr.log").open("w", encoding="utf-8"),
             start_new_session=True,
             env=env
         )

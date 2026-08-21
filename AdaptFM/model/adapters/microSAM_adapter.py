@@ -9,8 +9,8 @@ class MicroSAMDatasetAdapter:
         training_dir = output_dir / "training"
         seg_dir = output_dir / "segmentations"
 
-        training_dir.mkdir(exist_ok=True)
-        seg_dir.mkdir(exist_ok=True)
+        training_dir.mkdir(parents=True, exist_ok=True)
+        seg_dir.mkdir(parents=True, exist_ok=True)
 
         for s in dataset_manager.samples:
             # --- image destination ---
@@ -23,21 +23,22 @@ class MicroSAMDatasetAdapter:
 
         # IMPORTANT: MICROSAM NEEDS TRAINING AND SEGMENTATIONS IN THE SAME ORDER
 
-        raw_paths = [os.path.join(training_dir, f) for f in os.listdir(training_dir)]
-        label_paths = [os.path.join(seg_dir, f) for f in os.listdir(seg_dir)]
+        raw_paths = [str(f) for f in training_dir.iterdir() if f.is_file()]
+        label_paths = [str(f) for f in seg_dir.iterdir() if f.is_file()]
 
         # Map raw filename → full path
         raw_dict = {
-            os.path.basename(p): p
+            Path(p).name: p
             for p in raw_paths
         }
 
         # Map *base name* (without _seg) → label path
         label_dict = {}
         for p in label_paths:
-            fname = os.path.basename(p)
-            if fname.endswith("_seg.tiff"):
-                base_name = fname.replace("_seg.tiff", ".tiff")
+            path_obj = Path(p)
+            fname = path_obj.name
+            if path_obj.stem.endswith("_seg") and path_obj.suffix.lower() in (".tif", ".tiff"):
+                base_name = path_obj.stem.replace("_seg", "") + ".tiff"
                 label_dict[base_name] = p
 
         # Intersection = valid paired samples
