@@ -19,7 +19,7 @@ from typing import Optional
 
 from qtpy.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
-    QPushButton, QLabel, QFileDialog,
+    QPushButton, QLabel, QFileDialog,QSizePolicy
 )
 
 from AdaptFM.gui.widgets.model_widget import (
@@ -60,7 +60,7 @@ class InferenceWidget(ModelWorkflowWidget):
         row.addWidget(self._checkpoint_lbl, stretch=1)
 
         btn = QPushButton("Browse…")
-        btn.setFixedWidth(80)
+        btn.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         btn.setStyleSheet(_secondary_btn_style())
         btn.clicked.connect(self._select_checkpoint)
         row.addWidget(btn)
