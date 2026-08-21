@@ -192,7 +192,8 @@ class SegmentationWidget:
                     f"and saved to:\n"
                     f"{out_dir}\n\n"
                     f"{save_msg}\n\n"
-                    f"Would you like to proceed?"
+                    f"Would you like to proceed?\n"
+                    "Select No and modify the AdaptFM Save Widget to change \nsave settings."
                 )
 
                 reply = QMessageBox.question(
