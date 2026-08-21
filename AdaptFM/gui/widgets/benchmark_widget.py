@@ -684,7 +684,7 @@ class BenchmarkWidget:
         self._set_busy(False)
         if exit_code == 0:
             self._log_line(
-                f"\n✓  Benchmarking complete",
+                "\n✓  Benchmarking complete",
                 color=_GREEN, bold=True,
             )
         else:
@@ -755,11 +755,11 @@ def _hline() -> QFrame:
 
 def _combo_style() -> str:
     return (
-        f"QComboBox {{ background: #1e1e1e; color: #d4d4d4;"
-        f" border: 1px solid #555; border-radius: 4px; padding: 4px 8px; }}"
-        f"QComboBox::drop-down {{ border: none; }}"
-        f"QComboBox QAbstractItemView {{ background: #2b2b2b; color: #d4d4d4;"
-        f" selection-background-color: #3c3c3c; }}"
+        "QComboBox { background: #1e1e1e; color: #d4d4d4;"
+        " border: 1px solid #555; border-radius: 4px; padding: 4px 8px; }"
+        "QComboBox::drop-down { border: none; }"
+        "QComboBox QAbstractItemView { background: #2b2b2b; color: #d4d4d4;"
+        " selection-background-color: #3c3c3c; }"
     )
 
 

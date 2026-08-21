@@ -218,7 +218,7 @@ def main():
 
 
             # Load and histogram-match the template
-            print(f"Histogram matching")
+            print("Histogram matching")
             cwd = Path.cwd()
             bmex_root = (cwd.parent / "Brain_MRI_Enhancement")
 
@@ -232,7 +232,7 @@ def main():
             T1w_img_reorient_downsample_hm = matcher.Execute(T1w_img_reorient_downsample, template)
 
 
-            print(f"Skull stripping")
+            print("Skull stripping")
             T1w_img_reorient_downsample_hm = sitk.GetArrayFromImage(T1w_img_reorient_downsample_hm)
             T1w_img_reorient_downsample_hm = torch.tensor(T1w_img_reorient_downsample_hm).float()
             T1w_img_reorient_downsample_hm = T1w_img_reorient_downsample_hm.unsqueeze(dim=0)
@@ -251,7 +251,7 @@ def main():
             promap[:, 1, :, :, :] = logits[:, 2, :, :, :] + logits[:, 3, :, :, :]
             promap[:, 0, :, :, :] = 1 - promap[:, 1, :, :, :]
 
-            print(f"Upsample to original space")
+            print("Upsample to original space")
             promap_upsampled = F.interpolate(promap, size=[size[2], size[1], size[0]], mode='trilinear', align_corners=True)
             promap_upsampled = promap_upsampled.cpu().numpy()
             pre = np.argmax(promap_upsampled, axis=1).astype(np.uint8)
@@ -274,7 +274,7 @@ def main():
             #mask = sitk.GetArrayFromImage(labeled_array)
             labeled_array_mask = fill_holes(labeled_array, area_threshold=1)
 
-            print(f"Save brainmask")
+            print("Save brainmask")
             s_path = os.path.join(out_dir, f"{stem}-reorient-brainmask.nii.gz")
             out = sitk.GetImageFromArray(labeled_array_mask)
             out.SetOrigin(origin)

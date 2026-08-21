@@ -32,7 +32,7 @@ class FoundationModelSpec(ModelSpec):
 
         if not raw_env: # if none,
             raise RuntimeError(
-            f"This model is not installed. "
+            "This model is not installed. "
             "You must first install the environment with the environment manager before using."
             )
 
