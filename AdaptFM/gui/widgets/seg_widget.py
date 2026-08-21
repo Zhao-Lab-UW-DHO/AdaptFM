@@ -2,12 +2,17 @@ from magicgui import magicgui
 from magicgui.widgets import Container, Label
 from napari import Viewer
 from AdaptFM.segmentation.registry import SEGMENTATION_REGISTRY
+from AdaptFM.volume.volume_manager import VolumeManager 
 from AdaptFM.gui.napari_utils import qt_widget_obj_exists
 from magicgui import widgets, magicgui
 import dask.array as da
 import numpy as np
 from napari.qt.threading import thread_worker
-from qtpy.QtWidgets import QSizePolicy
+from qtpy.QtWidgets import QSizePolicy,QFileDialog,QMessageBox
+from glob import glob
+import os
+import tifffile as tiff
+from napari.utils.notifications import show_info
 
 
 class SegmentationWidget:
@@ -15,7 +20,10 @@ class SegmentationWidget:
         self.viewer = viewer
         self.current_algo = None
         self.run_button = None
+        self.run_folder_button = None
+        self.volume_manager = None
         self.param_widgets = {}
+        self.sm = segmentation_manager
         # SAM2 interactive state
         self._sam2_obj_id = 1
         self._sam2_labels_layer = None
@@ -54,10 +62,12 @@ class SegmentationWidget:
 
             if self.run_button is not None:
                 self.run_button.visible = False
+                self.run_folder_button.visible = False
             self._load_tunable_params()
         else:
             if self.run_button is not None:
-                    self.run_button.visible = True # sadly, unhiding this puts it at the top of the parameter options. not sure how to fix
+                self.run_button.visible = True
+                self.run_folder_button.visible=True # sadly, unhiding this puts it at the top of the parameter options. not sure how to fix
             self._load_tunable_params() 
 
     def _load_tunable_params(self):
@@ -136,7 +146,144 @@ class SegmentationWidget:
             self.param_container.native.layout().removeWidget(self.run_button.native)
             self.param_container.native.layout().addWidget(self.run_button.native)
 
-        self.param_container.native.show()
+        if self.run_folder_button is None:
+            @magicgui(call_button="Run auto-segmentation on folder")
+            def run_folder_button():
+                folder = QFileDialog.getExistingDirectory(
+                    self.widget,
+                    "Select folder containing images",
+                    ""
+                )
+                if not folder:
+                    show_info("No folder selected.")
+                    return
+                # Collect image files
+                image_paths = sorted([
+                    p for p in glob(os.path.join(folder, "*"))
+                    if p.lower().endswith((".tif", ".tiff", ".nii.gz"))
+                ])
+                if not image_paths:
+                    show_info("No images found in folder.")
+                    return
+                algo = self.current_algo
+                params = {k: w.control.value for k, w in self.param_widgets.items()}
+
+                # Use the save widget's chosen output location if one has been set;
+                # otherwise fall back to the old behavior (subfolder inside input folder)
+                out_dir = getattr(self.sm, "selected_output_folder", None)
+
+                if out_dir:
+                    out_dir = os.path.abspath(out_dir)
+
+                if not out_dir or not os.path.isdir(out_dir):
+                    show_info("You must select an output folder")
+                    return
+                save_images = getattr(self.sm, "selected_save_image", True)
+
+                # Build the save-images message
+                if save_images:
+                    save_msg = "Original images will be saved with segmentations."
+                else:
+                    save_msg = "Original images will NOT be saved with segmentations."
+
+                msg = (
+                    f"Images will be processed from:\n"
+                    f"{folder}\n\n"
+                    f"and saved to:\n"
+                    f"{out_dir}\n\n"
+                    f"{save_msg}\n\n"
+                    f"Would you like to proceed?\n"
+                    "Select No and modify the AdaptFM Save Widget to change save settings."
+                )
+
+                reply = QMessageBox.question(
+                    self.widget,
+                    "Confirm Batch Processing",
+                    msg,
+                    QMessageBox.Yes | QMessageBox.No
+                )
+
+                if reply != QMessageBox.Yes:
+                    show_info("Batch processing cancelled.")
+                    return
+
+
+                self._set_ui_enabled(False)
+                self.volume_manager = VolumeManager()
+
+                @thread_worker
+                def _run_batch(paths, algo, params, out_dir):
+                    results = []
+                    os.makedirs(out_dir, exist_ok=True)
+
+                    # Pull "save image alongside segmentation" from the save widget's
+                    # last-synced value; default True to match the save widget's own default
+                    # before the user has touched the checkbox.
+                    save_image = getattr(self.sm, "selected_save_image", True)
+
+                    def _strip_known_ext(filename):
+                        for ext in (".nii.gz", ".tif", ".tiff"):
+                            if filename.lower().endswith(ext):
+                                return filename[: -len(ext)]
+                        return os.path.splitext(filename)[0]
+
+                    for path in paths:
+                        try:
+                            img, _ = self.volume_manager.load_image(path)
+                            if isinstance(img, da.Array):
+                                img = img.compute()
+                            seg = algo.run(img, params)
+
+                            orig_name = os.path.basename(path)
+                            base = _strip_known_ext(orig_name)
+                            seg_name = f"{base}_seg.tiff"
+                            seg_path = os.path.join(out_dir, seg_name)
+
+                            try:
+                                tiff.imwrite(seg_path, seg.astype(seg.dtype))
+                                
+                            except Exception as e:
+                                print(f"Failed to save {seg_path}: {e}")
+
+                            if save_image:
+                                img_name = f"{base}.tiff"
+                                img_path = os.path.join(out_dir, img_name)
+                                try:
+                                    tiff.imwrite(img_path, img)
+                                    
+                                except Exception as e:
+                                    print(f"Failed to save {img_path}: {e}")
+
+                            results.append((path, seg))
+                        except Exception as e:
+                            results.append((path, None))
+                            print(f"Error processing {path}: {e}")
+                    return results
+
+                def _on_success(results):
+                    self._set_ui_enabled(True)
+                    show_info("Batch segmentation complete!")
+                    for path, seg in results:
+                        if seg is None:
+                            print(f"Failed: {path}")
+                        else:
+                            print(f"Success: {path}")
+                    print("Done.")
+
+                def _on_error(e):
+                    self._set_ui_enabled(True)
+                    print(f"Batch error: {e}")
+
+                worker = _run_batch(image_paths, algo, params, out_dir)
+                worker.returned.connect(_on_success)
+                worker.errored.connect(_on_error)
+                worker.start()
+            self.run_folder_button = run_folder_button
+            self.param_container.native.layout().addWidget(run_folder_button.native)
+        else:
+            self.param_container.native.layout().removeWidget(self.run_folder_button.native)
+            self.param_container.native.layout().addWidget(self.run_folder_button.native)
+            self.param_container.native.show()
 
 
     def _make_param_widget(self, name: str, spec: dict):
@@ -312,6 +459,7 @@ class SegmentationWidget:
 
         if self.run_button is not None:
             self.run_button.enabled = enabled
+            self.run_folder_button.enabled=enabled
 
         sam_buttons = [
             "_sam2_init_btn",
