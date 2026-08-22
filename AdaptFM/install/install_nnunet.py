@@ -12,7 +12,7 @@ import shlex
 import subprocess
 import sys
 from pathlib import Path
-
+import json
 from AdaptFM.model.registry import _conda_prefix
 
 ENV_NAME = "nnUNet_adapt"
@@ -60,16 +60,18 @@ def main() -> None:
 
     # Check whether the environment already exists
     env_check = subprocess.run(
-        ["conda", "env", "list"],
+        ["conda", "env", "list", "--json"],
         capture_output=True,
         text=True,
         check=True,
     )
-    if ENV_NAME in env_check.stdout:
-        print(f"Environment '{ENV_NAME}' already exists — skipping creation.")
-        print("To reinstall from scratch, run:  conda env remove -n nnUNet_adapt")
-        sys.exit(0)
 
+    envs = json.loads(env_check.stdout)["envs"]
+
+    if any(Path(env).name == ENV_NAME for env in envs):
+        print(f"Environment '{ENV_NAME}' already exists — skipping creation.")
+        print("To reinstall from scratch, run: conda env remove -n nnUNet_adapt")
+        sys.exit(0)
     # Read user's custom PyTorch command
     pytorch_cmd = _read_pytorch_cmd()
     print(f"PyTorch command: {' '.join(pytorch_cmd)}\n")

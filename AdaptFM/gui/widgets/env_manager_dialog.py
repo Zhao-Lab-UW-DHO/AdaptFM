@@ -326,7 +326,7 @@ class EnvironmentManagerDialog(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("AdaptFM — Environment Manager")
+        self.setWindowTitle("AdaptFM — Model Installer")
         self.resize(740, 640)
         self.setMinimumWidth(560)
 
@@ -349,7 +349,7 @@ class EnvironmentManagerDialog(QDialog):
 
         # Top bar
         top = QHBoxLayout()
-        title = QLabel("Manage Environments")
+        title = QLabel("Install Models")
         title.setStyleSheet("font-size: 16px; font-weight: 700;")
         top.addWidget(title)
         top.addStretch()

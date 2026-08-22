@@ -36,6 +36,7 @@ from AdaptFM.gui.widgets.model_widget import (
     _secondary_btn_style,
     _section_label,
 )
+from AdaptFM.model.nnUNetV2Spec import NNUNetV2ModelSpec
 
 
 class InferenceWidget(ModelWorkflowWidget):
@@ -113,26 +114,54 @@ class InferenceWidget(ModelWorkflowWidget):
                 f"{self.model.conda_env} not installed. "
                 "You must first install the environment with the environment manager before using."
             )
-
+        
         params = self.collect_params()
         gpu = self._gpu_spin.value()
         params["gpu"] = gpu
 
         env_extra = {"CUDA_VISIBLE_DEVICES": str(gpu)}
 
-        inference_cmd = self.model.inference_command(
+        if isinstance(self.model, NNUNetV2ModelSpec):
+            #use parameters for inference
+
+            params, pre_steps, model_env_extra, inference_dataset_dir = self.model.run_inference(
             dataset_dir=self.dataset_dir,
             checkpoint=self.checkpoint_path,
             output_dir=self.output_dir,
-        )
-        full_cmd = self.model._wrap_with_conda(inference_cmd)
+            params=params,
+                )
+            
+            env_extra.update(model_env_extra)
 
-        self._start_process(
-            full_cmd[0],
-            full_cmd[1:],
-            label=f"Inference  [{self.model.name}]",
-            env_extra=env_extra,
-            on_done=self._on_inference_done,
+            inference_cmd = self.model.inference_command(
+                params=params,
+                dataset_dir=inference_dataset_dir,
+                output_dir=self.output_dir,
+                checkpoint=self.checkpoint_path,
+            )
+
+            full_cmd = self.model._wrap_with_conda(inference_cmd)
+            steps = pre_steps + [(full_cmd[0], full_cmd[1:], f"Inference  [{self.model.name}]")]
+
+            self._run_chain(
+                steps,
+                env_extra=env_extra,
+                on_all_done=self._on_inference_done,)
+
+        else:
+            inference_cmd = self.model.inference_command(
+                dataset_dir=self.dataset_dir,
+                checkpoint=self.checkpoint_path,
+                output_dir=self.output_dir,
+            )
+            full_cmd = self.model._wrap_with_conda(inference_cmd)
+
+            self._start_process(
+                full_cmd[0],
+                full_cmd[1:],
+                label=f"Inference  [{self.model.name}]",
+                env_extra=env_extra,
+                on_done=self._on_inference_done,
         )
 
     def _on_inference_done(self, exit_code: int):

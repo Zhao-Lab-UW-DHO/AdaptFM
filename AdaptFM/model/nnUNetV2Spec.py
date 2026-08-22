@@ -154,18 +154,11 @@ class NNUNetV2ModelSpec(ModelSpec):
         return dataset_path.is_relative_to(raw_dir)
 
     def run_inference(self, dataset_dir, checkpoint, output_dir, params):
-
-        gpu = params["gpu"]
-        env = os.environ.copy()
-
-        # 1. Find nearest nnUNet base directory
         nnunet_base = self.find_nnUNet_base(dataset_dir)
         if nnunet_base is None:
             raise RuntimeError(
                 f"No nnUNet directory structure found in parent folders of {dataset_dir}"
             )
-
-        # 2. Verify dataset_dir is inside nnUNet_raw
         if not self.dataset_is_inside_raw(dataset_dir, nnunet_base):
             raise RuntimeError(
                 f"dataset_dir={dataset_dir} is not inside nnUNet_raw under {nnunet_base}"
@@ -173,34 +166,23 @@ class NNUNetV2ModelSpec(ModelSpec):
 
         params["Set ID"], params["Set Name"] = self.parse_dataset_name(dataset_dir)
 
-        # 3. Set environment variables
-        env["nnUNet_raw"] = str(Path(nnunet_base) / "nnUNet_raw")
-        env["nnUNet_preprocessed"] = str(Path(nnunet_base) / "nnUNet_preprocessed")
-        env["nnUNet_results"] = str(Path(nnunet_base) / "nnUNet_results")
+        env_extra = {
+            "nnUNet_raw": str(Path(nnunet_base) / "nnUNet_raw"),
+            "nnUNet_preprocessed": str(Path(nnunet_base) / "nnUNet_preprocessed"),
+            "nnUNet_results": str(Path(nnunet_base) / "nnUNet_results"),
+        }
 
-        if gpu is not None:
-            env["CUDA_VISIBLE_DEVICES"] = str(gpu)
-
-        inference_cmd = self.inference_command(
-            params=params,
-            dataset_dir=dataset_dir,
-            output_dir=output_dir,
-            checkpoint=checkpoint,
-        )
-
-        cmd = self._wrap_with_conda(inference_cmd)
-
-        subprocess.Popen(
-            cmd,
-            stdout=(output_dir / "stdout.log").open(mode="w"),
-            stderr=(output_dir / "stderr.log").open(mode="w"),
-            start_new_session=True,
-            env=env,
-        )
+        pre_steps = []  # no extra step needed — plain nnUNet inference only
+        return params, pre_steps, env_extra, dataset_dir
 
     def inference_command(self, params, dataset_dir, output_dir, checkpoint):
 
         ckpt_name = Path(checkpoint).name
+
+        nnunet_run = Path(checkpoint).parent.parent.name
+        config = nnunet_run.split("__")[-1]
+        fold_folder = Path(checkpoint).parent.name
+        fold = fold_folder.split("_")[-1]
 
         return [
             "nnUNetv2_predict",
@@ -211,9 +193,9 @@ class NNUNetV2ModelSpec(ModelSpec):
             "-d",
             params["Set ID"],
             "-c",
-            params["config"],
+            config,
             "-f",
-            params["fold"],
+            fold,
             "-p",
             "nnUNetPlans",  # use as default plans
             "-tr",
@@ -228,13 +210,16 @@ class MerlinNNUNetV2ModelSpec(NNUNetV2ModelSpec):
         super().__init__(conda_env, supports_training)
         self.name = "Merlin nnUNet"
         self.transform_path = transform_path
+        self.conda_env = conda_env
 
     def ensure_checkpoint_matches_dataset(
         self, checkpoint: str, output_dir: Path, params: dict
     ):
+        
+
         setID = params["Set ID"]
         setName = params["Set Name"]
-
+        
         formatted_set_id = f"{int(setID):03d}"
         setName_and_ID = f"Dataset{formatted_set_id}_{setName}"
 
@@ -348,22 +333,22 @@ class MerlinNNUNetV2ModelSpec(NNUNetV2ModelSpec):
             str(folder2transform),
         ]
 
-    def inference_command(self, params, imagesTs, output_dir, checkpoint):
+    def inference_command(self, params, dataset_dir, output_dir, checkpoint):
 
         ckpt_name = Path(checkpoint).name
 
         return [
             "nnUNetv2_predict",
             "-i",
-            imagesTs,
+            dataset_dir,
             "-o",
             output_dir,
             "-d",
             params["Set ID"],
             "-c",
-            params["config"],
+            "3d_fullres",
             "-f",
-            params["fold"],
+            "0",
             "-p",
             "nnUNetPlans",  # use as default plans
             "-tr",
@@ -372,59 +357,34 @@ class MerlinNNUNetV2ModelSpec(NNUNetV2ModelSpec):
             ckpt_name,  # use the best checkpoint by default
         ]
 
+
     def run_inference(self, dataset_dir, checkpoint, output_dir, params):
+        nnunet_base = self.find_nnUNet_base(dataset_dir)
+        if nnunet_base is None:
+            raise RuntimeError(
+                f"No nnUNet directory structure found in parent folders of {dataset_dir}"
+            )
+        if not self.dataset_is_inside_raw(dataset_dir, nnunet_base):
+            raise RuntimeError(
+                f"dataset_dir={dataset_dir} is not inside nnUNet_raw under {nnunet_base}"
+            )
 
-        gpu = params["gpu"]
-        env = os.environ.copy()
+        # filesystem-only prep, safe to run synchronously
+        params["Set ID"], params["Set Name"] = self.parse_dataset_name(dataset_dir)
 
-        env["nnUNet_raw"] = str(Path(output_dir) / "nnUNet_raw")
-        env["nnUNet_preprocessed"] = str(Path(output_dir) / "nnUNet_preprocessed")
-        env["nnUNet_results"] = str(Path(output_dir) / "nnUNet_results")
-
-        if gpu is not None:
-            env["CUDA_VISIBLE_DEVICES"] = str(gpu)
-
-        # ensure that checkpoint is in the set ID,setName results folder. if not, copy it there
         self.ensure_checkpoint_matches_dataset(checkpoint, output_dir, params)
 
-        folder2transform = dataset_dir
-
         transform_cmd = self._wrap_with_conda(
-            self.transform_command(folder2transform, params)
+            self.transform_command(dataset_dir, params)
         )
+        pre_steps = [(transform_cmd[0], transform_cmd[1:], "Running transforms")]
 
-        transform_proc = subprocess.Popen(
-            transform_cmd,
-            stdout=(Path(output_dir) / "stdout.log").open("w", encoding="utf-8"),
-            stderr=(Path(output_dir) / "stderr.log").open("w", encoding="utf-8"),
-            start_new_session=True,
-            env=env,
-        )
+        original_name = Path(dataset_dir).name
+        transformed_folder = Path(dataset_dir).parent / f"{original_name}_transformed"
+        env_extra = {
+            "nnUNet_raw": str(Path(nnunet_base) / "nnUNet_raw"),
+            "nnUNet_preprocessed": str(Path(nnunet_base) / "nnUNet_preprocessed"),
+            "nnUNet_results": str(Path(nnunet_base) / "nnUNet_results"),
+        }
 
-        # Block until transforms are done
-        return_code = transform_proc.wait()
-
-        if return_code != 0:
-            raise RuntimeError(f"Transforms failed with return code {return_code}")
-
-        original_name = folder2transform.name
-        transformed_name = f"{original_name}_transformed"
-
-        transformed_folder = folder2transform.parent / transformed_name
-
-        inference_cmd = self.inference_command(
-            params=params,
-            imagesTs=str(transformed_folder),
-            output_dir=output_dir,
-            checkpoint=checkpoint,
-        )
-
-        cmd = self._wrap_with_conda(inference_cmd)
-
-        subprocess.Popen(
-            cmd,
-            stdout=(Path(output_dir) / "stdout.log").open("w", encoding="utf-8"),
-            stderr=(Path(output_dir) / "stderr.log").open("w", encoding="utf-8"),
-            start_new_session=True,
-            env=env,
-        )
+        return params, pre_steps, env_extra, transformed_folder

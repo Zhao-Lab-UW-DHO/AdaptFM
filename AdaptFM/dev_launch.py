@@ -8,6 +8,7 @@ from AdaptFM.gui.napari_utils import (
     reorder_docks,
     restore_all_widgets,
     restore_or_focus_widget,
+    bring_to_front
 )
 from AdaptFM.gui.widgets.benchmark_widget import BenchmarkWidget
 from AdaptFM.gui.widgets.env_manager_dialog import EnvironmentManagerDialog
@@ -100,8 +101,21 @@ def main():
     )
     restore_menu.addAction(restore_all_action)
 
+
+    # Add Pre-proccessing menu
+    pre_menu = viewer.window._qt_window.menuBar().addMenu("Preprocessing")
+    preprocess_action = QAction("Run Preprocessing", viewer.window._qt_window)
+    pre_menu.addAction(preprocess_action)
+
+    pre_proc_widget = PreprocessingWidget()
+    viewer._pre_proc_watcher = ParentWindowWatcher(qt_window,pre_proc_widget)
+
+    preprocess_action.triggered.connect(lambda: bring_to_front(pre_proc_widget))
+
+
+
     # --- Models Menu ---
-    menu = viewer.window._qt_window.menuBar().addMenu("Models")
+    menu = viewer.window._qt_window.menuBar().addMenu("Segmentation Models")
 
     train_action = QAction("Training", viewer.window._qt_window)
     infer_action = QAction("Inference", viewer.window._qt_window)
@@ -115,8 +129,8 @@ def main():
     viewer._train_watcher = ParentWindowWatcher(qt_window, train_widget)
     viewer._infer_watcher = ParentWindowWatcher(qt_window, infer_widget)
 
-    train_action.triggered.connect(train_widget.show)
-    infer_action.triggered.connect(infer_widget.show)
+    train_action.triggered.connect(lambda: bring_to_front(train_widget))
+    infer_action.triggered.connect(lambda: bring_to_front(infer_widget))
 
     menu = viewer.window._qt_window.menuBar().addMenu("Post Process")
     post_process_action = QAction("Run Post Processing", viewer.window._qt_window)
@@ -126,7 +140,7 @@ def main():
 
     viewer._post_proc_watcher = ParentWindowWatcher(qt_window, post_proc_widget)
 
-    post_process_action.triggered.connect(post_proc_widget.show)
+    post_process_action.triggered.connect(lambda: bring_to_front(post_proc_widget))
 
     # --- Benchmark Menu ---
     benchmark_menu = viewer.window._qt_window.menuBar().addMenu("Benchmark")
@@ -138,11 +152,11 @@ def main():
     viewer._benchmark_watcher = ParentWindowWatcher(qt_window, benchmark_widget)
 
     # Show widget when menu action triggered
-    benchmark_action.triggered.connect(benchmark_widget.show)
+    benchmark_action.triggered.connect(lambda: bring_to_front(benchmark_widget))
 
     # --- Environments Menu ---
-    env_menu = viewer.window._qt_window.menuBar().addMenu("Environments")
-    env_action = QAction("Manage Environments…", viewer.window._qt_window)
+    env_menu = viewer.window._qt_window.menuBar().addMenu("Model Installer")
+    env_action = QAction("Install Models…", viewer.window._qt_window)
     env_menu.addAction(env_action)
 
     _env_dialog: list[EnvironmentManagerDialog] = []
@@ -156,14 +170,6 @@ def main():
         _env_dialog[0].activateWindow()
 
     env_action.triggered.connect(_open_env_manager)
-
-    # Add Pre-proccessing menu
-    pre_menu = viewer.window._qt_window.menuBar().addMenu("Preprocessing")
-    preprocess_action = QAction("Run Preprocessing", viewer.window._qt_window)
-    pre_menu.addAction(preprocess_action)
-
-    viewer.window._pre_proc_widget = PreprocessingWidget()
-    preprocess_action.triggered.connect(viewer.window._pre_proc_widget.show)
 
     napari.run()
 

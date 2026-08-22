@@ -591,7 +591,7 @@ class ModelWorkflowWidget:
                 except Exception as exc:
                     self._log_line(f"[dataset warning] {exc}", color=_AMBER)
 
-            if isinstance(self.model, NNUNetV2ModelSpec):
+            if "Set Name" in self.param_widgets:
                 self.param_widgets["Set Name"].value = self.dataset_dir.name
 
     def _select_output_folder(self, *args):
