@@ -594,6 +594,34 @@ class ModelWorkflowWidget:
             if "Set Name" in self.param_widgets:
                 self.param_widgets["Set Name"].value = self.dataset_dir.name
 
+            if isinstance(self.model,NNUNetV2ModelSpec):
+            
+                raw_dir = self.dataset_dir.parent.parent
+
+                next_id = 1
+
+                if raw_dir.exists() and raw_dir.is_dir():
+                    # Find all subfolders matching nnUNet dataset naming: DatasetXYZ_*
+                    max_id = 0
+                    for sub in raw_dir.iterdir():
+                        if sub.is_dir() and sub.name.startswith("Dataset"):
+                            # Expected format: DatasetXYZ_NAME
+                            # Extract the numeric XYZ part
+                            parts = sub.name.split("_")
+                            if parts:
+                                prefix = parts[0]  # "DatasetXYZ"
+                                num_str = prefix.replace("Dataset", "")
+                                if num_str.isdigit():
+                                    num = int(num_str)
+                                    max_id = max(max_id, num)
+
+                    # Increment largest ID
+                    next_id = max_id + 1 if max_id > 0 else 1
+
+                # Update the magicgui widget
+                if "Set ID" in self.param_widgets:
+                    self.param_widgets["Set ID"].value = next_id
+
     def _select_output_folder(self, *args):
         folder = QFileDialog.getExistingDirectory(
             None, "Select output directory", options=QFileDialog.DontUseNativeDialog
@@ -603,34 +631,6 @@ class ModelWorkflowWidget:
             self._output_lbl.setText(str(self.output_dir))
             self._output_lbl.setStyleSheet(f"color: {_TEXT}; font-size: 11px;")
 
-        if isinstance(self.model, NNUNetV2ModelSpec):
-            # Path to nnUNet_raw inside the selected output folder
-            raw_dir = self.output_dir / "nnUNet_raw"
-
-            # Default Set ID
-            next_id = 1
-
-            if raw_dir.exists() and raw_dir.is_dir():
-                # Find all subfolders matching nnUNet dataset naming: DatasetXYZ_*
-                max_id = 0
-                for sub in raw_dir.iterdir():
-                    if sub.is_dir() and sub.name.startswith("Dataset"):
-                        # Expected format: DatasetXYZ_NAME
-                        # Extract the numeric XYZ part
-                        parts = sub.name.split("_")
-                        if parts:
-                            prefix = parts[0]  # "DatasetXYZ"
-                            num_str = prefix.replace("Dataset", "")
-                            if num_str.isdigit():
-                                num = int(num_str)
-                                max_id = max(max_id, num)
-
-                # Increment largest ID
-                next_id = max_id + 1 if max_id > 0 else 1
-
-            # Update the magicgui widget
-            if "Set ID" in self.param_widgets:
-                self.param_widgets["Set ID"].value = next_id
 
     # ------------------------------------------------------------------
     # Run / terminate
