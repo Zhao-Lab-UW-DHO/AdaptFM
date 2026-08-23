@@ -12,13 +12,22 @@ AdaptFM is a Napari-based tool, imaging platform for viewing, annotating, traini
 
 
 
-
-
 AdaptFM has 9 distinct modules highlighted below. Click the links for each to learn more about how to use each module.
 
 1. **AdaptFM Image Manager:** To open an image in AdaptFM you can use the "Open Image" button in the top right corner. AdaptFM also supports Napari's native File > Open File workflow for opening images. You can also open images in AdaptFM by using Napari's built-in "Drag and Drop" functionality.
 
-2. [**AdaptFM Annotation Manager:**](annotations.md) This widget lets users run different segmentation algorithms on images. This is designed to help users quickly create training data and/or ground truth benchmarking data. To run segmentation foundation model training/inference use the models module. 
+2. [**AdaptFM Annotation Manager:**](annotations.md) This widget lets users run different segmentation algorithms on images. This is designed to help users quickly create training data and/or ground truth benchmarking data. To run segmentation foundation model training/inference use the Segmentation Models module. 
 
-3. [**AdaptFM Save Widget**](annotations.md/#adaptfm-save-widget)
+3. [**AdaptFM Save Widget:**](annotations.md/#adaptfm-save-widget). After creating annotations, save labeled images using the AdaptFM save widget. This saves images in the format needed to launch training
+
+4. **AdaptFM Preprocessing Module:**
+
+5. **AdaptFM Segmentation Models Module:** 
+
+6. **AdaptFM Post Processing Module:** 
+
+7. **AdaptFM Benchmarking Module:**
+
+8. **AdaptFM Model Installer:** 
+
 
