@@ -8,6 +8,7 @@ You can use the annotation widget within AdaptFM to quickly create labeled data 
 
 The annotation widget has 4 main parts:
 
+![Annotation_widget](../../asset/Annotation-widget.png)
 
 1. **Algorithm Selector** - Use this drop down to select the algorithm you would like to use for segmentation. To learn more about each algorithm, how it works, and what their parameters do, click on the below links. 
 
@@ -40,6 +41,8 @@ The annotation widget has 4 main parts:
 # AdaptFM's Save Widget
 
 Once you are ready to save your image, you can use the AdaptFM Save Widget to save the labeled image. We recommend using this widget for saving, as it will save your data in the format required for training. 
+
+![Save_widget](../../asset/save-widget.png)
 
 
 The AdaptFM has 4 main settings
