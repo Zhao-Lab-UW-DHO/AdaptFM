@@ -17,4 +17,6 @@ AdaptFM is a Napari-based tool, imaging platform for viewing, annotating, traini
 AdaptFM has 9 distinct modules highlighted below. Click the links for each to learn more about how to use each module.
 
 1. **AdaptFM Image Manager:** To open an image in AdaptFM you can use the "Open Image" button in the top right corner. AdaptFM also supports Napari's native File > Open File workflow for opening images. You can also open images in AdaptFM by using Napari's built-in "Drag and Drop" functionality.
+
 2. [**AdaptFM Annotation Manager:**](annotations.md)
+
