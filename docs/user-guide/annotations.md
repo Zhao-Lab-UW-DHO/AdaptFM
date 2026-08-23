@@ -13,14 +13,22 @@ The annotation widget has 4 main parts:
 
 ***Because of the variety of medical images, we recommend quickly testing several of the below algorithms to see which works best for your data and segmentation needs***
 
-[Canny Edge Detection 3D](../annotating/canny-edge-3d.md) 
+[Canny Edge Detection 3D](../annotating/canny-edge-3d.md)
+
 [Felzenszwalb 3D](../annotating/felzenszwalb-3d.md) 
+
 [High Frequency Segmentation](../annotating/high-freq-seg.md) 
+
 [Nuclear Log Gabor Segmentation](../annotating/nuc-log-gabor.md) 
+
 [Organoid Seg](../annotating/organoid-seg.md) 
+
 [Otsu Thresholding 3D](../annotating/otsu-threshold-3d.md) 
+
 [Segment Anything 2](../annotating/sam2.md) 
+
 [Segment Anything 3](../annotating/sam3.md) 
+
 [Sauvola Thresholding 3D](../annotating/sauvola-threshold-3d.md) 
 
 2. **Adjustable Parameters** - When you change models, a set of adjustable parameters will appear in this section. These paraemters will change how the algorithm is applied, and can improve (or worsen) segmentation quality. Use the above links to see how each parameter will impact segmentations. 
