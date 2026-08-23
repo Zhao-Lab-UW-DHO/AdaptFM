@@ -20,9 +20,11 @@ AdaptFM has 9 distinct modules highlighted below. Click the links for each to le
 
 3. [**AdaptFM Save Widget:**](annotations.md/#adaptfm-save-widget). After creating annotations, save labeled images using the AdaptFM save widget. This saves images in the format needed to launch training
 
-4. **AdaptFM Preprocessing Module:**
+4. [**AdaptFM Preprocessing Module:**](preprocessing.md) This widgets lets users run various preprocessing algorithms or file conversions on image data. 
 
-5. **AdaptFM Segmentation Models Module:** 
+5. **AdaptFM Segmentation Models Module:** This module has two main parts:
+    - [Fine-tuning segmentation models](fine-tuning-models.md): Use this to fine-tune an existing foundation model on your data
+    - [Running Inference with segmentation models](testing-models.md): Use this to test various models on your data
 
 6. **AdaptFM Post Processing Module:** 
 

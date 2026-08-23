@@ -1,6 +1,21 @@
-# Using AdaptFM to Fine-Tune Models
+# AdaptFM Training Module
 
-AdaptFM supports GUI-based fine-tuning for various models. First, make sure you have [installed the tool](../../README.md/#Installation)
+AdaptFM supports GUI-based fine-tuning/training for various models. The following models allow for fine-tunining and are supported within AdaptFM
+
+[CellposeSAM](../using-segmentation-models/cellposesam.md)
+
+[MicroSAM](../using-segmentation-models/microsam.md)
+
+[SSVT](../using-segmentation-models/ssvt.md)
+
+[BME-X](../using-segmentation-models/bmex.md)
+
+[nnUNetV2](../using-segmentation-models/nnunetv2.md)
+
+[SAM-Med3D](../using-segmentation-models/sammed3d.md)
+
+[CTFM](../using-segmentation-models/ctfm.md)
+
 
 Steps:
 1. Select the "Models" --> "Training" at the top of Napari.
