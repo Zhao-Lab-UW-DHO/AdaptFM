@@ -16,7 +16,7 @@ AdaptFM supports GUI-based fine-tuning/training for various models. The followin
 
 [CTFM](../using-segmentation-models/ctfm.md) - a 3D image-based pre-trained foundation model for a number of radiological segmentation tasks
 
-**Follow the instructions in the above links to launch training for each model.** All models follow the same general steps. Being by selecting the "Segmentation Models" --> "Training" at the top of Napari:
+**Follow the instructions in the above links to launch training for each model.** All models follow the same general steps. Being by selecting the "Segmentation Models" --> "Training" at the top of AdaptFM:
 
 1. Use the 'Model' dropdown to select the model you would like to train or fine-tune.
 2. Under 'Dataset' choose the folder you saved files to while making [annotations](annotations.md). If you made annotations outside of AdaptFM ensure

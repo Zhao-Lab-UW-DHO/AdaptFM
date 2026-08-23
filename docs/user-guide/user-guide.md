@@ -28,8 +28,10 @@ AdaptFM has 9 distinct modules highlighted below. Click the links for each to le
 
 6. **AdaptFM Post Processing Module:** 
 
-7. **AdaptFM Benchmarking Module:**
+7. [**AdaptFM Benchmarking Module:**](benchmarking-models.md): This module lets users objectively compare models' performance against each other and a pre-defined ground truth.
 
 8. **AdaptFM Model Installer:** 
+
+9. **AdaptFM Restore Widgets:** - if one of the side widgets (AdaptFM Image Manager, Annotation Manager, or Save Image Manager) is closed, use this menu to reopen it.
 
 

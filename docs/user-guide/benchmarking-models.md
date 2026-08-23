@@ -1,6 +1,6 @@
 # Benchmarking Models Using AdaptFM
 
-You can use AdaptFM's benchmarking module to compare model performance on segmentation tasks. To benchmark models navigate to 'Benchmark' > 'Run Benchmark' at the top of Napari. The steps to benchmarking models are:
+You can use AdaptFM's benchmarking module to compare model performance on segmentation tasks. To benchmark models navigate to 'Benchmark' > 'Run Benchmark' at the top of AdaptFM. The steps to benchmarking models are:
 
 1. Select the metric you would like to use for benchmarking. The available options are
     - **Dice score** - how well do the segmentations overlap with the ground truth data
