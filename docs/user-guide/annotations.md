@@ -13,8 +13,10 @@ The annotation widget has 4 main parts:
 
 ***Because of the variety of medical images, we recommend quickly testing several of the below algorithms to see which works best for your data and segmentation needs***
 
-[Canny Edge Detection 3D](../annotating/canny-edge-3d.md) 
+[Canny Edge Detection 3D](../annotating/canny-edge-3d.md)
+
 [Felzenszwalb 3D](../annotating/felzenszwalb-3d.md) 
+
 [High Frequency Segmentation](../annotating/high-freq-seg.md) 
 [Nuclear Log Gabor Segmentation](../annotating/nuc-log-gabor.md) 
 [Organoid Seg](../annotating/organoid-seg.md) 
