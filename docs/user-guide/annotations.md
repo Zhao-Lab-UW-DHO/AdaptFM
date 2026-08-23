@@ -38,7 +38,7 @@ The annotation widget has 4 main parts:
 
 4. **Run auto-segmentation on folder** - This button will let you run the selected algorithm (and parameters) on an entire folder of images. When selecting this option you will be prompted for the folder you would like to process. **You can adjust the save location and whether or not to save the original image alongside the segmentation by adjusting the save widget**. 
 
-# AdaptFM's Save Widget
+# AdaptFM Save Widget
 
 Once you are ready to save your image, you can use the AdaptFM Save Widget to save the labeled image. We recommend using this widget for saving, as it will save your data in the format required for training. 
 
