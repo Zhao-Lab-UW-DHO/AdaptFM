@@ -8,7 +8,7 @@ You can use the annotation widget within AdaptFM to quickly create labeled data 
 
 The annotation widget has 4 main parts:
 
-![Annotation_widget](../../asset/Annotation-widget.png)
+![Annotation_widget](../../asset/annotation-widget.png)
 
 1. **Algorithm Selector** - Use this drop down to select the algorithm you would like to use for segmentation. To learn more about each algorithm, how it works, and what their parameters do, click on the below links. 
 
