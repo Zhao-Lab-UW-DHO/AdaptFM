@@ -1,6 +1,6 @@
 # AdaptFM User Guide
 
-AdaptFM is a Napari-based tool, imaging platform for viewing, annotating, training, benchmkaring, and deploying foundation-model segmentation workflows across 3D biological data. AdaptFM unifies image vieweing, semi-automated annotation using tools like SAM2 and SAM3, segmentation foundation-model training and inference (supporting 9 models for inference, 7 for fine-tuning), image preprocessing (e.g. format conversion, image normalization), postprocessing, and benchmarking. Users can install all models directly from AdaptFM. Importantly, every module in AdaptFM - preprocessing, annotation, post-processing, training, inference, and benchmarking is customizable, enabling seamless integration of new algorithms and foundation models as they emerge. 
+AdaptFM is a Napari-based imaging platform for viewing, annotating, training, benchmkaring, and deploying foundation-model segmentation workflows across 3D biological data. AdaptFM unifies image vieweing, semi-automated annotation using tools like SAM2 and SAM3, segmentation foundation-model training and inference (supporting 9 models for inference, 7 for fine-tuning), image preprocessing (e.g. format conversion, image normalization), postprocessing, and benchmarking. Users can install all models directly from AdaptFM. Importantly, every module in AdaptFM - preprocessing, annotation, post-processing, training, inference, and benchmarking is customizable, enabling seamless integration of new algorithms and foundation models as they emerge. 
 
 
 
