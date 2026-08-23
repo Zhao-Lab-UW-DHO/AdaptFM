@@ -8,4 +8,4 @@ You can use AdaptFM to run preprocessing algorithms and file conversions on imag
 4. **Parameters:** Any adjustable parameters for the pipeline. Note that only some pipelines will have associated parameters.
 5. **Output Log:** Monitor progress of the pipeline in realtime in the output log. 
 
-![preprocessing](../../preprocessing.png)
+![preprocessing](../../asset/preprocessing.png)
