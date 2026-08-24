@@ -29,3 +29,8 @@ AdaptFM has 9 distinct modules highlighted below. Click the links for each to le
 
 9. [**AdaptFM Save Widget:**](annotations.md/#adaptfm-save-widget). After creating annotations, save labeled images using the AdaptFM save widget. This saves images in the format needed to launch training
 
+# Customizing AdaptFM
+
+AdaptFM is explicitly designed to accommodate new annotation algorithms, segmentation models, pre/post processing pipelines, and benchmarks. To learn more about how to add your own algorithms to AdaptFM visit our [customizing AdaptFM](../customizing-adaptfm/index.md) page.
+
+If you would like to add your contribution to our repository, please visit our [contributing](../customizing-adaptfm/contributing.md) page. 
