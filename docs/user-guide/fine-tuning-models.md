@@ -1,19 +1,31 @@
-# Using AdaptFM to Fine-Tune Models
+# AdaptFM Training Module
 
-AdaptFM supports GUI-based fine-tuning for various models. First, make sure you have [installed the tool](../../README.md/#Installation)
+AdaptFM supports GUI-based fine-tuning/training for various models. The following models allow for fine-tunining and are supported within AdaptFM
 
-Steps:
-1. Select the "Models" --> "Training" at the top of Napari.
-2. Use the 'model' dropdown to select the model you would like to train.
-3. "Select dataset folder" --> choose the folder you saved files to while making [annotations](Annotations.md)
-4. Press 'Load Parameters' to see the model's hyperparameters  
-a. If using SSVT or SAM-Med3D, be sure to enter the full path to the model checkpoints
+[CellposeSAM](../using-segmentation-models/cellposesam.md) - a deep learning model designed to identify and segment cell and other biological structures in microscopy.
 
-5.  Adjust parameters as needed including the choice of checkpoint. See [AdaptFM's README](../../README.md) to get the checkpoint for using SSVT.
-a. If you made annotations outside of AdaptFM ensure:
+[MicroSAM](../using-segmentation-models/microsam.md) - a deep learning model designed to segment objects in microscopy images
+
+[SSVT](../using-segmentation-models/ssvt.md) - a custom vision transformer model pretrained on ~180,000 3D organoid confocal microscopy images.
+
+[BME-X](../using-segmentation-models/bmex.md) - a foundation model designed for magnetic resonance images (MRI). Has a segmentation model for MRI Brains.
+
+[nnUNetV2](../using-segmentation-models/nnunetv2.md) - a machine-learning framework designed to learn how to identify and segment structures in medical and biological images.
+
+[SAM-Med3D](../using-segmentation-models/sammed3d.md) - a deep learning model designed to segment objects in 3D medical images (e.g. CT)
+
+[CTFM](../using-segmentation-models/ctfm.md) - a 3D image-based pre-trained foundation model for a number of radiological segmentation tasks
+
+**Follow the instructions in the above links to launch training for each model.** All models follow the same general steps. Begin by selecting the "Segmentation Models" --> "Training" at the top of AdaptFM:
+
+1. Use the 'Model' dropdown to select the model you would like to train or fine-tune.
+2. Under 'Dataset' choose the folder you saved files to while making [annotations](annotations.md). If you made annotations outside of AdaptFM ensure
       - All images (original and annotations) are placed together in one folder
-      - All images are in .tiff format
+      - All images are in the proper format for the specified model (see the above links)
       - Annotations file names end with '_seg.tiff'
-6. When you hit "Run" you will be prompted to select an output directory for your results, and a GPU to use.  
+3. Under 'Output Directory' choose the folder where you would like to save your training progress/data. 
+4. Use the 'GPU Index' field to choose which GPU you would like to use. If your system has only one GPU this will be chosen automatically
+5. If available, select "Load Parameters" to see the model's hyperparameters. For detailed descriptions of the most common parameters, use the above link to see descriptions of the model's parameters.
+6. Click "Run" to launch training. You can continue to monitor progress in the output log. 
 
-![Training Demo](../../asset/training-gif.gif)
+![training-widget](../../asset/training-widget.png)

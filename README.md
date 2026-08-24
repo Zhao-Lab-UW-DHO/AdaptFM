@@ -4,7 +4,7 @@
 
 **A GUI Framework for 3D Foundation Model Segmentation, Interactive Image Annotation, and Benchmarking**
 
-[Quick Start Guide](docs/quick-start.md) | [User Guide](docs/user-guide/annotations.md) | [Demo on Public Data](docs/testing-adaptfm.md) | [Customize AdaptFM](docs/customizing-adaptfm/index.md) | [Documentation](https://adaptfm.readthedocs.io/)
+[Quick Start Guide](docs/quick-start.md) | [User Guide](docs/user-guide/user-guide.md) | [Demo on Public Data](docs/testing-adaptfm.md) | [Customize AdaptFM](docs/customizing-adaptfm/index.md) | [Documentation](https://adaptfm.readthedocs.io/)
 
 </div>
 
