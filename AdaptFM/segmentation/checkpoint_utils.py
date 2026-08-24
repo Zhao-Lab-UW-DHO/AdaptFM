@@ -8,7 +8,7 @@ def check_sam2_installed():
         return True
     except ImportError:
         raise RuntimeError(
-            "SAM2 is not installed.\nYou must install with\nthe environment manager"
+            "SAM2 is not installed.\nYou must install with\nthe model installer"
         )
 
 
@@ -19,7 +19,7 @@ def check_sam3_installed():
         return True
     except ImportError:
         raise RuntimeError(
-            "SAM3 is not installed.\nYou must install with\nthe environment manager"
+            "SAM3 is not installed.\nYou must install with\nthe model installer"
         )
 
 

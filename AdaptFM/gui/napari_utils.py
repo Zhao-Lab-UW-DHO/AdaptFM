@@ -91,7 +91,6 @@ def expand_param_grid(user_values):
 
 from qtpy.QtCore import QEvent, QObject
 
-
 class ParentWindowWatcher(QObject):
     def __init__(self, parent_window, child_widget):
         super().__init__(parent_window)
@@ -289,3 +288,9 @@ def restore_all_widgets(viewer, widget_specs):
 
         if qt_widget_obj_exists(dock):
             highlight_dock(dock)
+
+
+def bring_to_front(widget):
+    widget.show()
+    widget.raise_()
+    widget.activateWindow()
