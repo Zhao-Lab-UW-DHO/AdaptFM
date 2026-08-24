@@ -53,3 +53,9 @@ When opening an image: OpenGL error attempted to retrieve context when no valid 
 
 We found this issue when testing AdaptFM on Windows Subsystem for Linux and believe it to be a catch-all error pointing to the graphics pipeline from WSL to Windows being quite fragile. Enforcing qt6 with QT_API=pyqt6 on WSL fixes this issue on our system, but we have not found a solution that fixes this error for use of the apptainer/Singularity container in WSL
 </details>
+
+## Running AdaptFM in a container
+
+In the container folder of the repository we provide a file `AdaptFM_apptainer.def` that defines an apptainer/singularity container using an NVIDIA 12.6 CUDA Ubuntu image installing similar dependencies to the requirements of [napari-xpra](https://github.com/napari/napari/pkgs/container/napari-xpra). With [apptainer installed](https://apptainer.org/docs/admin/main/installation.html), the `build_and_run.sh` script in the same folder demnstrates the creation of a ~6GB large container image and using it to launch AdaptFM. The ability to build the container depends on system restrictions like administrator granted permissions and building the container may require setting environment variables such as APPTAINER_TMPDIR, APPTAINER_CACHEDIR to build successfully.
+
+The details of the napari-xpra container combined with our container's def file should allow an advanced user to customize our image to run AdaptFM with XPRA if required.
