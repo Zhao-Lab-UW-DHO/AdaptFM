@@ -34,4 +34,4 @@ Learn how to add custom performance metrics (e.g., Dice score, IoU, Hausdorff di
 Learn how to add new preprocessing/file conversion pipelines, by writing a custom function and adding it to the preprocessing registry. 
 
 ### 5. [Adding Postprocessing Pipelines](adding-postprocessing.md)
-Learn how to add a new postprocessing algorithm by duplicating our base ```PostProc``` class and writing your own launch code. 
+Learn how to add a new postprocessing algorithm by duplicating our base ```PostProcess``` class and writing your own launch code. 
