@@ -4,7 +4,7 @@ In addition to the existing segmentation benchmarks, AdaptFM also allows users t
 
 1. Navigate to AdaptFM > gui > widgets > metrics_widget.py
 2. Create a new class that inherits from the "Metric" base class. Register it with MetricRegistry
-3. Provide your class a 'name' and place your benchmarking algorithm in a 'compute' method. This method should take a parameter for 'ground_truth' files and 'prediction' files.
+3. Provide your class a 'name' and place your benchmarking algorithm in a 'compute' method. This method should take a parameter for 'ground_truth' files and 'model_dirs' (folders containing predictions) and 'output_dir' (where you would like to save your results).
 4. The benchmarking algorithm should now appear in AdaptFM's benchmark module
 
 Example:
@@ -12,36 +12,37 @@ Example:
 ```python
 @MetricRegistry.register
 class DiceScore(Metric):
-    name = "Dice Score"
+    name = "Dice Score" # <-Define a name to appear in the benchmark widget
 
-    def compute(self, gt_dir, models_dirs):
-        """
-        gt_dir: path to ground truth folder
-        models_dirs: list of paths to model prediction folders
-        """
+    def compute(self, gt_dir, models_dirs, output_dir): # < - define what the metric does. Include parameters for the ground truth, model predictions, and output directory
         gt_dir = Path(gt_dir)
+        gt_files = glob_masks(gt_dir)
         results = {}
 
-        # get all ground truth files
-        gt_files = sorted(gt_dir.glob("*"))  # assumes all images in folder
-
-        for model_dir in models_dirs:
+        for display_name, model_dir in models_dirs.items():
             model_dir = Path(model_dir)
-            model_files = sorted(model_dir.glob("*"))
+            model_files = glob_masks(model_dir)
+            file_pairs = list(zip(gt_files, model_files))
 
-            per_image_dice = []
+            per_image_dice = run_parallel(
+                file_pairs,
+                self._dice_worker,
+                self.n_processes,
+            )
+            results[display_name] = per_image_dice
 
-            # match files by order (or implement matching by name if needed)
-            for gt_file, pred_file in zip(gt_files, model_files):
-                gt = tiff.imread(gt_file) > 0  # binarize
-                pred = tiff.imread(pred_file) > 0  # binarize
-                intersection = (gt & pred).sum()
-                union = gt.sum() + pred.sum()
-                dice = 2 * intersection / union if union > 0 else 1.0
-                per_image_dice.append(dice)
-
-            # store results for this model
-            results[str(model_dir)] = per_image_dice
-
+        plot_dice_boxplot(results, gt_dir, self.name, output_dir) # <-- Plot results in a boxplot, or write you own custom plot function
         return results
+
+    @staticmethod
+    def _dice_worker(pair):
+        gt_file, pred_file = pair
+
+        gt = read_mask(gt_file) > 0
+        pred = read_mask(pred_file) > 0
+
+        intersection = (gt & pred).sum()
+        union = gt.sum() + pred.sum()
+
+        return 2 * intersection / union if union > 0 else 1.0
 ```
