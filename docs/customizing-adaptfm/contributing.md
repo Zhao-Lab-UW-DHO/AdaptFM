@@ -37,3 +37,10 @@ All public methods, functions, and registry classes should include Python type h
 
 ### 2. Aspire to Windows Compatability
 AdaptFM intends to be "Windows friendly" repository. Do not write logic that uses / as a string identifier and use pathlib.Path such that the ruff linter passes all checks on the branch.
+
+## Items to check before submitting code
+1. Check for ruff errors (e.g. pathlib was not used for a file operation) with `ruff check .` in the root of the repository.
+  Some errors may be autofixed with `ruff check --fix .`.
+1. Check for the presence of '/' in filepaths using regex `'[^']*/[^']*'|"[^"]*/[^"]*"` (includes false positives).
+1. Optionally enforce good codestyle with `ruff format --isolated <file to format>`.
+1. Ensure qt popups/dialogs are correctly given a parent.
