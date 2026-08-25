@@ -2,7 +2,7 @@
 
 AdaptFM uses multiple conda environments to manage its install. The environment needed to run AdaptFM built into napari requires the requirements listed in the pyproject.toml at the root of the repository as well as pytorch (torch and torchvision on PyPI).
 
-AdaptFM's environment manager in napari on the backend makes calls to various install scripts found in `<repo_root>/AdaptFM/install` which can be inspected to see the requirements needed to run a particular model usually consisting of a package install, followed by a pytorch install, and sometimes a download of an available model checkpoint for inference written to a particular location. For interactive segmentation using SAM2 and SAM3, those install commands are made into the main conda environment alongside the AdaptFM software.
+AdaptFM's model installer in napari on the backend makes calls to various install scripts found in `<repo_root>/AdaptFM/install` which can be inspected to see the requirements needed to run a particular model usually consisting of a package install, followed by a pytorch install, and sometimes a download of an available model checkpoint for inference written to a particular location. For interactive segmentation using SAM2 and SAM3, those install commands are made into the main conda environment alongside the AdaptFM software.
 
 AdaptFM runs other environments for different models using subprocess such as `conda run -p <path_to_the_model_conda_environment> python <path_to_the_model_running_script.py>` or as a module call (with python -m).
 
@@ -10,7 +10,7 @@ AdaptFM runs other environments for different models using subprocess such as `c
 
 Following the install scripts as described above with allow you to install the environments required to run models in AdaptFM. Other than installing the required packages including pytorch, AdaptFM will write the conda environment location in a .prefix file within a subdirectory of the home directory found with `echo "$HOME/.adaptfm/"` in one file per environment.
 
-for example listing the AdaptFM directory after the environment manager makes an install of multiple models with:
+for example listing the AdaptFM directory after the model installer makes an install of multiple models with:
 ```bash
 cd $HOME/.adaptfm/; ls
 ```
@@ -41,17 +41,17 @@ WARNING: Could not load the Qt platform plugin "xcb" in "" even though it was fo
 </summary>
 <br/>
 
-This happens when there are missing display libraries. For our system the fix was to install with the AdaptFM environment loaded: `conda install xcb-util-cursor`,
-then set the linux environment variable before launching `export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH; python -m AdaptFM.dev_launch`
+This happens when there are missing display libraries. For our system, the fix was to install with the AdaptFM environment loaded: `conda install xcb-util-cursor`,
+then set the linux environment variable before launching e.g. `export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH; python -m AdaptFM.dev_launch` or edit `launch.sh` to add `LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH` preceeding python -m AdaptFM.dev_launch. 
 </details>
 
 <details>
 <summary>
-When opening an image: OpenGL error attempted to retrieve context when no valid context
+When opening an image: OpenGL error attempted to retrieve context when no valid context.
 </summary>
 <br/>
 
-We found this issue when testing AdaptFM on Windows Subsystem for Linux and believe it to be a catch-all error pointing to the graphics pipeline from WSL to Windows being quite fragile. Enforcing qt6 with QT_API=pyqt6 on WSL fixes this issue on our system, but we have not found a solution that fixes this error for use of the apptainer/Singularity container in WSL
+We found this issue when testing AdaptFM on Windows Subsystem for Linux and believe it to be a catch-all error pointing to the graphics pipeline from WSL to Windows being quite fragile. Enforcing qt6 with QT_API=pyqt6 on WSL fixes this issue on our system, but we have not found a solution that fixes this error for use of the apptainer/Singularity container in WSL.
 </details>
 
 ## Running AdaptFM in a container
