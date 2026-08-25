@@ -2,7 +2,7 @@
 
 AdaptFM uses multiple conda environments to manage its install. The environment needed to run AdaptFM built into napari requires the requirements listed in the pyproject.toml at the root of the repository as well as pytorch (torch and torchvision on PyPI).
 
-AdaptFM's environment manager in napari on the backend makes calls to various install scripts found in `<repo_root>/AdaptFM/install` which can be inspected to see the requirements needed to run a particular model usually consisting of a package install, followed by a pytorch install, and sometimes a download of an available model checkpoint for inference written to a particular location. For interactive segmentation using SAM2 and SAM3, those install commands are made into the main conda environment alongside the AdaptFM software.
+AdaptFM's model installer in napari on the backend makes calls to various install scripts found in `<repo_root>/AdaptFM/install` which can be inspected to see the requirements needed to run a particular model usually consisting of a package install, followed by a pytorch install, and sometimes a download of an available model checkpoint for inference written to a particular location. For interactive segmentation using SAM2 and SAM3, those install commands are made into the main conda environment alongside the AdaptFM software.
 
 AdaptFM runs other environments for different models using subprocess such as `conda run -p <path_to_the_model_conda_environment> python <path_to_the_model_running_script.py>` or as a module call (with python -m).
 
@@ -10,7 +10,7 @@ AdaptFM runs other environments for different models using subprocess such as `c
 
 Following the install scripts as described above with allow you to install the environments required to run models in AdaptFM. Other than installing the required packages including pytorch, AdaptFM will write the conda environment location in a .prefix file within a subdirectory of the home directory found with `echo "$HOME/.adaptfm/"` in one file per environment.
 
-for example listing the AdaptFM directory after the environment manager makes an install of multiple models with:
+for example listing the AdaptFM directory after the model installer makes an install of multiple models with:
 ```bash
 cd $HOME/.adaptfm/; ls
 ```
