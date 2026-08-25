@@ -41,17 +41,17 @@ WARNING: Could not load the Qt platform plugin "xcb" in "" even though it was fo
 </summary>
 <br/>
 
-This happens when there are missing display libraries. For our system the fix was to install with the AdaptFM environment loaded: `conda install xcb-util-cursor`,
-then set the linux environment variable before launching `export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH; python -m AdaptFM.dev_launch`
+This happens when there are missing display libraries. For our system, the fix was to install with the AdaptFM environment loaded: `conda install xcb-util-cursor`,
+then set the linux environment variable before launching e.g. `export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH; python -m AdaptFM.dev_launch` or edit `launch.sh` to add `LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH` preceeding python -m AdaptFM.dev_launch. 
 </details>
 
 <details>
 <summary>
-When opening an image: OpenGL error attempted to retrieve context when no valid context
+When opening an image: OpenGL error attempted to retrieve context when no valid context.
 </summary>
 <br/>
 
-We found this issue when testing AdaptFM on Windows Subsystem for Linux and believe it to be a catch-all error pointing to the graphics pipeline from WSL to Windows being quite fragile. Enforcing qt6 with QT_API=pyqt6 on WSL fixes this issue on our system, but we have not found a solution that fixes this error for use of the apptainer/Singularity container in WSL
+We found this issue when testing AdaptFM on Windows Subsystem for Linux and believe it to be a catch-all error pointing to the graphics pipeline from WSL to Windows being quite fragile. Enforcing qt6 with QT_API=pyqt6 on WSL fixes this issue on our system, but we have not found a solution that fixes this error for use of the apptainer/Singularity container in WSL.
 </details>
 
 ## Running AdaptFM in a container
