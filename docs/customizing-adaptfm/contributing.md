@@ -14,6 +14,8 @@ If you are looking to add new foundation models, annotation algorithms, or bench
   * [Adding New Models](../customizing-adaptfm/adding-models.md)
   * [Adding New Annotation Algorithms](../customizing-adaptfm/adding-annotation-algorithms.md)
   * [Adding Benchmarks](../customizing-adaptfm/custom-benchmarks.md)
+  * [Adding preprocessing pipelines](../customizing-adaptfm/adding-preprocessing.md)
+  * [Adding postprocessing pipelines](../customizing-adaptfm/adding-postprocessing.md)
 
 ### Reporting Bugs
 If you encounter a bug, installation issue, or unexpected behavior:
