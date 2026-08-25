@@ -26,6 +26,22 @@ If you have an idea for a new feature that doesn't fall within the widget regist
 * Please **open an Issue first** to discuss the proposed feature before writing code or submitting a PR.
 * This allows the maintainers to provide feedback, ensure alignment with project goals, and prevent duplicate work.
 
+### Writing Unit Tests
+It is recommended that changes/additions come with unit tests in the `tests/` directory using Python's built-in `unittest` framework.
+
+* **Annotation Algorithms**:
+  * Create a test file following the naming convention `tests/test_<feature>.py`.
+  * Retrieve registered modules directly from registry classes (e.g., `SEGMENTATION_REGISTRY.get("YourAlgorithmName")`).
+  * Pull default parameters dynamically using `instance.tunable_params()`.
+  * Test execution using synthetic `numpy` arrays (e.g., uint8 3D volume arrays `(Z, Y, X)`).
+  * Assert output properties such as shape matching (`result.shape == input.shape`) and valid output types (`np.integer` or `np.bool_`).
+
+* **Foundation Models**:
+  * Use `tempfile.TemporaryDirectory()` inside `setUp()` and `tearDown()` to create temporary input/output directory contexts.
+  * Generate mock image inputs locally using `tifffile.imwrite()` to test file I/O operations without relying on external assets.
+  * Assert that inference execution creates expected output files on disk (`expected_file.exists()`).
+  * **Conda Environment Integration**: If your foundation model relies on a distinct Conda environment, update `run_tests.sh` to include a test block that activates your environment before invoking `python -m unittest tests/test_<model>.py`.
+
 ---
 
 ## Code Quality & Guidelines
