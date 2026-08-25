@@ -10,7 +10,7 @@ Welcome to AdaptFM! This guide covers the fastest way to install the base framew
 
 AdaptFM requires [Conda](https://docs.conda.io/projects/conda/en/stable/user-guide/getting-started.html) to be installed, and the ability for your system to install [PyTorch](https://pytorch.org/get-started/locally/) with a non-CPU Compute Platform.
 
-To use our automated installation script (`install.sh`) your system must be running Linux and have an NVIDIA GPU installed and working (with nvidia-smi available in the command line interface). If you try the install and your machine does not meet these requirements try the documentation for [Extended Installation Details](install-details.md).
+To use our automated installation script (`install.sh`) your system must be running Linux and have an NVIDIA GPU installed and working (with nvidia-smi available in the command line interface). If you try the install and your machine does not meet these requirements try the documentation for [Extended Installation Details](install-details.md). We have found non NVIDIA GPU systems to be less optimized for AdaptFM and it's integrated components.
 
 AdaptFM should be installable on any system capable of running a modern version of PyTorch (with GPU integration for practical reasons as well as our software's calls to the torch.cuda library assuming a GPU). AdaptFM is extensively tested on Ubuntu LTS with enterprise NVIDIA GPUs, and has been tested to run on the default image for Windows Subsystem for Linux 2 (WSL2) with both enterprise and consumer NVIDIA GPUs. With a manual installation, we have found AdaptFM to have functionality on Arch Linux: 6.18-lts kernel using Wayland and an AMD Radeon RX 9070 XT GPU, and on Windows 11 natively without GPU integration (not recommended).
 
