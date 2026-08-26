@@ -8,7 +8,7 @@ Segment Anything Model 3 (SAM3) is a foundation model developed by [facebook res
 
 ***Once downloaded move the files to the checkpoint folder within the SAM3 repo under AdaptFM > Segmentation > sam3.***
 
-![sam3_checkpoint][../../asset/sam3_checkpoint.png]
+![sam3_checkpoint](../../asset/sam3_checkpoint.png)
 
 ***SAM3 allows users to segment objects in a 2D image slice by entering text concepts or clicking on objects of interest. For 3D images, AdaptFM can either propagate that segmentation through the z-axis by treating the slices like frames in a video (using SAM3's video propagation capability), or independently segment each 2D slice.***
 
