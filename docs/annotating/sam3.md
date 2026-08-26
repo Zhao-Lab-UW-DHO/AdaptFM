@@ -2,6 +2,13 @@
 
 Segment Anything Model 3 (SAM3) is a foundation model developed by [Facebook research](https://github.com/facebookresearch/sam3) used for identifying objects in images and videos by using text concepts and click prompts. Users can segment objects by entering a text-concept (e.g. football) then further refine segmentations by clicking objects, similar to [Segment Anything 2](./sam2.md)
 
+
+***In order to use you must download the model using [this link](https://huggingface.co/facebook/sam3/tree/main).***
+
+![sam3_screenshot](../../asset/sam3.png)
+
+***Once downloaded move the files to the checkpoint folder within the SAM3 repo under AdaptFM > Segmentation > sam3.***
+
 ***SAM3 allows users to segment objects in a 2D image slice by entering text concepts or clicking on objects of interest. For 3D images, AdaptFM can either propagate that segmentation through the z-axis by treating the slices like frames in a video (using SAM3's video propagation capability), or independently segment every 2D slice.***
 
 ## How It Works
