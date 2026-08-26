@@ -1,6 +1,13 @@
 # Adding New Models to AdaptFM
 
-Users can add new models for inference or training. There are two main steps outlined below.
+### Model Integration Requirements
+
+AdaptFM is designed to accommodate new segmentation models regardless of their underlying architecture or implementation. To integrate a model, sufficient information must be available to implement and execute its training and inference procedures. At minimum, one of the following is required:
+
+1. Executable training/inference implementation: The model authors provide a training and/or inference script or function that can be executed with specified inputs and outputs.
+2. Sufficient implementation details: If executable code is not provided, the authors provide sufficient documentation describing the training and inference procedures, including required inputs, outputs, preprocessing, model configuration, and relevant training parameters, such that these procedures can be implemented in an external script.
+
+AdaptFM interfaces with models through externally executable training and inference processes. In practice, the integration only requires that AdaptFM be able to construct and launch a script or function that performs training or inference and returns the expected outputs; AdaptFM does not require models to follow a specific internal architecture or software implementation.
 
 ### Creating a New Conda Environment
 
