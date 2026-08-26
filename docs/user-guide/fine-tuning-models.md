@@ -2,7 +2,7 @@
 
 AdaptFM supports GUI-based fine-tuning/training for various models. 
 
-***All image normalization, rescaling, and tokenization  are handled by each model according to its native preprocessing pipeline; AdaptFm does not impose additional image preprocessing***
+***All image normalization, rescaling, and tokenization  are handled by each model according to its native preprocessing pipeline; AdaptFM does not impose additional image preprocessing***
 
 The following models allow for fine-tunining and are supported within AdaptFM:
 
