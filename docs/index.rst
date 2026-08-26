@@ -58,6 +58,12 @@ Welcome to the AdaptFM documentation! AdaptFM is a framework designed for segmen
    customizing-adaptfm/custom-benchmarks
    customizing-adaptfm/contributing
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Preprocessing Algorithms
+
+   preprocessing/preprocessing_descriptions
+
 Indices and Tables
 ==================
 

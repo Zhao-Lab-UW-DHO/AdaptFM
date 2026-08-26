@@ -9,6 +9,10 @@ if [ ! -f "$IMAGE" ]; then
     apptainer build --fakeroot "$IMAGE" AdaptFM_apptainer.def
 fi
 
+
+# May need to bind extra items in case of issues e.g.
+# if machine-id is said to be missing/invalid/no permission
+# try --bind /etc/machine-id:/etc/machine-id
 apptainer run \
     --nv \
     --bind /mnt:/mnt \
