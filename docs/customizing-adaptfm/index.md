@@ -29,3 +29,9 @@ Learn how to integrate new deep learning architectures or foundation models for 
 
 ### 3. [Adding Custom Benchmarks](custom-benchmarks.md)
 Learn how to add custom performance metrics (e.g., Dice score, IoU, Hausdorff distance) to the benchmarking suite by extending the `Metric` base class and registering with `@MetricRegistry.register`.
+
+### 4. [Adding Preprocessing Pipelines](adding-preprocessing.md)
+Learn how to add new preprocessing/file conversion pipelines, by writing a custom function and adding it to the preprocessing registry. 
+
+### 5. [Adding Postprocessing Pipelines](adding-postprocessing.md)
+Learn how to add a new postprocessing algorithm by duplicating our base ```PostProcess``` class and writing your own launch code. 

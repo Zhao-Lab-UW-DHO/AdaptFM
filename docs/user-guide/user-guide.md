@@ -24,6 +24,7 @@ AdaptFM has 9 distinct modules highlighted below. Click the links for each to le
 6. [**AdaptFM Model Installer:**](model-installer.md) This module lets you download and install different foundation models to use within AdaptFM. You can also use this module to check for updates to your downloaded models. 
 
 7. **AdaptFM Image Manager:** To open an image in AdaptFM you can use the "Open Image" button in the top right corner. AdaptFM also supports Napari's native File > Open File workflow for opening images. You can also open images in AdaptFM by using Napari's built-in "Drag and Drop" functionality.
+>We recommend the usage of "Open Image" as Napari's native image loader does not handle the `.nii.gz` extension.
 
 8. [**AdaptFM Annotation Manager:**](annotations.md) This widget lets users run different segmentation algorithms on images. This is designed to help users quickly create training data and/or ground truth benchmarking data. To run segmentation foundation model training/inference use the Segmentation Models module. 
 

@@ -1,6 +1,6 @@
 # OrganoidSeg
 
-OrganoidSeg is a multi-step image processing method designed to identify organoids as foreground regions while excluding the surrounding background. This algorithm is particularly useful for identifying confocal microscopy images that have multiple organoids across multiple z layers in one image. 
+OrganoidSeg is a multi-step image processing method designed to identify organoids as foreground regions while excluding the surrounding background. This algorithm is particularly useful for identifying organoids in 3D confocal microscopy images. 
 
 The algorithm determines the approximate intensity of the background and foreground in each image slice. It then uses this information to identify potential organoid regions and applies additional processing to refine the segmentation. 
 
