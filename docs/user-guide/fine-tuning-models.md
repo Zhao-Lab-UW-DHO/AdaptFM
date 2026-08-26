@@ -2,9 +2,9 @@
 
 AdaptFM supports GUI-based fine-tuning/training for various models. 
 
-***All image normalization, rescaling, and tokenization  are handled by each model according to its native preprocessing pipeline; AdaptFM does not impose additional image preprocessing***
+***All image normalization, rescaling, and tokenization are handled by each model according to its native preprocessing pipeline; AdaptFM does not impose additional image preprocessing***
 
-The following models allow for fine-tunining and are supported within AdaptFM:
+The following models allow for fine-tuning and are supported within AdaptFM:
 
 [CellposeSAM](../using-segmentation-models/cellposesam.md) - a deep learning model designed to identify and segment cell and other biological structures in microscopy.
 
@@ -18,9 +18,9 @@ The following models allow for fine-tunining and are supported within AdaptFM:
 
 [SAM-Med3D](../using-segmentation-models/sammed3d.md) - a deep learning model designed to segment objects in 3D medical images (e.g. CT)
 
-[CTFM](../using-segmentation-models/ctfm.md) - a 3D image-based pre-trained foundation model for a number of radiological segmentation tasks
+[CTFM](../using-segmentation-models/ctfm.md) - a 3D image-based pretrained foundation model for a number of radiological segmentation tasks
 
-**Follow the instructions in the above links to launch training for each model.** All models follow the same general steps. Begin by selecting the "Segmentation Models" --> "Training" at the top of AdaptFM:
+**Follow the instructions in the above links to launch training for each model.** All models follow the same general steps. Begin by selecting the "Segmentation Models" –> "Training" at the top of AdaptFM:
 
 1. Use the 'Model' dropdown to select the model you would like to train or fine-tune.
 2. Under 'Dataset' choose the folder you saved files to while making [annotations](annotations.md). If you made annotations outside of AdaptFM ensure

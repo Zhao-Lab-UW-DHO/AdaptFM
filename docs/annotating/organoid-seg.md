@@ -1,17 +1,17 @@
 # OrganoidSeg
 
-OrganoidSeg is a multi-step image processing method designed to identify organoids as foreground regions while excluding the surrounding background. This algorithm is particularly useful for identifying organoids in 3D confocal microscopy images. 
+OrganoidSeg is a multistep image processing method designed to identify organoids as foreground regions while excluding the surrounding background. This algorithm is particularly useful for identifying organoids in 3D confocal microscopy images. 
 
 The algorithm determines the approximate intensity of the background and foreground in each image slice. It then uses this information to identify potential organoid regions and applies additional processing to refine the segmentation. 
 
 ***In AdaptFM, this algorithm is run slice-by-slice in the z-direction. The individual 2D segmentation results are then combined to produce the final 3D segmentation***
 
-## How it works
+## How It Works
 
 The steps of OrganoidSeg are:
 
 1. **Examine each image slice** - The 3D image is divided into individual 2D z-slices so that each slice can be analyzed independently
-2. **Determine the intensity threhsold** - Otsu thresholding is applied to each slice to estimate the intensity that separates the image background from brighter structures.
+2. **Determine the intensity threshold** - Otsu thresholding is applied to each slice to estimate the intensity that separates the image background from brighter structures.
 3. **Determine a common threshold** - The highest threshold identified across all slices is used as a reference for the subsequent processing. This helps maintain consistency across the volume.
 4. **Identify potential organoid regions** - Each slice is processed to identify regions that are likely to correspond to organoids based on their intensity and spatial characteristics.
 5. **Refine the segmentation** - Additional image-processing steps are used to refine the detected regions and remove or suppress structures that do not meet the desired object characteristics.

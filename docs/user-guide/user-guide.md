@@ -1,6 +1,6 @@
 # AdaptFM User Guide
 
-AdaptFM is a Napari-based imaging platform for viewing, annotating, training, benchmarking, and deploying foundation-model segmentation workflows across 3D biological data. AdaptFM unifies image vieweing, semi-automated annotation using tools like SAM2 and SAM3, segmentation foundation-model training and inference (supporting 9 models for inference, 7 for fine-tuning), image preprocessing (e.g. format conversion, image normalization), postprocessing, and benchmarking. Users can install all models directly from AdaptFM. Importantly, every module in AdaptFM - preprocessing, annotation, post-processing, training, inference, and benchmarking is customizable, enabling seamless integration of new algorithms and foundation models as they emerge. 
+AdaptFM is a Napari-based imaging platform for viewing, annotating, training, benchmarking, and deploying foundation-model segmentation workflows across 3D biological data. AdaptFM unifies image viewing, semi-automated annotation using tools like SAM2 and SAM3, segmentation foundation-model training and inference (supporting 9 models for inference, 7 for fine-tuning), image preprocessing (e.g. format conversion, image normalization), postprocessing, and benchmarking. Users can install all models directly from AdaptFM. Importantly, every module in AdaptFM - preprocessing, annotation, postprocessing, training, inference, and benchmarking is customizable, enabling seamless integration of new algorithms and foundation models as they emerge. 
 
 
 ![AdaptFM_features](../../asset/adaptfm-features.png)
@@ -17,9 +17,9 @@ AdaptFM has 9 distinct modules highlighted below. Click the links for each to le
     - [Fine-tuning segmentation models](fine-tuning-models.md): Use this to fine-tune an existing foundation model on your data
     - [Running Inference with segmentation models](testing-models.md): Use this to test various models on your data
 
-4. **AdaptFM Post Processing Module:** This module lets users run various postporcessing algorithms on images after segmentation. These are algorithms primarily designed for segmented images.
+4. **AdaptFM Postprocessing Module:** This module lets users run various postprocessing algorithms on images after segmentation. These are algorithms primarily designed for segmented images.
 
-5. [**AdaptFM Benchmarking Module:**](benchmarking-models.md) This module lets users objectively compare models' performance against each other and a pre-defined ground truth.
+5. [**AdaptFM Benchmarking Module:**](benchmarking-models.md) This module lets users objectively compare models' performance against each other and a predefined ground truth.
 
 6. [**AdaptFM Model Installer:**](model-installer.md) This module lets you download and install different foundation models to use within AdaptFM. You can also use this module to check for updates to your downloaded models. 
 
@@ -32,6 +32,6 @@ AdaptFM has 9 distinct modules highlighted below. Click the links for each to le
 
 # Customizing AdaptFM
 
-AdaptFM is explicitly designed to accommodate new annotation algorithms, segmentation models, pre/post processing pipelines, and benchmarks. To learn more about how to add your own algorithms to AdaptFM visit our [customizing AdaptFM](../customizing-adaptfm/index.md) page.
+AdaptFM is explicitly designed to accommodate new annotation algorithms, segmentation models, pre/postprocessing pipelines, and benchmarks. To learn more about how to add your own algorithms to AdaptFM visit our [customizing AdaptFM](../customizing-adaptfm/index.md) page.
 
 If you would like to add your contribution to our repository, please visit our [contributing](../customizing-adaptfm/contributing.md) page. 

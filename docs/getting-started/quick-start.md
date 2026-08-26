@@ -31,6 +31,6 @@ cd AdaptFM
 chmod +x install.sh launch.sh
 bash install.sh
 ```
-then launch with `bash launch.sh`.
+Then, launch with `bash launch.sh`.
 
 Once AdaptFM is installed and working, check out the [User Guide](../user-guide/user-guide.md).

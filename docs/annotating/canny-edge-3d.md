@@ -4,7 +4,7 @@ Canny edge detection is an image-processing method used to identify boundaries b
 
 ***Although typically a 2D algorithm, AdaptFM applies the algorithm to each individual z layer independently. The final segmentation are the stacked results of these individual 2D segmented planes***
 
-## How it works
+## How It Works
 
 The general steps of Canny edge detection are:
 
@@ -12,7 +12,7 @@ The general steps of Canny edge detection are:
 2. **Find changes in intensity** - the algorithm finds places where there are sharp changes in intensity
 3. **Identify strong edges** - Determines whether these boundaries represent true boundaries or noise
 4. **Connect the edges** - Edge pixels are connected to make continuous boundaries
-5. **Stack the results** - steps 1-4 are applied on each individual z layer. The final segmentation is produced by stacking these z layers together. 
+5. **Stack the results** - steps 1–4 are applied on each individual z layer. The final segmentation is produced by stacking these z layers together. 
 
 ## Parameters
 Canny edge detection has three parameters that control how the algorithm identifies object boundaries: sigma, low threshold, and high threshold. 

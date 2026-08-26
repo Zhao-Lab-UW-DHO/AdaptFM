@@ -4,11 +4,11 @@ Users can add new models for inference or training. There are two main steps out
 
 ### Creating a New Conda Environment
 
-To avoid version conflicts, AdaptFM requires each model's repo be installed in a separate conda environment. 
+To avoid version conflicts, AdaptFM requires each model's repo be installed in a separate Conda environment. 
 
 Follow the instructions on the model's page for installing it. 
 
-### Defining a new model
+### Defining a New Model
 
 There are two parts to defining training: Creating a new model specification class and writing an API. 
 
@@ -91,7 +91,7 @@ def training_command(self, dataset_info, params, run_dir):
 ```
 
 - Navigate to AdaptFM > model > foundation_models - create a new folder for your model and add train_wrapper.py and inference_wrapper.py files (see AdaptFM > model > foundation_models > cellposeSAM > train_wrapper.py as example for what to include in these scripts). In short, it should call the training or inference function used by your new model.
-- Navigate to AdaptFM > model > registry.py and add your model to the new registry, specifying the path to the conda environment, and train_wrapper.py/inference_wrapper.py files
+- Navigate to AdaptFM > model > registry.py and add your model to the new registry, specifying the path to the Conda environment, and train_wrapper.py/inference_wrapper.py files
 
 ```python
     "CellposeSAM": CellposeSAMSpec(
