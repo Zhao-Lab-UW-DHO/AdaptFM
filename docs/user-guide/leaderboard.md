@@ -1,12 +1,12 @@
-# Which Model To Use
+# Model Leaderboard
 
 The best models for your application will depend on your specific images and segmentation task. ***We recommend starting by benchmarking several models on a small, representative subset of your data, then fine-tuning the best-performing models as needed***
 
 The results below provide additional guidance by showing how the supported models performed across several representative datasets and segmentation tasks evaluated by the AdaptFM team. 
 
-### BROAD Data Leukemia Cell Line Segmentation
+### Broad Synthetic Leukemia Cell Line
 
-**Note that CellSAM does not support fine-tuning**
+Below is performance of the cell segmentation models on Broad leukemia cell lines:
 
 | Model | Average Dice Score |
 | --- | --- |
