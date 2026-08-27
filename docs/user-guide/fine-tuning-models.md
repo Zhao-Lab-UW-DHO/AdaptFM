@@ -1,6 +1,6 @@
 # AdaptFM Training Module
 
-AdaptFM supports GUI-based fine-tuning/training for various models. 
+AdaptFM supports GUI-based fine-tuning/training for various models. If you are new to training/fine-tuning jump [here](#what-is-trainingfine-tuning). 
 
 ***All image normalization, rescaling, and tokenization are handled by each model according to its native preprocessing pipeline; AdaptFM does not impose additional image preprocessing***
 
@@ -33,3 +33,18 @@ The following models allow for fine-tuning and are supported within AdaptFM:
 6. Click "Run" to launch training. You can continue to monitor progress in the output log. 
 
 ![training-widget](../../asset/training-widget.png)
+
+
+## What is training/fine-tuning?
+
+Training or fine-tuning allows a segmentation model learn to segment objects in your specific type of images. This is helpful when a model does not perform well on your images out-of-the-box. **Before fine-tuning a model in AdaptFM, first assess the model's performance out-of-the-box.** AdaptFM uses the images and annotation you provide as examples for the model to learn from
+
+When making annotations it is important to provide accurate examples of the objects you want the model to find, as well as representative examples of different appearances and challenging cases. For example, if segmenting cells, the training data should include cells of different sizes, shapes, intensities, and degress of overlap. 
+
+### How much training data is needed
+
+There is no universal number of images required for successful fine-tuning/training. The amount of data needed depends on the complexity of the segmentation task, the variability of the images, how different your images are from the model's original training data, quality of the annotations, among other factors. 
+
+As a practical starting point, we recommend beginning with approximately **50-100 representative annotated images**. Some tasks may require fewer, while others might require more. If performance is still insufficient, analyze the types of objects.
+
+More data is not necessarily better if the annotations are repetitive or unrepresentative. A smaller set of high-quality annotations covering the range of objects and image conditions encounterd in your application can be more useful than a much larger set of nearly identical images. Try to include the full spread of diversity in your dataset when making training examples. 
