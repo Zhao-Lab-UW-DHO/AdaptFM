@@ -9,6 +9,7 @@ The results below provide additional guidance by showing how the supported model
 **Note that CellSAM does not support fine-tuning**
 
 | Model | Average Dice Score |
+| --- | --- |
 | nnU-Net (trained) | 0.87 |
 | SSVT (fine-tuned) | 0.77 |
 | MicroSAM (zero-shot) | 0.75 |
