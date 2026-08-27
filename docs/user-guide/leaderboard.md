@@ -23,6 +23,7 @@ The results below provide additional guidance by showing how the supported model
 We evaluated the performance of the microscopy segmentation models on roughly ~3,700 manually counted 3D organoids from confocal microscopy images. Below are the Pearson R values of the predicted model counts to the human counts, along with the slope of the line of best fit
 
 | Model | Pearson R | Slope - line of best fit|
+| --- | --- | --- |
 | nnU-Net (trained) | 0.81 | 0.86 | 
 | SSVT (fine-tuned) | 0.82 | 0.761 | 
 | MicroSAM (zero-shot) | 0.81 | 0.76 | 
@@ -34,6 +35,7 @@ We evaluated the performance of the microscopy segmentation models on roughly ~3
 Using the same image sets, we evaluated how well the models enumerated nuclei with a death marker, a significantly harder task than a traditional nuclear stain. Below are the Pearson R values of the predicted model counts to the human counts, along with the slope of the line of best fit
 
 | Model | Pearson R | Slope - line of best fit|
+| --- | --- | --- |
 | nnU-Net (trained) | 0.54 | 0.57 | 
 | SSVT (fine-tuned) | 0.62 | 0.79 | 
 | MicroSAM (zero-shot) | 0.56 | 0.97 | 
