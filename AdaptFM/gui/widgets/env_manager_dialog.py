@@ -226,28 +226,6 @@ class _EnvCard(QFrame):
         desc.setWordWrap(True)
         outer.addWidget(desc)
 
-        # --- PyTorch swap warning (clickable link → opens config card) ---
-        if spec.requires_pytorch_swap:
-            from AdaptFM.gui.widgets.pytorch_config_widget import PYTORCH_CMD_FILE
-
-            if PYTORCH_CMD_FILE.exists() and PYTORCH_CMD_FILE.read_text().strip():
-                warn_text = (
-                    "⚠  Uses a custom PyTorch build  "
-                    f'<a href="configure" style="color:{_UPDATE_COLOR}; font-size:10px;">'
-                    "change</a>"
-                )
-            else:
-                warn_text = (
-                    f'<span style="color:{_WARNING_COLOR};">⚠  PyTorch not configured</span>  '
-                    f'<a href="configure" style="color:{_UPDATE_COLOR}; font-size:10px;">'
-                    "configure now ↑</a>"
-                )
-            warn = QLabel(warn_text)
-            warn.setOpenExternalLinks(False)
-            warn.setTextInteractionFlags(Qt.TextBrowserInteraction)
-            warn.linkActivated.connect(lambda _: self.pytorch_config_clicked.emit())
-            warn.setStyleSheet("font-size: 10px;")
-            outer.addWidget(warn)
 
         # --- Package version rows (only when installed) ---
         if self._status.is_installed and self._status.packages:

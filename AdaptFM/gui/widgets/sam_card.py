@@ -103,26 +103,6 @@ class SamCard(QFrame):
         desc.setWordWrap(True)
         outer.addWidget(desc)
 
-        if self._requires_pytorch:
-            from AdaptFM.gui.widgets.pytorch_config_widget import PYTORCH_CMD_FILE
-
-            if PYTORCH_CMD_FILE.exists() and PYTORCH_CMD_FILE.read_text().strip():
-                warn_text = (
-                    "⚠  Uses a custom PyTorch build  "
-                    f'<a href="configure" style="color:{_UPDATE_COLOR}; font-size:10px;">change</a>'
-                )
-            else:
-                warn_text = (
-                    f'<span style="color:{_WARNING_COLOR};">⚠  PyTorch not configured</span>  '
-                    f'<a href="configure" style="color:{_UPDATE_COLOR}; font-size:10px;">configure now ↑</a>'
-                )
-            warn = QLabel(warn_text)
-            warn.setOpenExternalLinks(False)
-            warn.setTextInteractionFlags(Qt.TextBrowserInteraction)
-            warn.linkActivated.connect(lambda _: self.pytorch_config_clicked.emit())
-            warn.setStyleSheet("font-size: 10px;")
-            outer.addWidget(warn)
-
         btn_row = QHBoxLayout()
         btn_row.addStretch()
         self._action_btn = QPushButton()
