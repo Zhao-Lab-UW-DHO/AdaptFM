@@ -35,3 +35,7 @@ AdaptFM has 9 distinct modules highlighted below. Click the links for each to le
 AdaptFM is explicitly designed to accommodate new annotation algorithms, segmentation models, pre/postprocessing pipelines, and benchmarks. To learn more about how to add your own algorithms to AdaptFM visit our [customizing AdaptFM](../customizing-adaptfm/index.md) page.
 
 If you would like to add your contribution to our repository, please visit our [contributing](../customizing-adaptfm/contributing.md) page. 
+
+### Model Leaderboard
+
+To see how models have performed on some of our internal datasets, checkout our [leaderboard](leaderboard.md)
