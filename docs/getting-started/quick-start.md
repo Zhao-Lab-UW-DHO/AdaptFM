@@ -2,7 +2,7 @@
 
 Welcome to AdaptFM! This guide covers the fastest way to install the base framework and launch the GUI. 
 
-> **Note:** If you are installing AdaptFM on a custom hardware setup (e.g. with an AMD GPU) or want to use Apptainer/Singularity containers, please skip this page and follow our [Extended Installation](install-details.md).
+**Note:** If you are installing AdaptFM on a custom hardware setup (e.g. with an AMD GPU) or want to use Apptainer/Singularity containers, please skip this page and follow our [Extended Installation](install-details.md).
 
 ---
 
