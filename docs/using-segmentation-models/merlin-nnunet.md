@@ -6,6 +6,8 @@
 
 ***Before using Merlin-nnUNet you must first install the environment and package with AdaptFM's environment manager. This will automatically download the model.***
 
+Per the Merlin [manuscript](https://www.nature.com/articles/s41586-026-10181-8), Merlin-nnUNet is only trained to identify the following structures: stomach, liver, gallbladder, left kidney, right kidney, spleen, prostate, T12 vertebrae, L1 vertebrae, L2 vertebrae, L3 vertebrae, L4 vertebrae, L5 vertebrae, S1 vertebrae, sacrum, urinary bladder, colon, duodenum, small bowel, and pancreas.
+
 ## Using AdaptFM to run Inference with Merlin-nnUNet
 
 ***Importantly Merlin-nnUNet handles all data preprocessing and normalization. The preprocessing and normalizing involve:***
