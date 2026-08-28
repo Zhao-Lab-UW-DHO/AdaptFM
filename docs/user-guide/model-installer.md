@@ -4,7 +4,7 @@ AdaptFM supports a number of external models to perform annotation, fine-tuning,
 
 ***After installing a model or set of models you must restart AdaptFM before they will be usable*** 
 
-Note that for all models except for SSVT, SAM2, and SAM3, a separate conda environment will be created. Due to the size of the models and packages, we recommend only downloading the models you intend to use. The available models are:
+Note that for all models except for SSVT, SAM2, and SAM3, a separate Conda environment will be created. Due to the size of the models and packages, we recommend only downloading the models you intend to use. The available models are:
 
 [Segment Anything 2](../annotating/sam2.md) 
 

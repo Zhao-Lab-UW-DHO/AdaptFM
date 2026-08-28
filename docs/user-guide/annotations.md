@@ -1,6 +1,6 @@
 # AdaptFM's Annotation Widget
 
-You can use the annotation widget within AdaptFM to quickly create labeled data for training or evaluating models. The annotation algorithm supports a number of segmentation algorithms. These algorithms are a starting point. You can use these to get a starting segmentation of the image, and modify it using Napari's built in image editors. 
+You can use the annotation widget within AdaptFM to quickly create labeled data for training or evaluating models. The annotation algorithm supports a number of segmentation algorithms. These algorithms are a starting point. You can use these to get a starting segmentation of the image, and modify it using napari's built in image editors. 
 
 ***These algorithms are intended for annotating images, not performing large-scale automated segmentation. For large-scale segmentation please see the supported foundation models.***
 
@@ -32,7 +32,7 @@ The annotation widget has 4 main parts:
 
 [Sauvola Thresholding 3D](../annotating/sauvola-threshold-3d.md) 
 
-2. **Adjustable Parameters** - When you change models, a set of adjustable parameters will appear in this section. These paraemters will change how the algorithm is applied, and can improve (or worsen) segmentation quality. Use the above links to see how each parameter will impact segmentations. 
+2. **Adjustable Parameters** - When you change models, a set of adjustable parameters will appear in this section. These parameters will change how the algorithm is applied, and can improve (or worsen) segmentation quality. Use the above links to see how each parameter will impact segmentations. 
 
 3. **Run auto-segmentation** - Once you have a selected an algorithm and adjusted parameters, click this button to apply the algorithm **to the image currently opened in Napari**. Importantly, this button is not available in SAM2 and SAM3. Those algorithms allow interactive segmentation (segmentation by clicking or entering a text concept)
 

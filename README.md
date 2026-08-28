@@ -4,7 +4,7 @@
 
 **A GUI Framework for 3D Foundation Model Segmentation, Interactive Image Annotation, and Benchmarking**
 
-[Quick Start Guide](docs/quick-start.md) | [User Guide](docs/user-guide/user-guide.md) | [Demo on Public Data](docs/testing-adaptfm.md) | [Customize AdaptFM](docs/customizing-adaptfm/index.md) | [Documentation](https://adaptfm.readthedocs.io/)
+[Quick Start Guide](https://adaptfm.readthedocs.io/en/latest/getting-started/quick-start.html) | [User Guide](https://adaptfm.readthedocs.io/en/latest/user-guide/user-guide.html) | [Demo on Public Data](https://adaptfm.readthedocs.io/en/latest/user-guide/testing-adaptfm.html) | [Customize AdaptFM](https://adaptfm.readthedocs.io/en/latest/customizing-adaptfm/index.html) | [Documentation](https://adaptfm.readthedocs.io/)
 
 </div>
 
@@ -28,16 +28,16 @@ AdaptFM supports a variety of external foundation models for medical imaging. Th
 
 | Name | Paper | Code | VRAM Recommendations | Original Modality | Pretrained Model Datatype |
 | --- | --- | --- | --- | --- | --- |
-| nnUNet | [Link](https://www.nature.com/articles/s41592-020-01008-z) | [Link](https://github.com/MIC-DKFZ/nnUNet) | [Link](https://github.com/MIC-DKFZ/nnUNet/blob/master/documentation/resenc_presets.md#how-to-use-the-new-presets) | General Biomedical Imaging | N/A |
-| Merlin nnUnet | [Link](https://arxiv.org/abs/2406.06512) | [Link](https://github.com/ashwinkumargb/Merlin-nnUNet) | [Link](https://github.com/MIC-DKFZ/nnUNet/blob/master/documentation/resenc_presets.md#how-to-use-the-new-presets) | CT | CT images with EHR diagnoses and radiology reports |
+| nnUNet | [Link](https://www.nature.com/articles/s41592-020-01008-z) | [Link](https://github.com/MIC-DKFZ/nnUNet) | [Link](https://github.com/MIC-DKFZ/nnUNet/blob/master/documentation/installation_instructions.md#hardware-requirements) - At least 10GB | General Biomedical Imaging | N/A |
+| Merlin nnUnet | [Link](https://arxiv.org/abs/2406.06512) | [Link](https://github.com/ashwinkumargb/Merlin-nnUNet) | [Link](https://github.com/MIC-DKFZ/nnUNet/blob/master/documentation/installation_instructions.md#hardware-requirements) - At least 10GB | CT | CT images with EHR diagnoses and radiology reports |
 | CellSAM | [Link](https://www.biorxiv.org/content/10.1101/2023.11.17.567630v3) | [Link](https://github.com/vanvalenlab/cellsam) | None listed | General Cell Imaging | tissue, cell culture, yeast, H&E and bacteria |
 | SAMMed3D | [Link](https://arxiv.org/abs/2310.15161) | [Link](https://github.com/uni-medical/sam-med3d) | None listed | CT and MRI | organs, tissues, tumors, and blood vessels |
-| CellposeSAM | [Link](https://www.biorxiv.org/content/10.1101/2025.04.28.651001v1) | [Link](https://github.com/MouseLand/cellpose) | None listed | General Cell Imaging | Microbes, cultured cells, human tissues, and cell nuclei |
-| microSAM | [Link](https://www.nature.com/articles/s41592-024-02580-4) | [Link](https://github.com/computational-cell-analytics/micro-sam) | [Link](https://computational-cell-analytics.github.io/micro-sam/micro_sam.html#usage-questions) | Light, electron, and X-ray microscopy (in various models) | Microbes, cells, organoids, organelles, nuclei, and tissues |
+| CellposeSAM | [Link](https://www.biorxiv.org/content/10.1101/2025.04.28.651001v1) | [Link](https://github.com/MouseLand/cellpose) | [Link](https://cellpose.readthedocs.io/en/latest/benchmark.html) - Dependent on pixel size, minimum 10GB | General Cell Imaging | Microbes, cultured cells, human tissues, and cell nuclei |
+| microSAM | [Link](https://www.nature.com/articles/s41592-024-02580-4) | [Link](https://github.com/computational-cell-analytics/micro-sam) | [Link](https://computational-cell-analytics.github.io/micro-sam/micro_sam.html#installation-questions) - At least 8GB | Light, electron, and X-ray microscopy (in various models) | Microbes, cells, organoids, organelles, nuclei, and tissues |
 | BME-X | [Link](https://www.nature.com/articles/s41551-024-01283-7) | [Link](https://github.com/DBC-Lab/Brain_MRI_Enhancement) | None listed | MR Images | Brain |
 | CT-FM | [Link](https://arxiv.org/abs/2501.09001) | [Link](https://github.com/project-lighter/CT-FM) | None listed | CT | Human anatomical structures |
 
-AdaptFM also provides our own foundation model implementing a self-supervised vision transformer: [SSVT Documentation](docs/using-fms/ssvt.md).
+AdaptFM also provides our own foundation model implementing a self-supervised vision transformer: [SSVT Documentation](docs/using-segmentation-models/ssvt.md).
  
 ## <a id="testing-adaptfm"></a>Testing AdaptFM
 
@@ -66,4 +66,4 @@ Use 'include' to specify the dataset you want to download. The folder name shoul
 
 ## <a id="contributing"></a>Contributing
 
-AdaptFM is built to easily integrate new benchmarking metrics, segmentation foundation models, 2D annotation algorithms and more! To contribute these components, check out the [Customizing AdaptFM](docs/customizing-adaptfm/index.md) page which details the kind of contributions that fit seamlessly into AdaptFM. For feature enhancements, bug fixes, and general guidelines, refer to the [Contribution Guide](docs/user-guide/contributing.md).
+AdaptFM is built to easily integrate new benchmarking metrics, segmentation foundation models, 2D annotation algorithms and more! To contribute these components, check out the [Customizing AdaptFM](docs/customizing-adaptfm/index.md) page which details the kind of contributions that fit seamlessly into AdaptFM. For feature enhancements, bug fixes, and general guidelines, refer to the [Contribution Guide](docs/customizing-adaptfm/contributing.md).

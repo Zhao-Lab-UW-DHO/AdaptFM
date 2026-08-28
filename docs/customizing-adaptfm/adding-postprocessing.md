@@ -2,8 +2,8 @@
 
 AdaptFM supports customization/addition of postprocessing algorithms. These algorithms are primarily meant for segmented images (images that have already been segmentation using one of AdaptFM's segmentation models). The steps to adding a new algorithm are:
 
-1. Navigate to AdaptFM > postprocessing > pipelines and create a new file with your postprocessing algorithm
-2. Navigate to AdaptFM > postprocessing > post_proc_spec.py and write a new class that inherits from the PostProcess base class
+1. Navigate to AdaptFM > postprocessing > pipelines and create a new file with your postprocessing algorithm.
+2. Navigate to AdaptFM > postprocessing > post_proc_spec.py and write a new class that inherits from the PostProcess base class.
 3. Use the run_postprocess method to perform any data preprocessing prior to launching the postprocessing script. Be sure the launch the postprocessing pipeline in a subprocess so it doesn't hang on the main AdaptFM.
 
 ```python
@@ -42,7 +42,7 @@ class USegment3DSpec(PostProcess):
 
 ```
 
-4. Navigate to AdaptFM > postprocessing > post_proc_registry.py, import your new class at the top, and add it to the POST_PROC_REGISTRY. If the pipeline needs to run in a separate conda environment, write the path to the conda environment in 'conda_env'. 
+4. Navigate to AdaptFM > postprocessing > post_proc_registry.py, import your new class at the top, and add it to the POST_PROC_REGISTRY. If the pipeline needs to run in a separate Conda environment, write the path to the Conda environment in 'conda_env'. 
     - Be sure to set the module_path to the path to the pipeline 
 
 ```python

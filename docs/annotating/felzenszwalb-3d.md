@@ -1,10 +1,10 @@
 # Felzenszwalb Segmentation (3D)
 
-Felzenszwalb segmentation is an image-processing technique that divides an image into region of pixels that have similar characteristics.  The algorhtm examines neighboring pixels and groups them together when they have similar image characteristics. Regions with larger differences between them are more likely to be separated. 
+Felzenszwalb segmentation is an image-processing technique that divides an image into region of pixels that have similar characteristics. The algorithm examines neighboring pixels and groups them together when they have similar image characteristics. Regions with larger differences between them are more likely to be separated. 
 
-***For 3D images in AdaptFM, the algorithm is applied independently to each 2D slice. The resulting regions from all slices are then combined into the final 3D label image***
+***For 3D images in AdaptFM, the algorithm is applied independently to every 2D slice. The resulting regions from all slices are then combined into the final 3D label image***
 
-## How it works
+## How It Works
 
 The general steps of Felzenszwalb segmentation are:
 

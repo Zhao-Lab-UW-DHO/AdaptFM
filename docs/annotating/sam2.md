@@ -1,37 +1,37 @@
 # Segment Anything 2 (SAM2)
 
-Segment Anything Model 2 is a foundation model developed by [facebook research](https://github.com/facebookresearch/sam2) used for identifying objects in an image. Users can interactively identify objects by clicking on them in individual image slices. Because of its strong performance across numerous domains, we have incorporated SAM2 into AdaptFM so that users can rapidly generate labeled data for model training. SAM2 was designed to allow segmentation in both images and videos. 
+Segment Anything Model 2 is a foundation model developed by [Facebook research](https://github.com/facebookresearch/sam2) used for identifying objects in an image. Users can interactively identify objects by clicking on them in individual image slices. Because of its strong performance across numerous domains, we have incorporated SAM2 into AdaptFM so that users can rapidly generate labeled data for model training. SAM2 was designed to allow segmentation in both images and videos. 
 
-***SAM2 allows users to segment objects in a 2D slice by clicking on them. For 3D images, AdaptFM can either propagate that segmentation through the z-axis by treating the slices like frames in a video (using SAM2's video propagation capability), or independently segment each 2D slice.***
+***SAM2 allows users to segment objects in a 2D slice by clicking on them. For 3D images, AdaptFM can either propagate that segmentation through the z-axis by treating the slices like frames in a video (using SAM2's video propagation capability), or independently segment every 2D slice.***
 
-## How it works
+## How It Works
 
 SAM2 works by following the below steps
 
 1. **Encode image** - this runs the image through the SAM2 model. This will not segment the image directly. It simply 'preps' the image so when a user clicks object they will be segmented. 
-2. **Select objects in a layer** - The user clicks on objects of interest within a 2D image slice. This will automatically generate a segmentations for the objects the user selected 
-3. **Extend the segmentation through the volume (optional)** - Because a 3D image consists of a series of 2D slices, users can choose to propagate teh segmentation across neighboring z-layers. SAM2 treats each z-layer as a separate 'frame' and tracks the selected object as it changes from slice to slice. 
+2. **Select objects in a layer** - The user clicks on objects of interest within a 2D image slice. This will automatically generate a segmentation area for the objects the user selected 
+3. **Extend the segmentation through the volume (optional)** - Because a 3D image consists of a series of 2D slices, users can choose to propagate the segmentation across neighboring z-layers. SAM2 treats each z-layer as a separate 'frame' and tracks the selected object as it changes from slice to slice. 
 4. **Review and refine** - The resulting segmentation can be reviewed and modified by the user as needed.
 
 ## Parameters
 
-Wthin AdaptFM there are several adjustable parameters when using SAM2: 
+Within AdaptFM there are several adjustable parameters when using SAM2: 
 
 1. **Segment click mode** - when checked, clicking on the image will segment objects. Be sure to uncheck if clicking on the image for other reasons. 
-2. **Initialise (encode all slices)** - this will run the image through the SAM2 model. Once the image is encoded you can start segmenting objects in the image. 
+2. **Initialize (encode all slices)** - this will run the image through the SAM2 model. Once the image is encoded you can start segmenting objects in the image. 
 3. **Click Object ID** - the ID of the current object to be segmented 
 4. **Propagate through volume** - once a user is done segmenting objects in a 2D slice, they can select this to extend the segmentation through the volume. This works in coordination with 'propagation_direction' to extend the segmentation 'forward' (higher z layers), 'backward' (lower z layers), or in both directions.
 5. **Reset current object** - Allows users to remove the segmentation with the ID currently in "Click Object ID"
-6. **Reset all** - Allows users to remove all segmentations from the image (across all layers)
-7. **model_size** -  SAM2 has four different base models that users can select, tiny, small, base_plus, and large. Generally speaking, larger models will run slower and use more memory, but should produce better segmentations. **In our experience, it is faster to use a smaller model (i.e. tiny) and manually refine segmentations if needed, rather than using a larger model.**
-8. **propgation_direction** - used with "Propagate through volume". 
+6. **Reset all** - Allows users to remove all segmentation areas from the image (across all layers)
+7. **model_size** - SAM2 has four different base models that users can select, tiny, small, base_plus, and large. Generally speaking, larger models will run slower and use more memory, but should produce better segmentations. **In our experience, it is faster to use a smaller model (i.e. tiny) and manually refine segmentations if needed, rather than using a larger model.**
+8. **propagation_direction** - used with "Propagate through volume". 
     - Both - the segmentation will be extended across z layers in both directions
     - Forward - the segmentation will be extended across higher z layers
     - Backward - the segmentation will only be extended across lower z layers
 9. **score_threshold** - how confident the model should be that a pixel is part of an object. Ranges from -5.0 to 5.0, with a default of 0. 
     - Higher score_threshold - only pixels the model is very confident are part of the object will be included in the segmentation. Setting this too high might cause the model to miss pixels. 
     - Lower score_threshold - the model will include less confident pixels as part of the object. Setting this too low might cause the model to include too many pixels in the object. 
-10. **Multimask_output** - whether or not the model should create multiple segmentations and automatically select the one it is most confident with. The default is False.
+10. **multimask_output** - whether or not the model should create multiple image segmentations and automatically select the one it is most confident with. The default is False.
     - True - SAM2 will generate multiple candidate masks for an object and select the one it is most confident 
     - False - SAM2 will only generate one candidate mask. This is the default and recommended value. 
 11. **GPU** - The GPU you plan to run processing on

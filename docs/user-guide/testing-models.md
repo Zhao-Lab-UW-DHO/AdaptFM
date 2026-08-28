@@ -14,13 +14,13 @@ AdaptFM supports GUI-based inference for 9 segmentation models. The supported mo
 
 [SAM-Med3D](../using-segmentation-models/sammed3d.md) - a deep learning model designed to segment objects in 3D medical images (e.g. CT)
 
-[CTFM](../using-segmentation-models/ctfm.md) - a 3D image-based pre-trained foundation model for a number of radiological segmentation tasks
+[CTFM](../using-segmentation-models/ctfm.md) - a 3D image-based pretrained foundation model for a number of radiological segmentation tasks
 
 [Merlin nnUNet](../using-segmentation-models/merlin-nnunet.md) - a 3D CT segmentation model that is fine-tuned from the [Merlin](https://github.com/StanfordMIMI/Merlin) foundation model.
 
 [CellSAM](../using-segmentation-models/cellsam.md) - is a pretrained foundation model designed to automatically identify and segment cells and other cellular structures in microscopy images.
 
-**Follow instructions in the above links to launch inference for different models.** Model inference follows the same general steps. Begin by selecting "Segmentation Models" --> "Inference" in the top of AdaptFM.
+**Follow instructions in the above links to launch inference for different models.** Model inference follows the same general steps. Begin by selecting "Segmentation Models" –> "Inference" in the top of AdaptFM.
 
 1. Use the 'Model' dropdown to select the model you would like to test.
 2. Under 'Dataset' choose the raw images you would like to predict using the model. Again, use the above links to ensure your images are in the correct format for the model.   

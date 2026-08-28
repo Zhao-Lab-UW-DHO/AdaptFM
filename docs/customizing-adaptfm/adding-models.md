@@ -1,14 +1,23 @@
 # Adding New Models to AdaptFM
 
-Users can add new models for inference or training. There are two main steps outlined below.
+### Model Integration Requirements
+
+AdaptFM is designed to accommodate new segmentation models regardless of their underlying architecture or implementation. To integrate a model, sufficient information must be available to implement and execute its training and inference procedures. At minimum, one of the following is required:
+
+1. Executable training/inference implementation: The model authors provide a training and/or inference script or function that can be executed with specified inputs and outputs.
+2. Sufficient implementation details: If executable code is not provided, the authors provide sufficient documentation describing the training and inference procedures, including required inputs, outputs, preprocessing, model configuration, and relevant training parameters, such that these procedures can be implemented in an external script.
+
+***AdaptFM does not impose or modify model-specific training parameters; it uses the training parameters and defaults defined by the model authors.***
+
+AdaptFM interfaces with models through externally executable training and inference processes. In practice, the integration only requires that AdaptFM be able to construct and launch a script or function that performs training or inference and returns the expected outputs; AdaptFM does not require models to follow a specific internal architecture or software implementation.
 
 ### Creating a New Conda Environment
 
-To avoid version conflicts, AdaptFM requires each model's repo be installed in a separate conda environment. 
+To avoid version conflicts, AdaptFM requires each model's repo be installed in a separate Conda environment. 
 
 Follow the instructions on the model's page for installing it. 
 
-### Defining a new model
+### Defining a New Model
 
 There are two parts to defining training: Creating a new model specification class and writing an API. 
 
@@ -91,7 +100,7 @@ def training_command(self, dataset_info, params, run_dir):
 ```
 
 - Navigate to AdaptFM > model > foundation_models - create a new folder for your model and add train_wrapper.py and inference_wrapper.py files (see AdaptFM > model > foundation_models > cellposeSAM > train_wrapper.py as example for what to include in these scripts). In short, it should call the training or inference function used by your new model.
-- Navigate to AdaptFM > model > registry.py and add your model to the new registry, specifying the path to the conda environment, and train_wrapper.py/inference_wrapper.py files
+- Navigate to AdaptFM > model > registry.py and add your model to the new registry, specifying the path to the Conda environment, and train_wrapper.py/inference_wrapper.py files
 
 ```python
     "CellposeSAM": CellposeSAMSpec(
