@@ -7,8 +7,7 @@ Once you have [installed AdaptFM](../getting-started/quick-start.md) (including 
 ## Download Instructions
 Use 'include' to specify the dataset you want to download. The folder name should have /* at the end to download all contents in the folder. The folder name should be in quotes as below.  
 
-> [!WARNING]
-> The entire test dataset repository is over 100 GB. Make sure you have enough disk space before downloading everything at once, or download only specific dataset folders as needed
+**The entire test dataset repository is over 100 GB. Make sure you have enough disk space before downloading everything at once, or download only specific dataset folders as needed.**
 
 * **Download a specific dataset folder (e.g., BBBC024):**
     ```bash
