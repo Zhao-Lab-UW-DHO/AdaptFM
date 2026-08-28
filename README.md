@@ -4,7 +4,7 @@
 
 **A GUI Framework for 3D Foundation Model Segmentation, Interactive Image Annotation, and Benchmarking**
 
-[Quick Start Guide](docs/quick-start.md) | [User Guide](docs/user-guide/user-guide.md) | [Demo on Public Data](docs/testing-adaptfm.md) | [Customize AdaptFM](docs/customizing-adaptfm/index.md) | [Documentation](https://adaptfm.readthedocs.io/)
+[Quick Start Guide](https://adaptfm.readthedocs.io/en/latest/getting-started/quick-start.html) | [User Guide](https://adaptfm.readthedocs.io/en/latest/user-guide/user-guide.html) | [Demo on Public Data](https://adaptfm.readthedocs.io/en/latest/user-guide/testing-adaptfm.html) | [Customize AdaptFM](https://adaptfm.readthedocs.io/en/latest/customizing-adaptfm/index.html) | [Documentation](https://adaptfm.readthedocs.io/)
 
 </div>
 
@@ -37,7 +37,7 @@ AdaptFM supports a variety of external foundation models for medical imaging. Th
 | BME-X | [Link](https://www.nature.com/articles/s41551-024-01283-7) | [Link](https://github.com/DBC-Lab/Brain_MRI_Enhancement) | None listed | MR Images | Brain |
 | CT-FM | [Link](https://arxiv.org/abs/2501.09001) | [Link](https://github.com/project-lighter/CT-FM) | None listed | CT | Human anatomical structures |
 
-AdaptFM also provides our own foundation model implementing a self-supervised vision transformer: [SSVT Documentation](docs/using-fms/ssvt.md).
+AdaptFM also provides our own foundation model implementing a self-supervised vision transformer: [SSVT Documentation](docs/using-segmentation-models/ssvt.md).
  
 ## <a id="testing-adaptfm"></a>Testing AdaptFM
 
