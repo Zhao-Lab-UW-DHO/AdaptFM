@@ -14,11 +14,14 @@ Welcome to the AdaptFM documentation! AdaptFM is a framework designed for segmen
    :maxdepth: 2
    :caption: User Guide
 
+   user-guide/user-guide
    user-guide/annotations
+   user-guide/preprocessing
    user-guide/testing-models
    user-guide/benchmarking-models
    user-guide/fine-tuning-models
-   user-guide/customizing-adaptfm
+   user-guide/model-installer
+   user-guide/leaderboard
    user-guide/testing-adaptfm
 
 .. toctree::
@@ -51,18 +54,21 @@ Welcome to the AdaptFM documentation! AdaptFM is a framework designed for segmen
 
 .. toctree::
    :maxdepth: 2
-   :caption: Customizing AdaptFM
-
-   customizing-adaptfm/adding-annotation-algorithms
-   customizing-adaptfm/adding-models
-   customizing-adaptfm/custom-benchmarks
-   customizing-adaptfm/contributing
-
-.. toctree::
-   :maxdepth: 2
    :caption: Preprocessing Algorithms
 
    preprocessing/preprocessing_descriptions
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Customizing AdaptFM
+
+   customizing-adaptfm/index
+   customizing-adaptfm/adding-annotation-algorithms
+   customizing-adaptfm/adding-models
+   customizing-adaptfm/adding-preprocessing
+   customizing-adaptfm/adding-postprocessing
+   customizing-adaptfm/custom-benchmarks
+   customizing-adaptfm/contributing
 
 Indices and Tables
 ==================
