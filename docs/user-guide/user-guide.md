@@ -17,7 +17,7 @@ AdaptFM has 9 distinct modules highlighted below. Click the links for each to le
     - [Fine-tuning Segmentation Models](fine-tuning-models.md): Use this to fine-tune an existing foundation model on your data
     - [Running Inference with Segmentation Models](testing-models.md): Use this to test various models on your data
 
-4. [**AdaptFM Postprocessing Module:**](preprocessing.md) This module lets users run various postprocessing algorithms on images after segmentation. These are algorithms primarily designed for segmented images.
+4. [**AdaptFM Postprocessing Module:**](postprocessing.md) This module lets users run various postprocessing algorithms on images after segmentation. These are algorithms primarily designed for segmented images.
 
 5. [**AdaptFM Benchmarking Module:**](benchmarking-models.md) This module lets users objectively compare models' performance against each other and a predefined ground truth.
 
