@@ -1,6 +1,8 @@
 # Model Leaderboard
 
-The best models for your application will depend on your specific images and segmentation task. ***We recommend starting by benchmarking several models on a small, representative subset of your data to test performance. If needed, fine-tune all models, as zero-short performance does not always predict fine-tuned performance.***
+The best models for your application will depend on your specific images and segmentation task.
+
+ ***We recommend starting by benchmarking several models on a small, representative subset of your data to test performance. If needed, fine-tune all models, as zero-short performance does not always predict fine-tuned performance.***
 
 The results below provide additional guidance by showing how the supported models performed across several representative datasets and segmentation tasks evaluated by the AdaptFM team. 
 
