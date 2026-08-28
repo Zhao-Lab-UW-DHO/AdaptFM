@@ -19,11 +19,12 @@ Welcome to the AdaptFM documentation! AdaptFM is a framework designed for segmen
    user-guide/preprocessing
    user-guide/fine-tuning-models
    user-guide/testing-models
+   user-guide/postprocessing
    user-guide/benchmarking-models
    user-guide/model-installer
    user-guide/annotations
    user-guide/leaderboard
-   
+
 .. toctree::
    :maxdepth: 2
    :caption: Using Segmentation Models
@@ -57,6 +58,12 @@ Welcome to the AdaptFM documentation! AdaptFM is a framework designed for segmen
    :caption: Preprocessing Algorithms
 
    preprocessing/preprocessing_descriptions
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Postprocessing Algorithms
+
+   postprocessing/postprocessing_descriptions
 
 .. toctree::
    :maxdepth: 2
