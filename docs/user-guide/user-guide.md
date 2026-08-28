@@ -28,7 +28,7 @@ AdaptFM has 9 distinct modules highlighted below. Click the links for each to le
 
 8. [**AdaptFM Annotation Manager:**](annotations.md) This widget lets users run different segmentation algorithms on images. This is designed to help users quickly create training data and/or ground truth benchmarking data. To run segmentation foundation model training/inference use the Segmentation Models module. 
 
-9. [**AdaptFM Save Widget:**](annotations.md/#adaptfm-save-widget). After creating annotations, save labeled images using the AdaptFM save widget. This saves images in the format needed to launch training
+9. [**AdaptFM Save Widget:**](annotations.md#adaptfm-save-widget). After creating annotations, save labeled images using the AdaptFM save widget. This saves images in the format needed to launch training
 
 # Customizing AdaptFM
 
@@ -38,4 +38,4 @@ If you would like to add your contribution to our repository, please visit our [
 
 ### Model Leaderboard
 
-To see how models have performed on some of our internal datasets, checkout our [leaderboard](leaderboard.md)
+To see how models have performed on some of our internal datasets, check out our [leaderboard](leaderboard.md)
