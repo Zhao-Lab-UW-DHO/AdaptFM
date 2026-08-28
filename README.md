@@ -66,4 +66,4 @@ Use 'include' to specify the dataset you want to download. The folder name shoul
 
 ## <a id="contributing"></a>Contributing
 
-AdaptFM is built to easily integrate new benchmarking metrics, segmentation foundation models, 2D annotation algorithms and more! To contribute these components, check out the [Customizing AdaptFM](docs/customizing-adaptfm/index.md) page which details the kind of contributions that fit seamlessly into AdaptFM. For feature enhancements, bug fixes, and general guidelines, refer to the [Contribution Guide](docs/user-guide/contributing.md).
+AdaptFM is built to easily integrate new benchmarking metrics, segmentation foundation models, 2D annotation algorithms and more! To contribute these components, check out the [Customizing AdaptFM](docs/customizing-adaptfm/index.md) page which details the kind of contributions that fit seamlessly into AdaptFM. For feature enhancements, bug fixes, and general guidelines, refer to the [Contribution Guide](docs/customizing-adaptfm/contributing.md).
