@@ -20,7 +20,7 @@ NVIDIA GPU Driver versions with CUDA >= 12.6 are recommended as older versions a
 
 ---
 
-## 1. Installation
+## Installation
 
 The easiest way to install AdaptFM is with our automated installer in the command line interface of a Linux computer system. Windows 11 Users can install and run [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) within Windows for a Linux system that works with the installer.
 

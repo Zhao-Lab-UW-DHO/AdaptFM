@@ -10,20 +10,4 @@ You can use AdaptFM to run preprocessing algorithms and file conversions on imag
 
 ![preprocessing](../../asset/preprocessing.png)
 
-The AdaptFM preprocessing module currently supports 4 preprocessing algorithms:
-
-1. **ND2 to TIFF Converter**: This algorithm allows users to convert 3D ND2 images to a TIFF file. Many confocal microscopy images are stored as TIFF, while many foundation models require TIFF or other format. 
-
-2. **Normalize TIFF to Range**: This algorithm allows users to normalize their TIFF files to a specified range. **Note that all normalization and preprocessing pipelines are performed by the foundation models. You do not need to run normalization on your data prior. We recommend using only the normalization and preprocessing scheme used in the model.** 
-    - range_min: the new smallest value in your image after normalization
-    - range_max: the new largest value in your image after normalization
-    - axis_integer: Specify the axis (z, y, x) you would like to normalize. Possible values are
-        - 1: z axis
-        - 2: y axis
-        - 3: x axis
-        - None: whole volume
-
-3. **conv_to_uint8:** This algorithm will convert the input directory to a uint8 format by rescaling the values to a range of [0,255]. 
-
-4. **conv_to_bmask:** This algorithm will convert a segmentation mask into a binary mask with values 0 and 1. The input should be uint8. This will convert segmentation labels that are typically read as image layers in Napari to labels layers. 
-
+AdaptFM's preprocessing algorithms are described in detail [in our documentation](../preprocessing/preprocessing_descriptions.md).

@@ -101,7 +101,7 @@ This utility converts object ID or multi-class segmentation masks into a unified
 
 ***Importantly, this process requires your input images to be in `uint8` format. If your data is in a different format (like float), you must first convert the datatype to `uint8` to avoid processing errors.***
 
-## How it works
+## How It Works
 
 The conversion process applies the following steps to process your image data:
 
