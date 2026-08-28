@@ -15,15 +15,15 @@ Welcome to the AdaptFM documentation! AdaptFM is a framework designed for segmen
    :caption: User Guide
 
    user-guide/user-guide
-   user-guide/annotations
+   user-guide/testing-adaptfm
    user-guide/preprocessing
+   user-guide/fine-tuning-models
    user-guide/testing-models
    user-guide/benchmarking-models
-   user-guide/fine-tuning-models
    user-guide/model-installer
+   user-guide/annotations
    user-guide/leaderboard
-   user-guide/testing-adaptfm
-
+   
 .. toctree::
    :maxdepth: 2
    :caption: Using Segmentation Models
