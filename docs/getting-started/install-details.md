@@ -1,5 +1,11 @@
 # Installing AdaptFM
 
+## Quick Start Install
+
+If your system meets the requirements and prerequisites described in the [quickstart guide](quick-start.md), please use that guide to install and launch AdaptFM.
+
+## Install Details
+
 AdaptFM uses multiple Conda environments to manage its install. The environment needed to run AdaptFM built into napari requires the requirements listed in the pyproject.toml at the root of the repository as well as PyTorch (torch and torchvision on PyPI).
 
 AdaptFM's model installer in napari on the backend makes calls to various install scripts found in `<repo_root>/AdaptFM/install` which can be inspected to see the requirements needed to run a particular model. The requirements usually consist of a package install, followed by a PyTorch install, and sometimes a download of an available model checkpoint for inference written to a particular location. For interactive segmentation using SAM2 and SAM3, those install commands are made into the main Conda environment alongside the AdaptFM software.
@@ -30,7 +36,7 @@ cat cellsam_adapt.prefix
 ```
 gives `/home/<username>/<conda install folder>/envs/<env name>`
 
-critically **the names of the conda environments are important** and found in the install script, as the Conda environment name is used in the AdaptFM model registry to recognize the environment to run.
+Critically **the names of the Conda environments are important** and found in the install script, as the Conda environment name is used in the AdaptFM model registry to recognize the environment to run.
 ## Common Installation Issues
 
 Click each issue for its solutions:

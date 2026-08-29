@@ -14,10 +14,10 @@ AdaptFM has 9 distinct modules highlighted below. Click the links for each to le
 2. [**AdaptFM Preprocessing Module:**](preprocessing.md) This widgets lets users optionally run various preprocessing algorithms or file conversions on image data. 
 
 3. **AdaptFM Segmentation Models Module:** This module has two main parts:
-    - [Fine-tuning segmentation models](fine-tuning-models.md): Use this to fine-tune an existing foundation model on your data
-    - [Running Inference with segmentation models](testing-models.md): Use this to test various models on your data
+    - [Fine-tuning Segmentation Models](fine-tuning-models.md): Use this to fine-tune an existing foundation model on your data
+    - [Running Inference with Segmentation Models](testing-models.md): Use this to test various models on your data
 
-4. **AdaptFM Postprocessing Module:** This module lets users run various postprocessing algorithms on images after segmentation. These are algorithms primarily designed for segmented images.
+4. [**AdaptFM Postprocessing Module:**](postprocessing.md) This module lets users run various postprocessing algorithms on images after segmentation. These are algorithms primarily designed for segmented images.
 
 5. [**AdaptFM Benchmarking Module:**](benchmarking-models.md) This module lets users objectively compare models' performance against each other and a predefined ground truth.
 
@@ -28,7 +28,7 @@ AdaptFM has 9 distinct modules highlighted below. Click the links for each to le
 
 8. [**AdaptFM Annotation Manager:**](annotations.md) This widget lets users run different segmentation algorithms on images. This is designed to help users quickly create training data and/or ground truth benchmarking data. To run segmentation foundation model training/inference use the Segmentation Models module. 
 
-9. [**AdaptFM Save Widget:**](annotations.md/#adaptfm-save-widget). After creating annotations, save labeled images using the AdaptFM save widget. This saves images in the format needed to launch training
+9. [**AdaptFM Save Widget:**](annotations.md#adaptfm-save-widget). After creating annotations, save labeled images using the AdaptFM save widget. This saves images in the format needed to launch training
 
 # Customizing AdaptFM
 
@@ -38,4 +38,4 @@ If you would like to add your contribution to our repository, please visit our [
 
 ### Model Leaderboard
 
-To see how models have performed on some of our internal datasets, checkout our [leaderboard](leaderboard.md)
+To see how models have performed on some of our internal datasets, check out our [leaderboard](leaderboard.md)

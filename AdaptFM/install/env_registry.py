@@ -81,11 +81,6 @@ ENV_REGISTRY: list[EnvironmentSpec] = [
                 display_name="Cellpose",
                 update_source="pypi",
             ),
-            PipPackageSpec(
-                import_name="torch",
-                display_name="PyTorch",
-                update_source="pypi",
-            ),
         ],
         docs_url="https://github.com/MouseLand/cellpose",
     ),
@@ -120,11 +115,6 @@ ENV_REGISTRY: list[EnvironmentSpec] = [
         requires_gpu=True,
         pip_packages=[
             PipPackageSpec("nnunetv2", display_name="nnUNet", update_source="pypi"),
-            PipPackageSpec(
-                import_name="torch",
-                display_name="PyTorch",
-                update_source="pypi",
-            ),
         ],
         docs_url="https://github.com/MIC-DKFZ/nnUNet",
     ),
@@ -219,11 +209,6 @@ ENV_REGISTRY: list[EnvironmentSpec] = [
             PipPackageSpec(
                 import_name="u-Segment3D",
                 display_name="u-Segment3D",
-                update_source="pypi",
-            ),
-            PipPackageSpec(
-                import_name="torch",
-                display_name="PyTorch",
                 update_source="pypi",
             ),
         ],
