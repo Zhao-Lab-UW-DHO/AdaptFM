@@ -3,8 +3,9 @@
 [SAM-Med3D](https://github.com/uni-medical/sam-med3d) is a deep learning model designed to segment objects in 3D medical images. It is primarily designed for segmenting 3D MRI, CT, or Ultrasound images. It is a 3D extension of the [Segment Anything Model (SAM)](https://github.com/facebookresearch/segment-anything). SAM-Med3D was trained used ~143,000 3D masks from across 245 categories. 
 
 In AdaptFM, SAM-Med3D can be used in two ways:
-    - **Inference** - You can use SAM-Med3D to predict images in bulk. **Because SAM-Med3D performs promptable segmentation, you must submit images along with 'mask prompt'** [details below](#creating-prompts-for-inference).
-    - **Fine-tuning** - You can adapt the existing SAM-Med3D using your own labeled data so that it can perform better at segmenting a specific structure (e.g. organ) in a certain imaging modality (e.g. MRI, CT, ultrasound)
+    
+- **Inference** - You can use SAM-Med3D to predict images in bulk. **Because SAM-Med3D performs promptable segmentation, you must submit images along with 'mask prompt'** [details below](#creating-prompts-for-inference).
+- **Fine-tuning** - You can adapt the existing SAM-Med3D using your own labeled data so that it can perform better at segmenting a specific structure (e.g. organ) in a certain imaging modality (e.g. MRI, CT, ultrasound)
 
 ***Before using SAM-Med3D you must install the environment and package with AdaptFM's environment manager***
 

@@ -3,8 +3,9 @@
 [Segment Anything for Microscopy](https://github.com/computational-cell-analytics/micro-sam) (MicroSAM), is a deep learning model designed to segment objects in microscopy images. It is based on the [Segment Anything Model (SAM)](https://github.com/facebookresearch/segment-anything). 
 
 In AdaptFM, MicroSAM can be used in two ways:
-    - **Inference** - use the trained MicroSAM model to segment images in bulk.
-    - **Fine-tuning** - Adapt the existing MicroSAM model using your own labeled images so that it performs better on a specific cell type, tissue, imaging modality, or experimental system.
+
+- **Inference** - use the trained MicroSAM model to segment images in bulk.
+- **Fine-tuning** - Adapt the existing MicroSAM model using your own labeled images so that it performs better on a specific cell type, tissue, imaging modality, or experimental system.
 
 ***Before using MicroSAM you must first install the environment and package with AdaptFM's environment manager***
 
