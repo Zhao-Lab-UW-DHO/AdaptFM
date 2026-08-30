@@ -39,7 +39,6 @@ class USegment3DSpec(PostProcess):
 
         post_process_cmd = [
             "python",
-            "-m",
             f"{self.module_path}",
             "--input_dir",
             input_dir,
@@ -73,7 +72,6 @@ class Conv2BinarySpec(PostProcess):
 
         post_process_cmd = [
             "python",
-            "-m",
             f"{self.module_path}",
             "--input_dir",
             input_dir,

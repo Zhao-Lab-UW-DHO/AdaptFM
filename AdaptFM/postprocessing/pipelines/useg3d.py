@@ -64,10 +64,19 @@ def get_all_planes(input_dir: Path):
 
 def run_postprocessing(input_dir: Path, output_dir: Path):
 
-    all_images = get_all_planes(input_dir)
+    for image_obj in Path(input_dir).iterdir():
+        if not image_obj.is_file():
+            continue
 
-    for image_name, planes in all_images.items():
         try:
+
+            image = tiff.imread(image_obj)
+            planes = {
+                "xy": image,
+                "xz": image.transpose(1, 2, 0),
+                "yz": image.transpose(2, 0, 1),
+            }
+
             indirect_aggregation_params = (
                 uSegment3D_params.get_2D_to_3D_aggregation_params()
             )
@@ -94,11 +103,11 @@ def run_postprocessing(input_dir: Path, output_dir: Path):
                 )
             )
 
-            out_path = output_dir / f"{image_name}.tif"
+            out_path = output_dir / f"{image_obj.stem}.tif"
             tiff.imwrite(out_path, segmentation3D)
 
         except Exception as e:
-            print(f"Unable to merge planes on image {image_name}: {e}")
+            print(f"Unable to merge planes on image {image_obj}: {e}")
 
 
 if __name__ == "__main__":

@@ -19,8 +19,8 @@ POSTPROC_REGISTRY = {
         module_path=str(ADAPTFM_POSTPROC_PATH / "pipelines" / "useg3d.py"),
     ),
 
-    "Convert2Binary": Conv2BinarySpec(
-        name="Convert2Binary",
+    "Convert uint8 TIFF data to binary mask (0|1)": Conv2BinarySpec(
+        name="Convert uint8 TIFF data to binary mask (0|1)",
         conda_env=str(Path(sys.prefix)),
         module_path=str(ADAPTFM_POSTPROC_PATH / "pipelines" / "conv2binary.py")
     )
