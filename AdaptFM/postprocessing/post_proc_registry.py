@@ -1,6 +1,7 @@
+import sys
 from pathlib import Path
 
-from AdaptFM.postprocessing.post_proc_spec import USegment3DSpec
+from AdaptFM.postprocessing.post_proc_spec import USegment3DSpec, Conv2BinarySpec
 
 
 def _read_prefix(env: str) -> str | None:
@@ -16,5 +17,12 @@ POSTPROC_REGISTRY = {
         name="USegment3D",
         conda_env=_read_prefix("usegment3d_adapt"),
         module_path=str(ADAPTFM_POSTPROC_PATH / "pipelines" / "useg3d.py"),
+    ),
+
+    "Convert2Binary": Conv2BinarySpec(
+        name="Convert2Binary",
+        conda_env=str(Path(sys.prefix)),
+        module_path=str(ADAPTFM_POSTPROC_PATH / "pipelines" / "conv2binary.py")
     )
+
 }
