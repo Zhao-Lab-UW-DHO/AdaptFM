@@ -112,3 +112,43 @@ The tool pairs and moves your files using the following logical steps:
 5. **Skip unmatched files** - If a label file does not have a corresponding raw image in the output directory, it is simply skipped and left in the input folder.
 
 ---
+
+# Copy TIFF Image Data to 3 Plane Views
+
+This utility converts raw 3D TIFF volumes into orthogonal 2D slice perspectives (`XY`, `XZ`, and `YZ` planes). Extracting multiple orientations allows 2D segmentation algorithms and neural network models to perform inference along different projection axes before fusing predictions back into a consensus 3D volume.
+
+***Importantly, your input images must be 3D volume stacks with dimensions `(Z, Y, X)`. Non-3D files will be flagged and skipped.***
+
+A couple of important points about the multi-view folder structure:
+- Generating orthogonal planes creates three subdirectories under the chosen output directory: `XY_planes/`, `XZ_planes/`, and `YZ_planes/`.
+- Original filenames and file stems are strictly preserved across all plane subdirectories. This stem matching is **required** by downstream consensus fusion (`USegment3D`).
+
+```text
+Multi-View Output Directory
+├── XY_planes - Slicing along Z axis (Z, Y, X orientation)
+│   ├── sample_001.tiff
+│   ├── sample_002.tiff
+│   └── ...
+├── XZ_planes - Slicing along Y axis (Y, Z, X orientation)
+│   ├── sample_001.tiff
+│   ├── sample_002.tiff
+│   └── ...
+└── YZ_planes - Slicing along X axis (X, Z, Y orientation)
+    ├── sample_001.tiff
+    ├── sample_002.tiff
+    └── ...
+```
+
+## How It Works
+
+The tool generates multi-view plane sets through the following sequential steps:
+
+1. **Locate 3D volumes** - The script scans the input directory for all `.tiff` or `.tif` files.
+2. **Validate 3D dimensions** - It reads each volume stack and verifies that the array contains exactly 3 dimensions `(Z, Y, X)`.
+3. **Transpose orthogonal axes** - For every 3D image, it creates three slice stacks:
+   - **XY Stack**: Preserves original volume shape `(Z, Y, X)`.
+   - **XZ Stack**: Transposes array axes to `(Y, Z, X)`.
+   - **YZ Stack**: Transposes array axes to `(X, Z, Y)`.
+4. **Save plane sets** - Automatically creates `XY_planes`, `XZ_planes`, and `YZ_planes` subdirectories inside the output folder and exports each transposed stack using its original filename.
+
+---
