@@ -13,3 +13,20 @@ AdaptFM integrates `u-Segment3D` to allow slice-by-slice 2D predictions along mu
 3. **Indirect Method Configuration** – Fetches default 2D-to-3D aggregation parameters from `segment3D.parameters` and updates the distance transform configuration (`dtform_method`) to use Euclidean Distance Transform (`edt`).
 4. **Consensus Aggregation** – Calls `uSegment3D.aggregate_2D_to_3D_segmentation_indirect_method()` using the three orthogonal 2D segmentation stacks to construct a single aggregated 3D segmentation volume.
 5. **Export** – Saves the resulting 3D segmentation array as a single TIFF volume (`<image_name>.tif`) in the output directory.
+
+# Convert uint8 TIFF Data to Binary Mask (0|1)
+
+This utility converts object ID or multi-class segmentation masks into a unified binary mask. It is particularly useful when you have a mask with multiple distinct objects (e.g., cell instances labeled 1, 2, 3, etc.) or multiple classes, and you need to simplify it into a basic foreground vs. background format (1s and 0s).
+
+***Importantly, this process requires your input images to be in `uint8` format. If your data is in a different format (like float), you must first convert the datatype to `uint8` to avoid processing errors.***
+
+## How It Works
+
+The conversion process applies the following steps to process your image data:
+
+1. **Scan the input directory** - The tool identifies all `.tiff` or `.tif` files in your designated input folder.
+2. **Validate data type** - It checks that each image is strictly formatted as a `uint8` array. If an image is not `uint8`, the process will stop and alert you to run a conversion first. 
+3. **Binarize the mask** - The algorithm looks at every pixel in the image. Any pixel with a value greater than `0` (any foreground label) is converted to `1`. Pixels with a value of `0` (background) remain `0`.
+4. **Save the output** - The newly created binary mask is saved into the output directory using the original filename.
+
+---
