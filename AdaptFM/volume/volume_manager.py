@@ -64,20 +64,20 @@ class VolumeManager:
     # -------------------------
 
     def _load_eager(self, path):
-
-        if path.endswith(".tiff"):
+        path_str = str(path)
+        if path_str.lower().endswith((".tiff", ".tif")):
             return tiff.imread(path)
-        elif path.endswith(".nii.gz"):
-            return sitk.GetArrayFromImage(sitk.ReadImage(path))
+        elif path_str.lower().endswith(".nii.gz"):
+            return sitk.GetArrayFromImage(sitk.ReadImage(path_str))
 
     def _load_lazy(self, path):
-
-        if path.endswith(".tiff"):
+        path_str = str(path)
+        if path_str.lower().endswith((".tiff", ".tif")):
             zarr_store = tiff.imread(path, aszarr=True)
             return da.from_zarr(zarr_store, chunks=self.chunk_size)
 
-        elif path.endswith(".nii.gz"):
-            arr = sitk.GetArrayFromImage(sitk.ReadImage(path))
+        elif path_str.lower().endswith(".nii.gz"):
+            arr = sitk.GetArrayFromImage(sitk.ReadImage(path_str))
             return da.from_array(arr, chunks=self.chunk_size)
 
     def _build_metadata(self, arr):
