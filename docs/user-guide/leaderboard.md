@@ -48,7 +48,7 @@ Using the same image sets, we evaluated how well the models enumerated nuclei wi
 
 ### Performance on imageTBAD aorta segmentation
 
-Using the imageTBAD dataset, we compared performance of CTFM and SAM-Med3D in segmenting the aorta. We excluded Merlin-nnUNet as it is not trained to identify the aorta.
+Using the imageTBAD dataset, we compared performance of CTFM and SAM-Med3D in segmenting the aorta. We excluded Merlin-nnUNet as it is not trained to identify the aorta. We have also excluded BME-X as it is designed for MRI brain segmentations. 
 
 | Model | Average Dice Score |
 | --- | --- |
