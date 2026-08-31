@@ -67,7 +67,7 @@ class Conv2BinarySpec(PostProcess):
     def run_postprocess(self, input_dir, output_dir,gpu):
         
         env = os.environ.copy()
-        if gpu is not None:
+        if gpu is not None: # GPU unused for this algorithm
             env["CUDA_VISIBLE_DEVICES"] = str(gpu)
 
         post_process_cmd = [
