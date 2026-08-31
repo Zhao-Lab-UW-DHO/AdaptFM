@@ -74,9 +74,15 @@ def get_all_planes(input_dir: Path):
     common = set.intersection(*common_sets) if common_sets else set()
 
     if len(common) == 0:
-        raise RuntimeError(
-            f"No matching TIFF files found across active directories: {list(active_dirs.keys())}."
+        dir_summary = "\n".join(
+            f"  - {p.upper()}_planes ({active_dirs[p]}): {len(files)} TIFF file(s) found"
+            for p, files in files_by_plane.items()
         )
+        raise RuntimeError(
+            "Plane Mismatch Error: Active plane directories were found, but they share NO matching TIFF file stems.\n"
+            f"Directory breakdown:\n{dir_summary}\n"
+            "Please ensure corresponding TIFF files across active folders share identical filenames."
+         )
     print(
         f"Found {len(common)} matching files across active plane directories ({', '.join(active_dirs.keys())})."
     )
