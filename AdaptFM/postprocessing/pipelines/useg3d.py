@@ -14,17 +14,47 @@ def get_all_planes(input_dir: Path):
         XY_planes/
         YZ_planes/
         XZ_planes/
-    Each contains TIFF stacks with identical basenames.
+    Each contains TIFF stacks with identical basenames. Missing directories are skipped,
+    and their positions in the output will be populated with empty lists [].
     """
+    plane_dirs = {
+        "xy": input_dir / "XY_planes",
+        "yz": input_dir / "YZ_planes",
+        "xz": input_dir / "XZ_planes",
+    }
 
-    xy_dir = input_dir / "XY_planes"
-    yz_dir = input_dir / "YZ_planes"
-    xz_dir = input_dir / "XZ_planes"
+    active_dirs = {}
+    missing_planes = []
 
-    for d in [xy_dir, yz_dir, xz_dir]:
-        if not d.exists() or not d.is_dir():
-            logging.warning(f"Directory not found: {d}")
-            return {}
+    for plane_name, directory in plane_dirs.items():
+        if directory.exists() and directory.is_dir():
+            logging.info(
+                f"[PLANE FOUND] Located directory for '{plane_name.upper()}_planes': {directory}"
+            )
+            active_dirs[plane_name] = directory
+        else:
+            missing_planes.append(plane_name.upper())
+            logging.warning(
+                f"[PLANE MISSING WARNING] Directory '{directory}' DOES NOT EXIST or is not a directory. "
+                f"Plane perspective '{plane_name.upper()}' will be treated as missing and replaced with an empty list []."
+            )
+
+    if not active_dirs:
+        raise RuntimeError(
+            f"Fatal Error: No valid plane directories (XY_planes, YZ_planes, XZ_planes) "
+            f"were found inside {input_dir}."
+        )
+
+    if missing_planes:
+        logging.warning(
+            f"[REDUCED DIMENSION RUN] Operating with {len(active_dirs)}/3 planes. "
+            f"Missing plane perspective(s): {', '.join(missing_planes)}. "
+            f"If this was unintentional, please check directory naming inside '{input_dir}'."
+        )
+    else:
+        logging.info(
+            "[FULL 3D RUN] All 3 plane directories (XY, YZ, XZ) successfully detected."
+        )
 
     def get_tiff_files(directory: Path):
         return {
@@ -35,28 +65,41 @@ def get_all_planes(input_dir: Path):
             and not f.name.startswith(".")  # hidden files
         }
 
-    xy_files = get_tiff_files(xy_dir)
-    yz_files = get_tiff_files(yz_dir)
-    xz_files = get_tiff_files(xz_dir)
+    files_by_plane = {
+        plane: get_tiff_files(d) for plane, d in active_dirs.items()
+    }
 
-    # Only process images present in all three folders
-    common = set(xy_files) & set(yz_files) & set(xz_files)
+    # Intersect basenames across directories that actually exist
+    common_sets = [set(files.keys()) for files in files_by_plane.values()]
+    common = set.intersection(*common_sets) if common_sets else set()
 
     if len(common) == 0:
-        raise RuntimeError("No files found.")
-    print("Found", len(common), "files.")
+        raise RuntimeError(
+            f"No matching TIFF files found across active directories: {list(active_dirs.keys())}."
+        )
+    print(
+        f"Found {len(common)} matching files across active plane directories ({', '.join(active_dirs.keys())})."
+    )
 
     results = {}
 
     for name in sorted(common):
-        xy_stack = tiff.imread(xy_files[name])
-        yz_stack = tiff.imread(yz_files[name])
-        xz_stack = tiff.imread(xz_files[name])
-
         results[name] = {
-            "xy": np.asarray(xy_stack),
-            "yz": np.asarray(yz_stack),
-            "xz": np.asarray(xz_stack),
+            "xy": (
+                np.asarray(tiff.imread(files_by_plane["xy"][name]))
+                if "xy" in files_by_plane
+                else []
+            ),
+            "yz": (
+                np.asarray(tiff.imread(files_by_plane["yz"][name]))
+                if "yz" in files_by_plane
+                else []
+            ),
+            "xz": (
+                np.asarray(tiff.imread(files_by_plane["xz"][name]))
+                if "xz" in files_by_plane
+                else []
+            ),
         }
 
     return results
@@ -71,22 +114,37 @@ def run_postprocessing(input_dir: Path, output_dir: Path):
             indirect_aggregation_params = (
                 uSegment3D_params.get_2D_to_3D_aggregation_params()
             )
-            indirect_aggregation_params["indirect_method"]["dtform_method"] = "edt"
+            indirect_aggregation_params["indirect_method"]["dtform_method"] = (
+                "edt"
+            )
 
-            assert planes["xy"].ndim == 3, (
-                f"Error, 2D predictions must be 3D (a stack of planes), found dimensions: {planes['xy'].ndim}"
-            )
-            assert planes["xz"].ndim == 3, (
-                f"Error, 2D predictions must be 3D (a stack of planes), found dimensions: {planes['xz'].ndim}"
-            )
-            assert planes["yz"].ndim == 3, (
-                f"Error, 2D predictions must be 3D (a stack of planes), found dimensions: {planes['yz'].ndim}"
-            )
+            # Validate dimensions only for present planes
+            for plane_key in ["xy", "xz", "yz"]:
+                plane_data = planes[plane_key]
+                if isinstance(plane_data, np.ndarray) and plane_data.size > 0:
+                    assert plane_data.ndim == 3, (
+                        f"Error in '{image_name}' [{plane_key.upper()} plane]: "
+                        f"2D predictions must be 3D (a stack of planes), found dimensions: {plane_data.ndim}"
+                    )
+
+            # Determine target 3D XY shape from any present plane stack
+            if isinstance(planes["xy"], np.ndarray) and planes["xy"].size > 0:
+                img_xy_shape = planes["xy"].shape
+            elif isinstance(planes["xz"], np.ndarray) and planes["xz"].size > 0:
+                s = planes["xz"].shape
+                img_xy_shape = (s[1], s[0], s[2])  # Invert XZ transpose mapping
+            elif isinstance(planes["yz"], np.ndarray) and planes["yz"].size > 0:
+                s = planes["yz"].shape
+                img_xy_shape = (s[2], s[0], s[1])  # Invert YZ transpose mapping
+            else:
+                raise ValueError(
+                    f"No valid image arrays found for image '{image_name}' across any plane."
+                )
 
             segmentation3D, (probability3D, gradients3D) = (
                 uSegment3D.aggregate_2D_to_3D_segmentation_indirect_method(
                     segmentations=[planes["xy"], planes["xz"], planes["yz"]],
-                    img_xy_shape=planes["xy"].shape,
+                    img_xy_shape=img_xy_shape,
                     precomputed_binary=None,
                     params=indirect_aggregation_params,
                     savefolder=None,
