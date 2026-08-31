@@ -332,3 +332,46 @@ def copy_files_to_nnunet_inference(input_dir: Path, output_dir: Path, progress_c
     mapping_filepath = output_dir / "filemapping.json"
     with open(mapping_filepath, "w") as f:
         json.dump(file_mapping, f, indent=4)
+
+def create_multiview_planes(
+    input_dir: Path, output_dir: Path, progress_callback=None
+):
+    """Reads 3D TIFF volumes from input_dir and generates transposed XY, XZ,
+    and YZ plane perspective stacks in subdirectories under output_dir for multi-
+    view 2D model inference."""
+    exts = {".tiff", ".tif"}
+    tiff_filepaths = sorted(
+        [x for x in input_dir.glob("*") if x.suffix.lower() in exts]
+    )
+    total_files = len(tiff_filepaths)
+
+    if total_files == 0:
+        raise ValueError(f"No tiff files found in {input_dir}")
+
+    xy_dir = output_dir / "XY_planes"
+    xz_dir = output_dir / "XZ_planes"
+    yz_dir = output_dir / "YZ_planes"
+
+    for d in (xy_dir, xz_dir, yz_dir):
+        d.mkdir(parents=True, exist_ok=True)
+
+    for i, tiff_filepath in enumerate(tiff_filepaths):
+        array = tifffile.imread(tiff_filepath)
+
+        if array.ndim != 3:
+            raise ValueError(
+                f"Expected a 3D volume stack (Z, Y, X) for multi-view generation, "
+                f"but got shape {array.shape} with {array.ndim} dimensions in {tiff_filepath.name}."
+            )
+
+        xy_stack = array
+        xz_stack = array.transpose(1, 0, 2)
+        yz_stack = array.transpose(2, 0, 1)
+
+        tifffile.imwrite(xy_dir / tiff_filepath.name, xy_stack)
+        tifffile.imwrite(xz_dir / tiff_filepath.name, xz_stack)
+        tifffile.imwrite(yz_dir / tiff_filepath.name, yz_stack)
+
+        if progress_callback:
+            percent_complete = int(((i + 1) / total_files) * 100)
+            progress_callback(percent_complete)

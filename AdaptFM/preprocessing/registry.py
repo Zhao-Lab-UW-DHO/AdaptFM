@@ -5,7 +5,8 @@ from AdaptFM.preprocessing.converters import (
     combine_labels_into_image_dir,
     batch_tiff_to_nii,
     batch_nii_to_tiff,
-    copy_files_to_nnunet_inference
+    copy_files_to_nnunet_inference,
+    create_multiview_planes
 )
 
 PREPROC_REGISTRY = {
@@ -16,4 +17,5 @@ PREPROC_REGISTRY = {
     "Scale and convert TIFF data dtype to uint8": conv_to_uint8,
     "Place image labels into image data folder": combine_labels_into_image_dir,
     "Send image data to nnUNet dataset folder": copy_files_to_nnunet_inference,
+    "Copy TIFF image data to 3 plane views": create_multiview_planes,
 }
