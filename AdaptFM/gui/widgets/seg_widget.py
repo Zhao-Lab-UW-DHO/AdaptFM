@@ -185,7 +185,7 @@ class SegmentationWidget:
                     out_dir = str(Path(out_dir).resolve())
 
                 if not out_dir or not Path(out_dir).is_dir():
-                    show_info("You must select an output folder")
+                    show_info("You must select an output folder in the AdaptFM Save Image dock.")
                     return
                 save_images = getattr(self.sm, "selected_save_image", True)
 
