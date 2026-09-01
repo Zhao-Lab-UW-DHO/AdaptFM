@@ -4,6 +4,8 @@ AdaptFM supports GUI-based fine-tuning/training for various models. If you are n
 
 ***All image normalization, rescaling, and tokenization are handled by each model according to its native preprocessing pipeline; AdaptFM does not impose additional image preprocessing***
 
+>**Storage Consideration:** AdaptFM creates model-specific copies of training data; if storage is limited, consider deleting these copies after training has completed.
+
 The following models allow for fine-tuning and are supported within AdaptFM:
 
 [CellposeSAM](../using-segmentation-models/cellposesam.md) - a deep learning model designed to identify and segment cell and other biological structures in microscopy.
