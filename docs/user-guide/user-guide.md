@@ -29,7 +29,7 @@ AdaptFM has 9 distinct modules highlighted below. Click the links for each to le
 8. [**AdaptFM Annotation Manager:**](annotations.md) This widget lets users run different segmentation algorithms on images. This is designed to help users quickly create training data and/or ground truth benchmarking data. To run segmentation foundation model training/inference use the Segmentation Models module. 
 
 9. [**AdaptFM Save Widget:**](annotations.md#adaptfm-save-widget). After creating annotations, save labeled images using the AdaptFM save widget. This saves images in the format needed to launch training
->AdaptFM is not a plugin within Napari, it is built as a standalone application on the Napari viewer. It adds all the above menus and widgets as part of the starting up. 
+>AdaptFM is not a plugin within Napari, it is built as a standalone application on the Napari viewer. It adds all menus and widgets as part of the starting up. 
 
 # Customizing AdaptFM
 
