@@ -159,11 +159,14 @@ class TrainingWidget(ModelWorkflowWidget):
 
         if isinstance(self.model, NNUNetV2ModelSpec):
             # nnUNet: preprocess → train (sequential chain)
-            preprocess_cmd = self.model.preprocessing_command(
+            preprocess_cmd,model_env_extra = self.model.run_preprocessing(
                 dataset_dir=dataset_info,
                 params=params,
                 output_dir=self.output_dir,
             )
+            
+            env_extra.update(model_env_extra)
+
             full_pre_cmd = self.model._wrap_with_conda(preprocess_cmd)
 
             self._run_chain(
