@@ -396,7 +396,7 @@ class ModelWorkflowWidget:
             self._param_progress.setVisible(False)
 
     def _on_model_selected(self, model_name: str, init_flag: bool = False):
-        self.model = MODEL_REGISTRY.get(model_name)
+        self.model = self.registry.get(model_name)
         self._clear_params()
 
         if hasattr(self, "_on_model_changed"):

@@ -74,7 +74,6 @@ class PostProcessingWidget(ModelWorkflowWidget):
 
         post_process_cmd = [
             "python",
-            "-m",
             f"{self.model.module_path}",
             "--input_dir",
             self.dataset_dir,
