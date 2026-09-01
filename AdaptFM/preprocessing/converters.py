@@ -334,11 +334,15 @@ def copy_files_to_nnunet_inference(input_dir: Path, output_dir: Path, progress_c
         json.dump(file_mapping, f, indent=4)
 
 def create_multiview_planes(
-    input_dir: Path, output_dir: Path, progress_callback=None
+    input_dir: Path, output_dir: Path, progress_callback=None,
+    save_xy=True,save_xz=True,save_yz=True
 ):
     """Reads 3D TIFF volumes from input_dir and generates transposed XY, XZ,
     and YZ plane perspective stacks in subdirectories under output_dir for multi-
     view 2D model inference."""
+    if not (save_xy or save_xz or save_yz):
+        raise ValueError("At least one of save_xy, save_xz, or save_yz must be True.")
+    
     exts = {".tiff", ".tif"}
     tiff_filepaths = sorted(
         [x for x in input_dir.glob("*") if x.suffix.lower() in exts]
@@ -368,9 +372,14 @@ def create_multiview_planes(
         xz_stack = array.transpose(1, 0, 2)
         yz_stack = array.transpose(2, 0, 1)
 
-        tifffile.imwrite(xy_dir / tiff_filepath.name, xy_stack)
-        tifffile.imwrite(xz_dir / tiff_filepath.name, xz_stack)
-        tifffile.imwrite(yz_dir / tiff_filepath.name, yz_stack)
+        if save_xy:
+            tifffile.imwrite(xy_dir / tiff_filepath.name, xy_stack)
+
+        if save_xz:
+            tifffile.imwrite(xz_dir / tiff_filepath.name, xz_stack)
+
+        if save_yz:
+            tifffile.imwrite(yz_dir / tiff_filepath.name, yz_stack)
 
         if progress_callback:
             percent_complete = int(((i + 1) / total_files) * 100)
