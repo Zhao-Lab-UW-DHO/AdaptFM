@@ -20,6 +20,8 @@ AdaptFM supports GUI-based inference for 9 segmentation models. The supported mo
 
 [CellSAM](../using-segmentation-models/cellsam.md) - is a pretrained foundation model designed to automatically identify and segment cells and other cellular structures in microscopy images.
 
+***Note: If a model's output is not automatically recognized by AdaptFM as a labels layer, use the AdaptFM [postprocessing](../postprocessing/postprocessing_descriptions.md#convert-uint8-tiff-data-to-binary-mask-01) pipeline to convert it to the proper format***
+
 **Follow instructions in the above links to launch inference for different models.** Model inference follows the same general steps. Begin by selecting "Segmentation Models" –> "Inference" in the top of AdaptFM.
 
 1. Use the 'Model' dropdown to select the model you would like to test.

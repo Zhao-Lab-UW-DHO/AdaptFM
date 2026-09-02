@@ -95,23 +95,6 @@ The tool prepares your dataset for nnUNet inference through the following sequen
 
 ---
 
-# Convert uint8 TIFF Data to Binary Mask (0|1)
-
-This utility converts object ID or multi-class segmentation masks into a unified binary mask. It is particularly useful when you have a mask with multiple distinct objects (e.g., cell instances labeled 1, 2, 3, etc.) or multiple classes, and you need to simplify it into a basic foreground vs. background format (1s and 0s).
-
-***Importantly, this process requires your input images to be in `uint8` format. If your data is in a different format (like float), you must first convert the datatype to `uint8` to avoid processing errors.***
-
-## How It Works
-
-The conversion process applies the following steps to process your image data:
-
-1. **Scan the input directory** - The tool identifies all `.tiff` or `.tif` files in your designated input folder.
-2. **Validate data type** - It checks that each image is strictly formatted as a `uint8` array. If an image is not `uint8`, the process will stop and alert you to run a conversion first. 
-3. **Binarize the mask** - The algorithm looks at every pixel in the image. Any pixel with a value greater than `0` (any foreground label) is converted to `1`. Pixels with a value of `0` (background) remain `0`.
-4. **Save the output** - The newly created binary mask is saved into the output directory using the original filename.
-
----
-
 # Place Image Labels into Image Data Folder
 
 This utility helps organize your datasets by matching isolated label/segmentation files with their corresponding raw image data. It safely moves label files into your main image folder while automatically renaming them so they are easily identifiable as segmentation masks. 
@@ -127,5 +110,45 @@ The tool pairs and moves your files using the following logical steps:
 3. **Rename with a suffix** - If a match is found, the tool prepares to move the label file and automatically appends `_seg` to the end of the filename (e.g., `cell_image.tiff` becomes `cell_image_seg.tiff`).
 4. **Safely move files** - The tool transfers the file to the output directory. It has built-in protections and will abort the move if a file with the same name already exists in the destination, preventing accidental data loss.
 5. **Skip unmatched files** - If a label file does not have a corresponding raw image in the output directory, it is simply skipped and left in the input folder.
+
+---
+
+# Copy TIFF Image Data to 3 Plane Views
+
+This utility converts raw 3D TIFF volumes into orthogonal 2D slice perspectives (`XY`, `XZ`, and `YZ` planes). Extracting multiple orientations allows 2D segmentation algorithms and neural network models to perform inference along different projection axes before fusing predictions back into a consensus 3D volume.
+
+***Importantly, your input images must be 3D volume stacks with dimensions `(Z, Y, X)`. Non-3D files will be flagged and skipped.***
+
+A couple of important points about the multi-view folder structure:
+- Generating orthogonal planes creates three subdirectories under the chosen output directory: `XY_planes/`, `XZ_planes/`, and `YZ_planes/`.
+- Original filenames and file stems are strictly preserved across all plane subdirectories. This stem matching is **required** by downstream consensus fusion (`USegment3D`).
+
+```text
+Multi-View Output Directory
+├── XY_planes - Slicing along Z axis (Z, Y, X orientation)
+│   ├── sample_001.tiff
+│   ├── sample_002.tiff
+│   └── ...
+├── XZ_planes - Slicing along Y axis (Y, Z, X orientation)
+│   ├── sample_001.tiff
+│   ├── sample_002.tiff
+│   └── ...
+└── YZ_planes - Slicing along X axis (X, Z, Y orientation)
+    ├── sample_001.tiff
+    ├── sample_002.tiff
+    └── ...
+```
+
+## How It Works
+
+The tool generates multi-view plane sets through the following sequential steps:
+
+1. **Locate 3D volumes** - The script scans the input directory for all `.tiff` or `.tif` files.
+2. **Validate 3D dimensions** - It reads each volume stack and verifies that the array contains exactly 3 dimensions `(Z, Y, X)`.
+3. **Transpose orthogonal axes** - For every 3D image, it creates three slice stacks:
+   - **XY Stack**: Preserves original volume shape `(Z, Y, X)`.
+   - **XZ Stack**: Transposes array axes to `(Y, Z, X)`.
+   - **YZ Stack**: Transposes array axes to `(X, Z, Y)`.
+4. **Save plane sets** - Automatically creates `XY_planes`, `XZ_planes`, and `YZ_planes` subdirectories inside the output folder and exports each transposed stack using its original filename.
 
 ---
