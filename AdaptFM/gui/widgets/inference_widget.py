@@ -82,7 +82,14 @@ class InferenceWidget(ModelWorkflowWidget):
     # ------------------------------------------------------------------
 
     def _select_checkpoint(self):
-        path, _ = QFileDialog.getOpenFileName(self.widget, "Select model checkpoint")
+        # default dir goes AdaptFM/AdaptFM/gui/widgets/inference_widget.py 
+        # to AdaptFM/checkpoints/
+        default_dir = Path(__file__).resolve().parents[3] / "checkpoints"
+        path, _ = QFileDialog.getOpenFileName(
+            self.widget,
+            "Select model checkpoint",
+            str(default_dir)
+        )
         if path:
             self.checkpoint_path = Path(path)
             self._checkpoint_lbl.setText(str(self.checkpoint_path))
