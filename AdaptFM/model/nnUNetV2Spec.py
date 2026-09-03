@@ -52,27 +52,19 @@ class NNUNetV2ModelSpec(ModelSpec):
     def run_preprocessing(self, dataset_dir, params, output_dir):
 
         output_dir.mkdir(parents=True, exist_ok=True)
-        gpu = params["gpu"]
 
-        env = os.environ.copy()
-        env["nnUNet_raw"] = str(Path(dataset_dir) / "nnUNet_raw")
-        env["nnUNet_preprocessed"] = str(Path(dataset_dir) / "nnUNet_preprocessed")
-        env["nnUNet_results"] = str(Path(dataset_dir) / "nnUNet_results")
-        env["CUDA_VISIBLE_DEVICES"] = str(gpu)
 
-        cmd = self._wrap_with_conda(self.preprocessing_command(params))
+        env_extra = {
+            "nnUNet_raw": str(Path(output_dir) / "nnUNet_raw"),
+            "nnUNet_preprocessed": str(Path(output_dir) / "nnUNet_preprocessed"),
+            "nnUNet_results": str(Path(output_dir) / "nnUNet_results"),
+        }
 
-        process = subprocess.Popen(
-            cmd,
-            stdout=(output_dir / "stdout.log").open(mode="w"),
-            stderr=(output_dir / "stderr.log").open(mode="w"),
-            start_new_session=True,
-            env=env,
-        )
+        cmd = self.preprocessing_command(params)
 
-        return process
+        return cmd,env_extra
 
-    def training_command(self, params):
+    def training_command(self, dataset_info, params, run_dir):
         return [
             "nnUNetv2_train",
             params["Set ID"],
