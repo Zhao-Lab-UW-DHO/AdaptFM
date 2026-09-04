@@ -81,7 +81,7 @@ def main() -> None:
     )
     if ENV_NAME in env_check.stdout:
         print(f"Environment '{ENV_NAME}' already exists — skipping creation.")
-        print("To reinstall from scratch, run:  conda env remove -n CellSAM_adapt")
+        print("To reinstall from scratch, run:  conda env remove -n cellsam_adapt")
         sys.exit(0)
 
     # Read user's custom PyTorch command
