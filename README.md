@@ -17,16 +17,26 @@ Built on napari, AdaptFM is a toolkit for running public 3d segmentation models 
 - Process input and output data 
 
 <div align="center">
-  <img src="asset/AdaptFM_mainfeats.png" alt="AdaptFM Main Features Image" width="100%">
-  <br><br>
   <table>
     <tr>
-      <th align="center">SAM3 Text-Based Annotation</th>
-      <th align="center">SAM2 Click-Based Annotation</th>
+      <th colspan="2" align="center">AdaptFM</th>
     </tr>
     <tr>
-      <td width="50%"><img src="asset/demo_cropped.gif" alt="Segmentation Demo" width="100%"></td>
-      <td width="50%"><img src="asset/SAM2_GIF.gif" alt="SAM2 Demo" width="100%"></td>
+      <td colspan="2" align="center">
+        <img src="asset/AdaptFM_mainfeats.png" alt="AdaptFM Main Features" width="100%">
+      </td>
+    </tr>
+    <tr>
+      <th width="50%" align="center">SAM3 Text-Based Annotation</th>
+      <th width="50%" align="center">SAM2 Click-Based Annotation</th>
+    </tr>
+    <tr>
+      <td width="50%" align="center">
+        <img src="asset/demo_cropped.gif" alt="Segmentation Demo" width="100%">
+      </td>
+      <td width="50%" align="center">
+        <img src="asset/SAM2_GIF.gif" alt="SAM2 Demo" width="100%">
+      </td>
     </tr>
   </table>
 </div>
