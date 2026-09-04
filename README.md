@@ -19,7 +19,7 @@ Built on napari, AdaptFM is a toolkit for running public 3d segmentation models 
 <div align="center">
   <table>
     <tr>
-      <th colspan="2" align="center">AdaptFM</th>
+      <th colspan="2" align="center">AdaptFM Main Widgets</th>
     </tr>
     <tr>
       <td colspan="2" align="center">
