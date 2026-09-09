@@ -12,9 +12,53 @@ AdaptFM's model installer in napari on the backend makes calls to various instal
 
 AdaptFM runs other environments for different models using subprocess such as `conda run -p <path_to_the_model_conda_environment> python <path_to_the_model_running_script.py>` or as a module call (with python -m).
 
-## Manual Installation
+## Windows Installation
 
-Following the install scripts as described above with allow you to install the environments required to run models in AdaptFM. Other than installing the required packages including PyTorch, AdaptFM will write the Conda environment location in a `.prefix` file within a subdirectory of the home directory found with `echo "$HOME/.adaptfm/"` in one file per environment.
+You can use AdaptFM on Windows in 2 ways:
+
+1. Through Windows Subsystem For Linux (Recommended)
+2. [Native Windows](#manual-installation-native-windows)
+
+***The best way to use AdaptFM on Windows systems is with [Windows Subsystem For Linux 2](https://learn.microsoft.com/en-us/windows/wsl/install). Certain AdaptFM features (e.g. SAM2 and SAM3) require a linux system. Installation on Native Windows is possible, but not recommended, as these core features will not be available.***
+
+Use the above link with step-by-step instructions on installing WSL2. Briefly, it involves running the below command as an adminstrator from the PowerShell command line
+
+```
+wsl --install
+```
+
+Once you have succesfully installed WSL2, you can use our installer script to install AdaptFM
+
+**Clone the repository and install**
+```bash
+git clone https://github.com/Zhao-Lab-UW-DHO/AdaptFM.git
+cd AdaptFM
+chmod +x install.sh launch.sh
+bash install.sh
+```
+Then, launch with `bash launch.sh`.
+
+## Manual Installation (Native Windows)
+
+You can follow the below steps to install AdaptFM on native Windows. While this option is available we recommend using WSL2 for AdaptFM, as some AdaptFM features require a linux system and will be unavailable in native Windows.
+
+To manually install AdaptFM, use the below code block:
+
+```
+conda create --name AdaptFM python=3.12 -y
+conda activate AdaptFM
+git clone https://github.com/Zhao-Lab-UW-DHO/AdaptFM.git
+cd AdaptFM
+pip install -e .
+```
+
+Then, since PyTorch must be installed based on the Compute Platform of your own system: find [on the PyTorch local installation helper](https://pytorch.org/get-started/locally/) the `pip3 install` command with Linux, Pip, Python, and the Compute Platform of your GPU (typically found by looking at the CUDA Version of `nvidia-smi`) selected. Copy and paste the PyTorch `pip3 install` command when prompted from running:  
+```bash
+adaptfm-set-pytorch
+``` 
+This will install PyTorch into AdaptFM as well as save the hardware specific install for use in automatic installation of External Models.
+
+Following the install scripts as described above will allow you to install the environments required to run models in AdaptFM. Other than installing the required packages including PyTorch, AdaptFM will write the Conda environment location in a `.prefix` file within a subdirectory of the home directory found with `echo "$HOME/.adaptfm/"` in one file per environment.
 
 For example, listing the AdaptFM directory after the model installer makes an install of multiple models with:
 ```bash
