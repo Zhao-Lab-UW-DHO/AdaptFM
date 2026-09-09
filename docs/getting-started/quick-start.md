@@ -31,6 +31,6 @@ cd AdaptFM
 chmod +x install.sh launch.sh
 bash install.sh
 ```
-Then, from the main AdaptFM folder, start the program by running `bash launch.sh` 
+Then, from the main AdaptFM folder, start the program by running `bash launch.sh`. The launch script ensures AdaptFM starts from the correct working location.
 
 Once AdaptFM is installed and working, check out the [User Guide](../user-guide/user-guide.md).
