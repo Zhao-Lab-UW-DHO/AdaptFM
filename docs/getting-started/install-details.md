@@ -6,7 +6,7 @@ If your system meets the requirements and prerequisites described in the [quicks
 
 ## Install Details
 
-AdaptFM uses multiple Conda environments to manage its install. The environment needed to run AdaptFM built into napari requires the requirements listed in the pyproject.toml at the root of the repository as well as PyTorch (torch and torchvision on PyPI).
+AdaptFM uses multiple Conda environments to manage its install. The environment needed to run the main AdaptFM GUI system built into napari requires the requirements listed in the pyproject.toml at the root of the repository as well as PyTorch (torch and torchvision on PyPI preferably with GPU install described [on the PyTorch local installation helper](https://pytorch.org/get-started/locally/)).
 
 AdaptFM's model installer in napari on the backend makes calls to various install scripts found in `<repo_root>/AdaptFM/install` which can be inspected to see the requirements needed to run a particular model. The requirements usually consist of a package install, followed by a PyTorch install, and sometimes a download of an available model checkpoint for inference written to a particular location. For interactive segmentation using SAM2 and SAM3, those install commands are made into the main Conda environment alongside the AdaptFM software.
 
@@ -17,9 +17,9 @@ AdaptFM runs other environments for different models using subprocess such as `c
 You can use AdaptFM on Windows in 2 ways:
 
 1. Through Windows Subsystem For Linux (Recommended)
-2. [Native Windows](#manual-installation-native-windows)
+2. [Native Windows](#manual-installation) - to install, it is the same steps as our manual installation instructions
 
-***The best way to use AdaptFM on Windows systems is with [Windows Subsystem For Linux 2](https://learn.microsoft.com/en-us/windows/wsl/install). Certain AdaptFM features (e.g. SAM2 and SAM3) require a linux system. Installation on Native Windows is possible, but not recommended, as these core features will not be available.***
+***The best way to use AdaptFM on a Windows systems is with [Windows Subsystem For Linux 2](https://learn.microsoft.com/en-us/windows/wsl/install). Certain AdaptFM features (e.g. SAM2 and SAM3) require a linux system. Installation on Native Windows is possible, but not recommended, as these core features will not be available.***
 
 Use the above link with step-by-step instructions on installing WSL2. Briefly, it involves running the below command as an adminstrator from the PowerShell command line
 
@@ -36,11 +36,11 @@ cd AdaptFM
 chmod +x install.sh launch.sh
 bash install.sh
 ```
-Then, launch with `bash launch.sh`.
+Then, from the main AdaptFM folder (), start the program by running `bash launch.sh` 
 
-## Manual Installation (Native Windows)
+## Manual Installation
 
-You can follow the below steps to install AdaptFM on native Windows. While this option is available we recommend using WSL2 for AdaptFM, as some AdaptFM features require a linux system and will be unavailable in native Windows.
+You can follow the below steps to install AdaptFM on native Windows or to install AdaptFM manually on a different system. While this option is available we recommend using WSL2 for AdaptFM, as some AdaptFM features require a linux system and will be unavailable in native Windows.
 
 To manually install AdaptFM, use the below code block:
 
@@ -57,6 +57,12 @@ Then, since PyTorch must be installed based on the Compute Platform of your own 
 adaptfm-set-pytorch
 ``` 
 This will install PyTorch into AdaptFM as well as save the hardware specific install for use in automatic installation of External Models.
+
+To launch AdaptFM on native Windows, navigate to the AdaptFM folder and run:
+
+```
+python -m AdaptFM.dev_launch
+```
 
 Following the install scripts as described above will allow you to install the environments required to run models in AdaptFM. Other than installing the required packages including PyTorch, AdaptFM will write the Conda environment location in a `.prefix` file within a subdirectory of the home directory found with `echo "$HOME/.adaptfm/"` in one file per environment.
 
@@ -103,6 +109,16 @@ When opening an image: OpenGL error attempted to retrieve context when no valid 
 
 We found this issue when testing AdaptFM on Windows Subsystem for Linux and believe it to be a catch-all error pointing to the graphics pipeline from WSL to Windows being quite fragile. Enforcing qt6 with QT_API=pyqt6 on WSL fixes this issue on our system, but we have not found a solution that fixes this error for use of the apptainer/Singularity container in WSL.
 </details>
+
+<details>
+<summary>
+ModuleNotFoundError: No module named 'AdaptFM'
+</summary>
+<br/>
+ 
+This happens when the AdaptFM code repository is not in the PYTHONPATH environment variable which is used by python to search when importing modules. To fix this, ensure that AdaptFM is launched from the root of the AdaptFM repository, e.g. running `ls` or `dir` should show the files `pyproject.toml` and `launch.sh` as well as folders `AdaptFM` and `docs`.
+</details>
+
 
 ## Running AdaptFM in a Container
 
