@@ -25,6 +25,7 @@ from qtpy.QtWidgets import (
     QTextEdit,
     QVBoxLayout,
     QWidget,
+    QSizePolicy,
 )
 
 from AdaptFM.gui.widgets.metrics_widget import MetricRegistry
@@ -327,7 +328,7 @@ class BenchmarkWidget:
         row.addWidget(lbl, stretch=1)
 
         btn = QPushButton("Browse…")
-        btn.setFixedWidth(80)
+        btn.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         btn.setStyleSheet(_secondary_btn_style())
         btn.clicked.connect(slot)
 
