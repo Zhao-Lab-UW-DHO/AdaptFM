@@ -16,9 +16,30 @@ Built on napari, AdaptFM is a toolkit for running public 3d segmentation models 
 - Add new models or annotation algorithms
 - Process input and output data 
 
-| SAM3 Text-Based Annotation | SAM2 Click-Based Annotation |
-| :---: | :---: |
-| ![Segmentation Demo](asset/demo_cropped.gif) | ![SAM2 Demo](asset/SAM2_GIF.gif) |
+<div align="center">
+  <table>
+    <tr>
+      <th colspan="2" align="center">AdaptFM Main Widgets</th>
+    </tr>
+    <tr>
+      <td colspan="2" align="center">
+        <img src="asset/AdaptFM_mainfeats.png" alt="AdaptFM Main Features" width="100%">
+      </td>
+    </tr>
+    <tr>
+      <th width="50%" align="center">SAM3 Text-Based Annotation</th>
+      <th width="50%" align="center">SAM2 Click-Based Annotation</th>
+    </tr>
+    <tr>
+      <td width="50%" align="center">
+        <img src="asset/demo_cropped.gif" alt="Segmentation Demo" width="100%">
+      </td>
+      <td width="50%" align="center">
+        <img src="asset/SAM2_GIF.gif" alt="SAM2 Demo" width="100%">
+      </td>
+    </tr>
+  </table>
+</div>
 
 > If you encounter installation errors, broken package dependencies, or other problems please open an [Issue](https://github.com/Zhao-Lab-UW-DHO/AdaptFM/issues).
 
