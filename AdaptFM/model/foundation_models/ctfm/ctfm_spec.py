@@ -105,6 +105,7 @@ class CTFMSpec(FoundationModelSpec):
             "class_labels", [f"class_{i}" for i in range(1, out_channels)]
         )
         loss_fn = params.get("loss_fn")
+        dataset_csv = run_dir / "dataset.csv"
 
 
         # Raw label values in the source masks, in the order they map to
@@ -266,6 +267,12 @@ class CTFMSpec(FoundationModelSpec):
             ]
 
         # ── 1. vars — declared wholesale to prevent partial merge wiping base vars ──
+        cwd = Path.cwd()
+        adaptfm_dir = str((cwd / "AdaptFM").resolve())
+
+        # ── Set top-level Lighter project root ──────────────────────────────────────
+        self.nested_set(override, ["project"], adaptfm_dir)
+
         self.nested_set(
             override,
             ["vars"],
@@ -288,7 +295,7 @@ class CTFMSpec(FoundationModelSpec):
                 "percentage": 100,
                 # Required by base config expressions even though we override save/cache dir
                 "name": params.get("name", "ctfm_finetune"),
-                "project": params.get("project", "adaptfm"),
+                "project": adaptfm_dir,
                 "wandb_group": params.get("wandb_group", "finetune"),
                 "group": "v2",
                 "format": "lighter",
@@ -473,6 +480,9 @@ class CTFMSpec(FoundationModelSpec):
         )
 
         output_file = str(run_dir / "override.yaml")
+
+        print(f'Output File: {output_file}')
+
         with Path(output_file).open("w") as f:
             yaml.safe_dump(override, f, default_flow_style=False, sort_keys=False)
 
@@ -482,6 +492,10 @@ class CTFMSpec(FoundationModelSpec):
         cwd = Path.cwd()
 
         ctfm_root = (cwd.parent / "CT-FM").resolve()
+
+        self.build_override_yaml(
+            params, run_dir, dataset_csv=None, dataset_dir=dataset_dir
+        )
 
         return [
             "lighter",
