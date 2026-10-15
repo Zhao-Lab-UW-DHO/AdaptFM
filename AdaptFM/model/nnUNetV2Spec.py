@@ -142,7 +142,7 @@ class NNUNetV2ModelSpec(ModelSpec):
 
         raise ValueError(f"No nnUNet dataset folder found in path: {path}")
 
-    def parse_trainer_name(path):
+    def parse_trainer_name(self,path):
         parts = Path(path).parts
 
         for p in reversed(parts):
@@ -172,7 +172,7 @@ class NNUNetV2ModelSpec(ModelSpec):
             )
 
         params["Set ID"], params["Set Name"] = self.parse_dataset_name(dataset_dir)
-        params["trainer"] = self.parse_trainer_name(dataset_dir)
+        params["trainer"] = self.parse_trainer_name(checkpoint)
 
         env_extra = {
             "nnUNet_raw": str(Path(nnunet_base) / "nnUNet_raw"),
