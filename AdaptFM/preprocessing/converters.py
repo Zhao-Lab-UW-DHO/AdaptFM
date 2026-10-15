@@ -8,6 +8,7 @@ import SimpleITK as sitk
 from pathlib import Path
 import json
 import re
+import random
 
 def nd2_to_tiff_converter(input_dir: Path, output_dir: Path, progress_callback=None):
     """
@@ -380,6 +381,65 @@ def create_multiview_planes(
 
         if save_yz:
             tifffile.imwrite(yz_dir / tiff_filepath.name, yz_stack)
+
+        if progress_callback:
+            percent_complete = int(((i + 1) / total_files) * 100)
+            progress_callback(percent_complete)
+
+
+def define_train_validation_sets(
+    input_dir: Path,
+    output_dir: Path,
+    split: float = 0.8,
+    seed: int | None = 42,
+    progress_callback=None,
+):
+    """Splits TIFF files (or multi-view plane folders) into training and validation sets.
+
+    Args:
+        input_dir (Path): Source directory containing images or multi-view plane subdirectories.
+        output_dir (Path): Output directory where 'train' and 'val' subdirectories will be created.
+        split (float): Ratio of data allocated to training set (e.g., 0.8 for 80% train / 20% val).
+        seed (int | None, optional): Random seed for reproducible splitting. Defaults to 42.
+        progress_callback (callable, optional): Callback receiving completion percentage (0-100).
+    """
+    if not (0.0 < split < 1.0):
+        raise ValueError(
+            f"Split ratio must be strictly between 0.0 and 1.0, but got: {split}"
+        )
+
+    exts = {".tiff", ".tif"}
+    all_files = sorted(
+        [p for p in input_dir.rglob("*") if p.is_file() and p.suffix.lower() in exts]
+    )
+
+    if not all_files:
+        all_files = sorted([p for p in input_dir.rglob("*") if p.is_file()])
+
+    if not all_files:
+        raise ValueError(f"No valid files found in {input_dir}")
+
+    # Group by unique filename so multi-view planes (XY, XZ, YZ) of the same volume
+    # are assigned to the same split set, preventing data leakage across train/val.
+    unique_filenames = sorted({p.name for p in all_files})
+
+    rng = random.Random(seed)
+    rng.shuffle(unique_filenames)
+
+    num_train = int(len(unique_filenames) * split)
+    train_filenames = set(unique_filenames[:num_train])
+
+    train_dir = output_dir / "train"
+    val_dir = output_dir / "val"
+
+    total_files = len(all_files)
+    for i, file_path in enumerate(all_files):
+        rel_path = file_path.relative_to(input_dir)
+        dest_dir = train_dir if file_path.name in train_filenames else val_dir
+        dest_path = dest_dir / rel_path
+
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(file_path, dest_path)
 
         if progress_callback:
             percent_complete = int(((i + 1) / total_files) * 100)
