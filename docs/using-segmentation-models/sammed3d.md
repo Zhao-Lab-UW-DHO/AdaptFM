@@ -90,3 +90,4 @@ As with other AdaptFM models, you must prepare your data with the below steps be
     - accumulation_steps - Number of training steps whose gradients are accumulated before updating the model, allowing an effectively larger batch size.
     - lr - Controls how strongly the model's weights are adjusted during each training update.
     - weight_decay - Regularization that discourages overly complex model weights and can help reduce overfitting.
+    - loss_fn - loss function used during training. Since this is a classification task, you can use any of the classification losses listed [here](https://monai.readthedocs.io/en/1.4.0/losses.html#). Default is DiceCELoss

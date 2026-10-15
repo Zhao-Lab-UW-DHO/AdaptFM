@@ -200,7 +200,7 @@ def main():
             probs = torch.sigmoid(logits)
 
             loss_dice = dice_loss(probs, masks)
-            loss_bce = bce(logits, masks)
+            loss_bce = criterion(logits, masks)
             loss = 0.5 * loss_dice + 0.5 * loss_bce
 
             loss.backward()
