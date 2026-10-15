@@ -60,7 +60,7 @@ def main():
         print("no model_type provided, defaulting to vit_b_lm")
         params["model_type"] = "vit_b_lm"
 
-    if params['loss_fn'] is not "":
+    if params['loss_fn'] != "":
 
 
         train_sam(
