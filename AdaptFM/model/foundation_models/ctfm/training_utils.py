@@ -73,6 +73,7 @@ def launch_training(
     learning_rate: float = 0.0002,
     num_workers: int = 8,
     cache_dir: str = str(Path.cwd() / "cache_dir"),
+    loss_fn: str = 'DiceCELoss'
 ):
 
     return

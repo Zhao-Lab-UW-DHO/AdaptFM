@@ -35,6 +35,11 @@ class NNUNetV2ModelSpec(ModelSpec):
                 "type": str,
                 "default": "all",
             },
+
+            "trainer":{
+                "type":str,
+                "default": "nnUNetTrainer"
+            }
         }
 
     def prepare_dataset(self, dataset_manager, output_dir, params):
@@ -73,7 +78,7 @@ class NNUNetV2ModelSpec(ModelSpec):
             "-p",
             "nnUNetPlans",
             "-tr",
-            "nnUNetTrainer",
+            params['trainer'],
             "--npz",
         ]
 
@@ -137,6 +142,16 @@ class NNUNetV2ModelSpec(ModelSpec):
 
         raise ValueError(f"No nnUNet dataset folder found in path: {path}")
 
+    def parse_trainer_name(path):
+        parts = Path(path).parts
+
+        for p in reversed(parts):
+            if "__" in p:
+                trainer_name = p.split("__")[0]
+                return trainer_name
+
+        raise ValueError(f"No trainer folder found in {path}")
+
     def dataset_is_inside_raw(self, dataset_dir, nnunet_base) -> bool:
         """
         Check that dataset_dir is somewhere inside nnUNet_raw.
@@ -157,6 +172,7 @@ class NNUNetV2ModelSpec(ModelSpec):
             )
 
         params["Set ID"], params["Set Name"] = self.parse_dataset_name(dataset_dir)
+        params["trainer"] = self.parse_trainer_name(dataset_dir)
 
         env_extra = {
             "nnUNet_raw": str(Path(nnunet_base) / "nnUNet_raw"),
@@ -191,7 +207,7 @@ class NNUNetV2ModelSpec(ModelSpec):
             "-p",
             "nnUNetPlans",  # use as default plans
             "-tr",
-            "nnUNetTrainer",  # default trainer
+            params['trainer'],  # default trainer
             "-chk",
             ckpt_name,  # use the best checkpoint by default
         ]
