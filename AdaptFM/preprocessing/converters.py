@@ -387,6 +387,21 @@ def create_multiview_planes(
             progress_callback(percent_complete)
 
 
+
+def get_base_key(filename: str) -> str:
+    """Strips file extension and trailing '_seg' to group image-mask pairs together."""
+    name = filename
+    # Remove compound or standard extensions
+    for ext in (".nii.gz", ".tiff", ".tif", ".nii", ".png"):
+        if name.lower().endswith(ext):
+            name = name[: -len(ext)]
+            break
+    # Remove _seg suffix if present
+    if name.lower().endswith("_seg"):
+        name = name[:-4]
+    return name
+
+
 def define_train_validation_sets(
     input_dir: Path,
     output_dir: Path,
@@ -394,21 +409,18 @@ def define_train_validation_sets(
     seed: int | None = 42,
     progress_callback=None,
 ):
-    """Splits TIFF files (or multi-view plane folders) into training and validation sets.
+    """Splits images and segmentation masks into training and validation sets.
 
-    Args:
-        input_dir (Path): Source directory containing images or multi-view plane subdirectories.
-        output_dir (Path): Output directory where 'train' and 'val' subdirectories will be created.
-        split (float): Ratio of data allocated to training set (e.g., 0.8 for 80% train / 20% val).
-        seed (int | None, optional): Random seed for reproducible splitting. Defaults to 42.
-        progress_callback (callable, optional): Callback receiving completion percentage (0-100).
+    Ensures that files sharing the same base identifier (differing only by '_seg'
+    or extension) remain together in the same split.
     """
     if not (0.0 < split < 1.0):
         raise ValueError(
             f"Split ratio must be strictly between 0.0 and 1.0, but got: {split}"
         )
 
-    exts = {".tiff", ".tif"}
+    # Include .gz and .nii so .nii.gz files are gathered properly
+    exts = {".tiff", ".tif", ".nii", ".gz"}
     all_files = sorted(
         [p for p in input_dir.rglob("*") if p.is_file() and p.suffix.lower() in exts]
     )
@@ -419,15 +431,14 @@ def define_train_validation_sets(
     if not all_files:
         raise ValueError(f"No valid files found in {input_dir}")
 
-    # Group by unique filename so multi-view planes (XY, XZ, YZ) of the same volume
-    # are assigned to the same split set, preventing data leakage across train/val.
-    unique_filenames = sorted({p.name for p in all_files})
+    # Group by base key so image.tiff, image_seg.tiff, and image_seg.nii.gz share the same split
+    unique_keys = sorted({get_base_key(p.name) for p in all_files})
 
     rng = random.Random(seed)
-    rng.shuffle(unique_filenames)
+    rng.shuffle(unique_keys)
 
-    num_train = int(len(unique_filenames) * split)
-    train_filenames = set(unique_filenames[:num_train])
+    num_train = int(len(unique_keys) * split)
+    train_keys = set(unique_keys[:num_train])
 
     train_dir = output_dir / "train"
     val_dir = output_dir / "val"
@@ -435,7 +446,9 @@ def define_train_validation_sets(
     total_files = len(all_files)
     for i, file_path in enumerate(all_files):
         rel_path = file_path.relative_to(input_dir)
-        dest_dir = train_dir if file_path.name in train_filenames else val_dir
+        base_key = get_base_key(file_path.name)
+
+        dest_dir = train_dir if base_key in train_keys else val_dir
         dest_path = dest_dir / rel_path
 
         dest_path.parent.mkdir(parents=True, exist_ok=True)
