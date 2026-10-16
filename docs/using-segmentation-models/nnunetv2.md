@@ -29,7 +29,7 @@ To train an nnUNet model in AdaptFM, you must prepare your data with the below s
         - 3d_fullres - processed the image at higher resolution to preserve fine anatomical or cellular detail
         - 3d_lowres - processed a downsampled version of the image, allowing the model to see a larger portion of the 3D volume at once, but with less fine detail
     - fold - which training split should be used for training and validation. We recommend leaving this as 'all' when doing training, especially if you plan to benchmark results against other models. Valid values are 'all', or an integer between 0–4.
-    - trainer - the nnUNetTrainer you would like to use. You can use different trainers to change the network architecture, learning rate scheduler, number of epochs. A full list of standard trainers can be found [here](https://github.com/MIC-DKFZ/nnUNet/tree/master/nnunetv2/training/nnUNetTrainer/variants). To train only certain layers of your network, follow the instructions [below](#training-specific-layers) 
+    - trainer - the nnUNetTrainer you would like to use. You can use different trainers to change the network architecture, learning rate scheduler, number of epochs. A full list of standard trainers can be found [here](https://github.com/MIC-DKFZ/nnUNet/tree/master/nnunetv2/training/nnUNetTrainer/variants). To train only certain layers of your network, follow the instructions [below](#fine-tuning-specific-layers) 
 
 A couple of important points about the below folder structure
     - The below structure is **required** by nnUNet.
