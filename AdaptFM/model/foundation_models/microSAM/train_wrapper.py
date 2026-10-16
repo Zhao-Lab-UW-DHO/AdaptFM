@@ -67,6 +67,7 @@ def main():
         n_epochs=as_int(params["n_epochs"]),
         n_objects_per_batch=as_int(params["n_objects_per_batch"]),
         with_segmentation_decoder=as_bool(params["with_segmentation_decoder"]),
+        freeze=params['freeze'],
         device="cuda",
     )
 
