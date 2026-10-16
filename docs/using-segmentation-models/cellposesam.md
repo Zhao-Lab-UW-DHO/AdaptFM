@@ -50,4 +50,5 @@ As with other AdaptFM models, you must prepare your data with the below steps be
     - save_path: Where you would like to save the trained model
     - save_every: Integer value. After how many epochs would you like to save the model
     - save_each: True or False. Save the network with a different filename every time it is saved
+    - n_layers_to_unfreeze - specify the number of model layers you would like to unfreeze during fine-tuning. By default all layers will be unfrozen.
 7. Once you are ready you can select "Run" to begin training the model. You can monitor output in the "Output Log" section. If at any point you would like to stop training simply click the "Terminate" button.

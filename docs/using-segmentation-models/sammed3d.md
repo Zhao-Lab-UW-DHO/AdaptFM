@@ -90,3 +90,5 @@ As with other AdaptFM models, you must prepare your data with the below steps be
     - accumulation_steps - Number of training steps whose gradients are accumulated before updating the model, allowing an effectively larger batch size.
     - lr - Controls how strongly the model's weights are adjusted during each training update.
     - weight_decay - Regularization that discourages overly complex model weights and can help reduce overfitting.
+    - n_layers_to_unfreeze - specify the number of model layers you would like to unfreeze during fine-tuning. By default all layers will be unfrozen.
+
