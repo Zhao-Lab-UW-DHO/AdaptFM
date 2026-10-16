@@ -47,6 +47,18 @@ class FoundationModelSpec(ModelSpec):
                 "You must first install the environment with the environment manager before using."
             )
 
+        if self.name != 'microSAM' and self.name !="CTFM":
+            unfreeze_snippet = """
+    params.setdefault(
+        "n_layers_to_unfreeze",
+        {
+            "default": 0,
+            "type": "int"
+        }
+    )"""
+        else:
+            unfreeze_snippet=""
+
         code = f"""
     import importlib, inspect, json, sys, io
 
@@ -70,13 +82,7 @@ class FoundationModelSpec(ModelSpec):
 
     
         
-    params.setdefault(
-    "n_layers_to_unfreeze",
-    {{
-        "default": 0,
-        "type": "int"
-    }}
-    )    
+    {unfreeze_snippet} 
 
     print(json.dumps(params),end='')
     """
