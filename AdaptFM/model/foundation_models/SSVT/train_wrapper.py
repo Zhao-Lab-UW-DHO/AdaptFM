@@ -40,6 +40,17 @@ def as_bool(x):
         return x
     return str(x).lower() in ("1", "true", "yes", "y")
 
+def unfreeze_last_n_modules(model: torch.nn.Module, n: int):
+    # Step 1: Freeze all parameters
+    for param in model.parameters():
+        param.requires_grad = False
+        
+    # Step 2: Unfreeze the last N child modules
+    children = list(model.children())
+    for child in children[-n:]:
+        for param in child.parameters():
+            param.requires_grad = True
+
 
 # -----------------------------
 # Load pretrained encoder + decoder
@@ -56,6 +67,7 @@ def train_SSVT(
     weight_decay=1e-4,
     unfreeze_epoch=100,
     total_epochs=500,
+    n_layers_to_unfreeze=0,
 ):
     return
 
@@ -74,6 +86,8 @@ def main():
 
     ckpt_path = params["ckpt_path"]
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    n_layers_to_unfreeze=int(params['n_layers_to_unfreeze'])
 
     encoder = ViTEncoder3D(patch_size=(2, 16, 16), embed_dim=768, depth=8, num_heads=8)
     state_dict = torch.load(ckpt_path, map_location=device)
@@ -139,6 +153,10 @@ def main():
     # Training Loop with conditional unfreeze
     # -----------------------------
     bce = torch.nn.BCEWithLogitsLoss()
+
+    if n_layers_to_unfreeze > 0:
+
+        unfreeze_last_n_modules(model.decoder,n=n_layers_to_unfreeze)
 
     for epoch in range(as_int(params["unfreeze_epoch"])):
         model.train()
