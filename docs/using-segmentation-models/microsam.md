@@ -110,3 +110,5 @@ and at line 322, remove:
 ```python
 instance_seg_loss = torch_em.loss.DiceBasedDistanceLoss(mask_distances_in_bg=True)
 ```
+
+4. You can now specify loss_fn to be any of the loss functions listed [here](https://constantinpape.github.io/torch-em/torch_em/loss.html)
