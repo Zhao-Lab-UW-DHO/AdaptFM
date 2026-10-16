@@ -68,6 +68,16 @@ class FoundationModelSpec(ModelSpec):
             "type": "str"  # mark everything as string
         }}
 
+    
+        
+    params.setdefault(
+    "n_layers_to_unfreeze",
+    {{
+        "default": 0,
+        "type": "int"
+    }}
+    )    
+
     print(json.dumps(params),end='')
     """
         code = textwrap.dedent(code)
