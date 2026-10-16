@@ -68,6 +68,14 @@ class FoundationModelSpec(ModelSpec):
             "type": "str"  # mark everything as string
         }}
 
+    params.setdefault(
+    "loss_fn",
+    {{
+        "default": "",
+        "type": "str"
+    }}
+    )
+
     print(json.dumps(params),end='')
     """
         code = textwrap.dedent(code)

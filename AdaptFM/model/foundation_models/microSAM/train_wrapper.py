@@ -17,6 +17,8 @@ def main():
     label_paths = json.loads(args.label_paths)
     params = json.loads(args.params)
 
+    
+
     # Build dataloaders INSIDE the MicroSAM environment
     train_loader = default_sam_loader(
         raw_paths=raw_paths,
@@ -58,7 +60,24 @@ def main():
         print("no model_type provided, defaulting to vit_b_lm")
         params["model_type"] = "vit_b_lm"
 
-    train_sam(
+    if params['loss_fn'] != "":
+
+
+        train_sam(
+            name=str(params["name"]),
+            save_root=args.out,
+            model_type=str(params["model_type"]),
+            train_loader=train_loader,
+            val_loader=val_loader,
+            n_epochs=as_int(params["n_epochs"]),
+            n_objects_per_batch=as_int(params["n_objects_per_batch"]),
+            with_segmentation_decoder=as_bool(params["with_segmentation_decoder"]),
+            device="cuda",
+            loss_fn = str(params['loss_fn'])
+        )
+
+    else:
+        train_sam(
         name=str(params["name"]),
         save_root=args.out,
         model_type=str(params["model_type"]),
@@ -67,8 +86,7 @@ def main():
         n_epochs=as_int(params["n_epochs"]),
         n_objects_per_batch=as_int(params["n_objects_per_batch"]),
         with_segmentation_decoder=as_bool(params["with_segmentation_decoder"]),
-        device="cuda",
-    )
+        device="cuda")
 
 
 if __name__ == "__main__":
