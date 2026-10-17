@@ -908,3 +908,160 @@ class BMEXSpec(FoundationModelSpec):
             start_new_session=True,
             env=env,
         )
+
+
+
+class LoRASpec(FoundationModelSpec):
+    def __init__(
+        self,
+        name,
+        conda_env,
+        module_path,
+        training_wrapper_path,
+        inference_wrapper_path,
+        training_function,
+    ):
+        super().__init__(
+            name,
+            conda_env,
+            module_path,
+            training_wrapper_path,
+            inference_wrapper_path,
+            training_function,
+        )
+
+    def prepare_dataset(self, dataset_manager, output_dir, params):
+        import random
+
+        train_raw_images = output_dir / "train_raw_images"
+        train_mask_images = output_dir / "train_mask_images"
+
+        train_raw_images.mkdir(parents=True, exist_ok=True)
+        train_mask_images.mkdir(parents=True, exist_ok=True)
+
+        val_raw_images = output_dir / "val_raw_images"
+        val_mask_images = output_dir / "val_mask_images"
+
+        val_raw_images.mkdir(parents=True, exist_ok=True)
+        val_mask_images.mkdir(parents=True, exist_ok=True)
+
+        samples = dataset_manager.samples.copy()
+        random.shuffle(samples)
+
+        split_idx = int(0.8 * len(samples))
+        train_samples = samples[:split_idx]
+        test_samples = samples[split_idx:]
+
+        def copy_samples(samples, raw_images, mask_images):
+
+            for s in samples:
+                base_name = Path(s["image"]).stem  # no suffix
+
+                img_out = raw_images / f"{base_name}.tiff"
+                mask_out = mask_images / f"{base_name}_seg.tiff"
+
+                shutil.copy(s["image"], img_out)
+                shutil.copy(s["mask"], mask_out)
+
+        copy_samples(train_samples, train_raw_images, train_mask_images)
+        copy_samples(test_samples, val_raw_images, val_mask_images)
+
+
+        return {
+            "train_raw_images": train_raw_images,
+            "train_mask_images": train_mask_images,
+            "val_raw_images": val_raw_images,
+            "val_mask_images": val_mask_images,
+        }
+
+    def training_command(self, dataset_info, params, run_dir):
+        """
+        SSVT training is Python API–based, not CLI-based.
+        So we call a small wrapper script inside the env.
+        """
+
+        if params['model_env'] != 'AdaptFM':
+            self.conda_env = self._read_prefix(params['model_env'])
+
+        return [
+            "python",
+            f"{self.training_wrapper_path}",
+            "--train_raw_images",
+            str(dataset_info["train_raw_images"]),
+            "--train_mask_images",
+            str(dataset_info["train_mask_images"]),
+            "--val_raw_images",
+            str(dataset_info["val_raw_images"]),
+            "--val_mask_images",
+            str(dataset_info["val_mask_images"]),
+            "--output_path",
+            run_dir,
+            "--params",
+            json.dumps(params),
+        ]
+
+    # -------- Execution --------
+    def run_training(self, dataset_info, params, run_dir):
+        run_dir.mkdir(parents=True, exist_ok=True)
+
+        with (Path(run_dir) / "params.json").open("w") as f:
+            json.dump(params, f, indent=4)
+
+        gpu = params.pop("gpu", None)
+        env = os.environ.copy()
+        if gpu is not None:
+            env["CUDA_VISIBLE_DEVICES"] = str(gpu)
+
+        training_cmd = self.training_command(dataset_info, params, run_dir)
+
+        cmd = self._wrap_with_conda(training_cmd)
+
+        subprocess.Popen(
+            cmd,
+            stdout=(run_dir / "stdout.log").open(mode="w"),
+            stderr=(run_dir / "stderr.log").open(mode="w"),
+            start_new_session=True,
+            env=env,
+        )
+
+    def inference_command(self, dataset_dir, checkpoint, output_dir):
+        """
+        SSVT training is Python API–based, not CLI-based.
+        So we call a small wrapper script inside the env.
+        """
+
+        return [
+            "python",
+            f"{self.inference_wrapper_path}",
+            "--test_dir",
+            str(dataset_dir),
+            "--output_path",
+            str(output_dir),
+            "--checkpoint",
+            str(checkpoint),
+        ]
+
+    def run_inference(self, dataset_dir, checkpoint, output_dir, params):
+
+        gpu = params.pop("gpu", None)
+        env = os.environ.copy()
+        if gpu is not None:
+            env["CUDA_VISIBLE_DEVICES"] = str(gpu)
+
+        inference_cmd = self.inference_command(
+            dataset_dir=dataset_dir, checkpoint=checkpoint, output_dir=output_dir
+        )
+
+        cmd = self._wrap_with_conda(inference_cmd)
+
+        subprocess.Popen(
+            cmd,
+            stdout=(output_dir / "stdout.log").open(mode="w"),
+            stderr=(output_dir / "stderr.log").open(mode="w"),
+            start_new_session=True,
+            env=env,
+        )
+
+    def _read_prefix(self,env: str) -> str | None:
+        p = Path.home() / ".adaptfm" / f"{env}.prefix"
+        return p.read_text().strip() if p.exists() else None
