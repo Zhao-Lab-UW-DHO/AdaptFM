@@ -32,6 +32,7 @@ def save_lora_checkpoint(
     model_env: str,
     is_3D: bool,
     target_size: tuple,
+    ckpt_path: str,
     lora_config: dict):
 
     save_dir = Path(output_dir)
@@ -41,6 +42,7 @@ def save_lora_checkpoint(
                 "model_env": model_env,
                 "is_3D": is_3D,
                 "target_size": list(target_size),
+                "ckpt_path": ckpt_path,
                 "lora_config":lora_config
             }
 
@@ -901,6 +903,7 @@ def main():
     model_env=model_env,
     is_3D=is_3D,
     target_size=target_size,
+    ckpt_path= ckpt_path,
     lora_config=lora_config)
 
 
