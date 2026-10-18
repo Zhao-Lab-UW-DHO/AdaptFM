@@ -14,8 +14,6 @@ from torch.utils.data import Dataset
 import random
 import math
 import torch
-import torch.nn as nn
-
 
 def train_LoRA(
     ckpt_path: str = None,
@@ -28,6 +26,34 @@ def train_LoRA(
 ):
     return
 
+def save_lora_checkpoint(
+    output_dir: str,
+    model: torch.nn.Module,
+    model_env: str,
+    is_3D: bool,
+    target_size: tuple,
+    lora_config: dict):
+
+    save_dir = Path(output_dir)
+    save_dir.mkdir(parents=True, exist_ok=True)
+        
+    config = {
+                "model_env": model_env,
+                "is_3D": is_3D,
+                "target_size": list(target_size),
+                "lora_config":lora_config
+            }
+
+    with open(output_dir / "adapter_config.json", "w) as f:
+        json.dump(config, f, indent=4)
+
+    trainable_state_dict = {
+        k: v.cpu() for k,v in model.state_dict().items() if v.requires_grad
+    }
+
+    torch.save(trainable_state_dict, save_path / "adapter_model.pt")
+    print(f"Model saved to {save_path}")
+    return
 
 def read_tiff(path: Path):
     """
@@ -41,12 +67,7 @@ def read_tiff(path: Path):
 
     return volume # , (sz, sy, sx)
 
-import json
-from pathlib import Path
-import tifffile
-import torch
-import torch.nn.functional as F
-from torch.utils.data import Dataset
+
 
 
 class ImageMaskDataset(Dataset):
@@ -860,14 +881,27 @@ def main():
         epoch_loss = running_loss / len(train_loader)
         print(f"Epoch [{epoch + 1}/{epochs}] - Loss: {epoch_loss:.4f}")
 
-    # 6. Save LoRA weights
-    os.makedirs(args.output_path, exist_ok=True)
-    lora_state_dict = {
-        k: v for k, v in model.state_dict().items() if "lora_" in k
-    }
-    save_file = os.path.join(args.output_path, "lora_weights.pt")
-    torch.save(lora_state_dict, save_file)
-    print(f"LoRA weights successfully saved to {save_file}")
+    # 6. Save adapter model with configuration
+
+    lora_config = {
+                        "lora_config":
+                          
+                        {
+                            "lora_r": lora_r ,
+                            "lora_alpha": lora_alpha,
+                            "lora_dropout": lora_dropout,
+                            "target_modules"; target_modules
+                            
+                        }
+                     }
+
+    save_lora_checkpoint(
+    output_dir= args.output_path,
+    model=model,
+    model_env=model_env,
+    is_3D=is_3D,
+    target_size=target_size,
+    lora_config=lora_config)
 
 
 if __name__ == "__main__":
