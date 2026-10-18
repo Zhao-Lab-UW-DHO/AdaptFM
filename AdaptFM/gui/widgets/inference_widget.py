@@ -15,7 +15,7 @@ Flow
 from __future__ import annotations
 
 from pathlib import Path
-
+import json
 from qtpy.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
@@ -37,7 +37,8 @@ from AdaptFM.gui.widgets.model_widget import (
     _section_label,
 )
 from AdaptFM.model.nnUNetV2Spec import NNUNetV2ModelSpec
-
+from AdaptFM.model.fmSpec import LoRASpec
+from AdaptFM.model.registry import _read_prefix
 
 class InferenceWidget(ModelWorkflowWidget):
     WINDOW_TITLE = "Inference"
@@ -114,6 +115,26 @@ class InferenceWidget(ModelWorkflowWidget):
         conda_env = (
             Path(self.model.conda_env) if self.model.conda_env is not None else None
         )
+
+        if isinstance(self.model,LoRASpec):
+            
+            weights_file = Path(self.checkpoint_path)
+            config_file = weights_file.parent/ "adapter_config.json"
+
+            if not config_file.exists() or not weights_file.exists():
+                raise FileNotFoundError(
+                    f"Missing required checkpoint files in {weights_file.parent}"
+                )
+
+            # 1. Read configuration metadata
+            with open(config_file, "r") as f:
+                config = json.load(f)
+
+            
+            if config["model_env"].lower() != "adaptfm":
+
+                conda_env = Path(_read_prefix(config["model_env"]))
+
         if (
             conda_env is None or not conda_env.is_dir()
         ):  # none comes first else err on the dircheck

@@ -10,7 +10,7 @@ import tifffile as tiff
 
 from AdaptFM.model.model_spec import ModelSpec
 from AdaptFM.model.model_utils import normalize_to_uint8
-
+from AdaptFM.install.env_inspector import _conda_envs
 
 class FoundationModelSpec(ModelSpec):
     def __init__(
@@ -976,12 +976,13 @@ class LoRASpec(FoundationModelSpec):
 
     def training_command(self, dataset_info, params, run_dir):
         """
-        SSVT training is Python API–based, not CLI-based.
+        LoRA training is Python API–based, not CLI-based.
         So we call a small wrapper script inside the env.
         """
 
-        if params['model_env'] != 'AdaptFM':
+        if params['model_env'].lower() != "adaptfm":
             self.conda_env = self._read_prefix(params['model_env'])
+
 
         return [
             "python",
@@ -1026,9 +1027,23 @@ class LoRASpec(FoundationModelSpec):
 
     def inference_command(self, dataset_dir, checkpoint, output_dir):
         """
-        SSVT training is Python API–based, not CLI-based.
+        LoRA training is Python API–based, not CLI-based.
         So we call a small wrapper script inside the env.
         """
+
+        weights_file = Path(checkpoint)
+        config_file = weights_file.parent/ "adapter_config.json"
+
+        if not config_file.exists() or not weights_file.exists():
+            raise RuntimeError(
+            f"Missing required checkpoint files in {checkpoint.parent}"
+            )
+
+        with open(config_file, "r") as f:
+            config = json.load(f)
+        
+        if config['model_env'].lower() != "adaptfm":
+            self.conda_env = self._read_prefix(config['model_env'])
 
         return [
             "python",

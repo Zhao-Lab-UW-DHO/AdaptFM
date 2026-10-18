@@ -5,15 +5,13 @@ import os
 from pathlib import Path
 import torch
 import torch.nn as nn
-from PIL import Image
 from torch.utils.data import DataLoader, Dataset
-from torchvision import transforms
 import tifffile
 import torch.nn.functional as F
 from torch.utils.data import Dataset
-import random
 import math
-import torch
+
+
 
 def train_LoRA(
     ckpt_path: str = None,
@@ -22,40 +20,16 @@ def train_LoRA(
     lora_alpha=16,
     lora_dropout=0,
     epochs=500,
+    patch_size="",
+    batch_size:int=1,
+    num_workers:int=1,
+    learning_rate:float=1e-4,
+    weight_decay:float=1e-2,
     model_env=""
 ):
     return
 
-def save_lora_checkpoint(
-    output_dir: str,
-    model: torch.nn.Module,
-    model_env: str,
-    is_3D: bool,
-    target_size: tuple,
-    ckpt_path: str,
-    lora_config: dict):
 
-    save_dir = Path(output_dir)
-    save_dir.mkdir(parents=True, exist_ok=True)
-        
-    config = {
-                "model_env": model_env,
-                "is_3D": is_3D,
-                "target_size": list(target_size),
-                "ckpt_path": ckpt_path,
-                "lora_config":lora_config
-            }
-
-    with open(output_dir / "adapter_config.json", "w) as f:
-        json.dump(config, f, indent=4)
-
-    trainable_state_dict = {
-        k: v.cpu() for k,v in model.state_dict().items() if v.requires_grad
-    }
-
-    torch.save(trainable_state_dict, save_path / "adapter_model.pt")
-    print(f"Model saved to {save_path}")
-    return
 
 def read_tiff(path: Path):
     """
@@ -69,109 +43,38 @@ def read_tiff(path: Path):
 
     return volume # , (sz, sy, sx)
 
+def save_lora_checkpoint(
+    output_dir: str,
+    model: torch.nn.Module,
+    model_env: str,
+    is_3d: bool,
+    target_size: tuple,
+    ckpt_path: str,
+    lora_config: dict):
+
+    save_dir = Path(output_dir)
+    save_dir.mkdir(parents=True, exist_ok=True)
+        
+    config = {
+                "model_env": model_env,
+                "is_3d": is_3d,
+                "target_size": list(target_size),
+                "ckpt_path": ckpt_path,
+                "lora_config":lora_config
+            }
+
+    with open(save_dir / "adapter_config.json", "w") as f:
+        json.dump(config, f, indent=4)
+
+    trainable_state_dict = {
+        k: v.cpu() for k,v in model.state_dict().items() if v.requires_grad
+    }
+
+    torch.save(trainable_state_dict, save_dir / "adapter_model.pt")
+    print(f"Model saved to {save_dir}")
+    return
 
 
-
-class ImageMaskDataset(Dataset):
-    """Dataset that pairs raw images with `_seg` masks and ensures all tensors
-
-    in a batch have matching shapes and channel counts.
-    """
-
-    def __init__(self, raw_dir, mask_dir, target_size=(256, 256), is_3d=False):
-        self.raw_dir = Path(raw_dir)
-        self.mask_dir = Path(mask_dir)
-        self.target_size = target_size
-        self.is_3d = is_3d  # Set to True if model accepts 3D volumes (C, D, H, W)
-
-        self.pairs = []
-        raw_files = sorted(
-            [
-                p
-                for p in self.raw_dir.iterdir()
-                if p.is_file() and not p.name.startswith(".")
-            ]
-        )
-
-        for raw_path in raw_files:
-            mask_stem = f"{raw_path.stem}_seg"
-            mask_candidates = list(self.mask_dir.glob(f"{mask_stem}.*"))
-
-            if mask_candidates:
-                self.pairs.append((raw_path, mask_candidates[0]))
-            else:
-                exact_mask = self.mask_dir / raw_path.name
-                if exact_mask.exists():
-                    self.pairs.append((raw_path, exact_mask))
-
-        if not self.pairs:
-            raise RuntimeError(
-                f"No matching raw/mask pairs found between {raw_dir} and {mask_dir}"
-            )
-
-    def __len__(self):
-        return len(self.pairs)
-
-    def _process_array(self, arr, is_mask=False):
-        tensor = torch.from_numpy(arr).float()
-
-        if not self.is_3d:
-            # 2D Model Target Shape: (C, H, W)
-            if tensor.ndim == 2:
-                tensor = tensor.unsqueeze(0)  # (H, W) -> (1, H, W)
-            elif tensor.ndim == 3:
-                # If shape is (H, W, C) where channels are last
-                if tensor.shape[-1] in (1, 3, 4):
-                    tensor = tensor.permute(2, 0, 1)  # -> (C, H, W)
-                # If shape is a 3D volume stack (Z, H, W), take max projection or middle slice
-                else:
-                    if is_mask:
-                        tensor = tensor[tensor.shape[0] // 2].unsqueeze(
-                            0
-                        )  # Middle slice
-                    else:
-                        tensor = tensor.max(dim=0)[0].unsqueeze(
-                            0
-                        )  # Max intensity projection
-
-            # Interpolate spatial dimensions to (target_H, target_W)
-            mode = "nearest" if is_mask else "bilinear"
-            tensor = F.interpolate(
-                tensor.unsqueeze(0),  # (1, C, H, W)
-                size=self.target_size,  # e.g., (256, 256)
-                mode=mode,
-                align_corners=False if mode != "nearest" else None,
-            ).squeeze(0)
-
-        else:
-            # 3D Volumetric Model Target Shape: (C, D, H, W)
-            if tensor.ndim == 3:
-                tensor = tensor.unsqueeze(0)  # (D, H, W) -> (1, D, H, W)
-            elif tensor.ndim == 4 and tensor.shape[-1] in (1, 3, 4):
-                tensor = tensor.permute(3, 0, 1, 2)  # (D, H, W, C) -> (C, D, H, W)
-
-            # Interpolate all 3 spatial/depth dimensions to (target_D, target_H, target_W)
-            mode = "nearest" if is_mask else "trilinear"
-            tensor = F.interpolate(
-                tensor.unsqueeze(0),  # (1, C, D, H, W)
-                size=self.target_size,  # e.g., (32, 256, 256)
-                mode=mode,
-                align_corners=False if mode != "nearest" else None,
-            ).squeeze(0)
-
-        return tensor
-
-    def __getitem__(self, idx):
-        raw_path, mask_path = self.pairs[idx]
-
-        raw_arr = tifffile.imread(raw_path)
-        mask_arr = tifffile.imread(mask_path)
-
-        raw_tensor = self._process_array(raw_arr, is_mask=False)
-        mask_tensor = self._process_array(mask_arr, is_mask=True)
-
-        return raw_tensor, mask_tensor
-    
 def freeze_parameters(model):
     for param in model.parameters():
         param.requires_grad=False
@@ -186,14 +89,11 @@ def load_model_with_architecture(model_env:str,ckpt_path:str,device):
         model = models.CellposeModel(gpu=True)
         model.net = freeze_parameters(model.net)
 
-        is_3D = False
-        return model.net,is_3D
+        is_3d = False
+        return model.net,is_3d
     
     elif 'micro-sam' in model_env.lower(): #tested
         import types
-        import torch
-        import torch.nn as nn
-        import torch.nn.functional as F
 
 
         class MicroSamAdapter(nn.Module):
@@ -267,22 +167,22 @@ def load_model_with_architecture(model_env:str,ckpt_path:str,device):
         model.load_state_dict(model_dict["state_dict"])
         model = model.to(device)
         model = freeze_parameters(model)
-        is_3D=True
-        return model,is_3D
+        is_3d=True
+        return model,is_3d
 
     elif 'sammed3d' in model_env.lower(): #NEEDS TESTING
         model = torch.load(ckpt_path,map_location=device,weights_only=False)
         model= model.to(device)
-        is_3D=True
-        return model,is_3D
+        is_3d=True
+        return model,is_3d
     
     elif 'cellsam' in model_env.lower(): #tested
         from cellSAM import get_model
         model = get_model(model="cellsam_extra")
         model = model.to(device)
         model = freeze_parameters(model)
-        is_3D=False
-        return model,is_3D
+        is_3d=False
+        return model,is_3d
 
     elif 'ctfm' in model_env.lower(): #tested
         from lighter_zoo import SegResNet
@@ -297,8 +197,8 @@ def load_model_with_architecture(model_env:str,ckpt_path:str,device):
         )
         model = model.to(device)
         model = freeze_parameters(model)
-        is_3D=True
-        return model, is_3D
+        is_3d=True
+        return model, is_3d
     
     elif 'adaptfm' in model_env.lower(): #TESTED- user must enter target size of 4,128,128
 
@@ -327,13 +227,12 @@ def load_model_with_architecture(model_env:str,ckpt_path:str,device):
         model.load_state_dict(ckpt)
         model = freeze_parameters(model)
 
-        is_3D=True
-        return model,is_3D
+        is_3d=True
+        return model,is_3d
     
     elif 'merlin' in model_env.lower(): # TESTED - user must use sizepatch size of 112,128,128
         from typing import Tuple, Union
-        import torch
-        import torch.nn as nn
+
 
         import nnunetv2
         from batchgenerators.utilities.file_and_folder_operations import join, load_json
@@ -421,8 +320,7 @@ def load_model_with_architecture(model_env:str,ckpt_path:str,device):
         import inspect
         import warnings
         from typing import Tuple, Union
-        import torch
-        import torch.nn as nn
+
 
         from batchgenerators.utilities.file_and_folder_operations import join, load_json
         from nnunetv2.utilities.find_objects import recursive_find_trainer_class_by_name
@@ -569,6 +467,7 @@ class LoRAConv3d(nn.Module):
     def __init__(self, original_layer: nn.Conv3d, r=8, lora_alpha=16, lora_dropout=0.0):
         super().__init__()
         self.original_layer = original_layer
+        
 
         for param in self.original_layer.parameters():
             param.requires_grad = False
@@ -731,6 +630,110 @@ def inject_lora_layers(
             )
 
 
+
+class ImageMaskDataset(Dataset):
+    """Dataset that pairs raw images with `_seg` masks and ensures all tensors
+
+    in a batch have matching shapes and channel counts.
+    """
+
+    def __init__(self, raw_dir, mask_dir, target_size=(256, 256), is_3d=False):
+        self.raw_dir = Path(raw_dir)
+        self.mask_dir = Path(mask_dir)
+        self.target_size = target_size
+        self.is_3d = is_3d  # Set to True if model accepts 3D volumes (C, D, H, W)
+
+        self.pairs = []
+        raw_files = sorted(
+            [
+                p
+                for p in self.raw_dir.iterdir()
+                if p.is_file() and not p.name.startswith(".")
+            ]
+        )
+
+        for raw_path in raw_files:
+            mask_stem = f"{raw_path.stem}_seg"
+            mask_candidates = list(self.mask_dir.glob(f"{mask_stem}.*"))
+
+            if mask_candidates:
+                self.pairs.append((raw_path, mask_candidates[0]))
+            else:
+                exact_mask = self.mask_dir / raw_path.name
+                if exact_mask.exists():
+                    self.pairs.append((raw_path, exact_mask))
+
+        if not self.pairs:
+            raise RuntimeError(
+                f"No matching raw/mask pairs found between {raw_dir} and {mask_dir}"
+            )
+
+    def __len__(self):
+        return len(self.pairs)
+
+    def _process_array(self, arr, is_mask=False):
+        tensor = torch.from_numpy(arr).float()
+
+        if not self.is_3d:
+            # 2D Model Target Shape: (C, H, W)
+            if tensor.ndim == 2:
+                tensor = tensor.unsqueeze(0)  # (H, W) -> (1, H, W)
+            elif tensor.ndim == 3:
+                # If shape is (H, W, C) where channels are last
+                if tensor.shape[-1] in (1, 3, 4):
+                    tensor = tensor.permute(2, 0, 1)  # -> (C, H, W)
+                # If shape is a 3D volume stack (Z, H, W), take max projection or middle slice
+                else:
+                    if is_mask:
+                        tensor = tensor[tensor.shape[0] // 2].unsqueeze(
+                            0
+                        )  # Middle slice
+                    else:
+                        tensor = tensor.max(dim=0)[0].unsqueeze(
+                            0
+                        )  # Max intensity projection
+
+            # Interpolate spatial dimensions to (target_H, target_W)
+            mode = "nearest" if is_mask else "bilinear"
+            tensor = F.interpolate(
+                tensor.unsqueeze(0),  # (1, C, H, W)
+                size=self.target_size,  # e.g., (256, 256)
+                mode=mode,
+                align_corners=False if mode != "nearest" else None,
+            ).squeeze(0)
+
+        else:
+            # 3D Volumetric Model Target Shape: (C, D, H, W)
+            if tensor.ndim == 3:
+                tensor = tensor.unsqueeze(0)  # (D, H, W) -> (1, D, H, W)
+            elif tensor.ndim == 4 and tensor.shape[-1] in (1, 3, 4):
+                tensor = tensor.permute(3, 0, 1, 2)  # (D, H, W, C) -> (C, D, H, W)
+
+            # Interpolate all 3 spatial/depth dimensions to (target_D, target_H, target_W)
+            mode = "nearest" if is_mask else "trilinear"
+            tensor = F.interpolate(
+                tensor.unsqueeze(0),  # (1, C, D, H, W)
+                size=self.target_size,  # e.g., (32, 256, 256)
+                mode=mode,
+                align_corners=False if mode != "nearest" else None,
+            ).squeeze(0)
+
+        return tensor
+
+    def __getitem__(self, idx):
+        raw_path, mask_path = self.pairs[idx]
+
+        raw_arr = tifffile.imread(raw_path)
+        mask_arr = tifffile.imread(mask_path)
+
+        raw_tensor = self._process_array(raw_arr, is_mask=False)
+        mask_tensor = self._process_array(mask_arr, is_mask=True)
+
+        return raw_tensor, mask_tensor
+    
+
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--params")
@@ -777,12 +780,16 @@ def main():
     model.to(device, dtype=model_dtype)
 
     # Conditionally determine target resolution based on model dimension flag
-    default_target_size = (4, 128, 128) if is_3d else (256, 256)
-    target_size = params.get(
-        "target_size", params.get("patch_size", default_target_size)
+    default_target_size = (16, 128, 128) if is_3d else (256, 256)
+    target_size = (
+        params.get("target_size")
+        or params.get("patch_size")
+        or default_target_size
     )
+
     if isinstance(target_size, str):
-        target_size = json.loads(target_size)
+        target_size = tuple(int(x.strip()) for x in target_size.split(","))
+
     target_size = tuple(target_size)
 
     # 3. Setup Dataset and DataLoader using conditional is_3d and target_size
@@ -794,9 +801,9 @@ def main():
     )
     train_loader = DataLoader(
         train_dataset,
-        batch_size=params.get("batch_size", 1),
+        batch_size=int(params.get("batch_size", 1)),
         shuffle=True,
-        num_workers=params.get("num_workers", 2),
+        num_workers=int(params.get("num_workers", 2)),
         pin_memory=True if device.type == "cuda" else False,
     )
 
@@ -892,19 +899,19 @@ def main():
                             "lora_r": lora_r ,
                             "lora_alpha": lora_alpha,
                             "lora_dropout": lora_dropout,
-                            "target_modules"; target_modules
+                            "target_modules": target_modules
                             
                         }
                      }
 
     save_lora_checkpoint(
-    output_dir= args.output_path,
-    model=model,
-    model_env=model_env,
-    is_3D=is_3D,
-    target_size=target_size,
-    ckpt_path= ckpt_path,
-    lora_config=lora_config)
+        output_dir= args.output_path,
+        model=model,
+        model_env=model_env,
+        is_3d=is_3d,
+        target_size=target_size,
+        ckpt_path= ckpt_path,
+        lora_config=lora_config)
 
 
 if __name__ == "__main__":
