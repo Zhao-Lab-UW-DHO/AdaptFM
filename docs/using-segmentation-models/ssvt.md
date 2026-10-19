@@ -4,6 +4,10 @@ SSVT is a custom vision transformer model pretrained on ~180,000 3D organoid con
 
 ***Before using SSVT you must first download the checkpoint from Hugging Face with AdaptFM's environment manager***
 
+## Spatial Resolution & Image Sizing with SSVT
+
+SSVT uses a 3D sliding-window patch extraction framework during both fine-tuning and inference. Input volumes are not globally downsampled or compressed. The network processes localized 3D sub-patches directly from the image array, and inference stitches predictions across all patches back together into an output segmentation mask matching your original input image shape.
+
 ## Training an nnUNet Model in AdaptFM
 
 ### Prepare the Data

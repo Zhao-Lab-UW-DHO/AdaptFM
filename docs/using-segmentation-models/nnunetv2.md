@@ -6,6 +6,10 @@
 
 ***Before using nnUNetv2 you must first install the environment and package with AdaptFM's environment manager***
 
+## Spatial Resolution & Image Sizing with nnU-Net
+
+nnU-Net processes images without applying global spatial downsampling. During fine-tuning, the network extracts 3D sub-volume patches (typically 128x128x128 voxels) directly from the image. During inference, nnU-Net processes the complete image volume by sliding an overlapping 3D patch window across the entire spatial grid (using a default 50% step overlap). Predictions across all overlapping windows are stitched together, and the final segmentation mask is exported at the same array dimensions as your original input file.
+
 ## Training an nnUNet Model in AdaptFM
 
 ### Prepare the Data

@@ -27,7 +27,7 @@ Use the above link with step-by-step instructions on installing WSL2. Briefly, i
 wsl --install
 ```
 
-Once you have succesfully installed WSL2, you can use our installer script to install AdaptFM
+Once you have successfully installed WSL2, you can use our installer script to install AdaptFM
 
 **Clone the repository and install**
 ```bash

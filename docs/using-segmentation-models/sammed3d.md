@@ -14,6 +14,10 @@ In AdaptFM, SAM-Med3D can be used in two ways:
 
 ***Importantly, SAM-Med3D natively handles all image normalization and preprocessing. This is done by default, and normalizes pixels using a z-score normalization strategy on the entire image volume. The exact implementation can be found [here](https://github.com/uni-medical/SAM-Med3D/blob/main/utils/infer_utils.py#L266). Consequently, there is no need to independently normalize your data before running inference***
 
+### Spatial Resolution & Image Sizing
+
+During inference, SAM-Med3D processes full 3D medical volumes using an overlapping 128x128x128 voxel sliding window (with a 50% step stride) without applying global spatial downsampling. Predictions across all overlapping sub-patches are stitched together, ensuring that the exported segmentation mask matches your input file's original array dimensions.
+
 ### Creating Prompts for Inference 
 
 SAM-Med3D performs 'promptable' segmentation. This means you need ground truth labels to generate prompt points. These ground truth prompts tell the model where to 'look' for an object of interest. To prepare your images and prompts follow the below steps. This format and folder structure is **required** by the SAM-Med3D algorithm. 
@@ -59,6 +63,10 @@ As with other AdaptFM models, you must prepare your data with the below steps be
 
 1. **Create annotations** - As with training or fine-tuning any model in AdaptFM, the first step is to generate labeled data using our annotation functionality.
 2. **Place original and labeled images in one folder** - once all training images have been annotated, place the original images and labeled version in the same folder. ***The original images and labeled images must have identical names, differing only in their ending (labeled images ending with '_seg.ext')*** Note that if you save your image and its label with the save widget from within AdaptFM, they will the images will already be in this format.
+
+### Spatial Resolution & Image Sizing
+
+During fine-tuning, SAM-Med3D extracts localized 128x128x128 voxel sub-volume crops centered directly around target label image centers. The image data within each patch is cropped rather than resized or downsampled, allowing the model to learn structural boundaries without global spatial compression.
 
 ### Fine-tuning the model
 

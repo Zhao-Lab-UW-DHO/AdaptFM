@@ -8,6 +8,10 @@ Within AdaptFM, you can use CellposeSAM in two ways:
 
 ***Before using CellposeSAM you must first install the environment and package with AdaptFM's environment manager***
 
+## Spatial Resolution & Image Sizing with Cellpose-SAM
+
+Cellpose-SAM processes high-resolution microscopy images using an overlapping 256x256 pixel tiling strategy during both fine-tuning and inference. Instead of compressing or downsampling large 2D frames, the model divides the image into overlapping 256x256 local patches, processes each patch individually, and stitches the predicted spatial vector flows back together. All output segmentation masks are exported to match the matrix dimensions of your original input file.
+
 ## Using AdaptFM to Run Inference with CellposeSAM
 
 ***For 3D segmentation CellposeSAM requires images be stored in TIFF files. Depending on your filetype, you might be able to use one of AdaptFM's preprocessing tools to convert your images to TIFF format. If we don't have a method for your imaging modality, please submit an issue and/or pull request.***
