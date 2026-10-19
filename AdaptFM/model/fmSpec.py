@@ -83,6 +83,13 @@ class FoundationModelSpec(ModelSpec):
     
         
     {unfreeze_snippet} 
+    params.setdefault(
+    "loss_fn",
+    {{
+        "default": "",
+        "type": "str"
+    }}
+    )
 
     print(json.dumps(params),end='')
     """

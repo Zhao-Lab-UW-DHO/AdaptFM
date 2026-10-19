@@ -30,7 +30,7 @@ To train a model with SSVT in AdaptFM, you must prepare your data with the below
     - unfreeze_epoch - After how many epochs should the encoder be unfrozen. By default only the decoder weights are udpated. The default unfreeze_epoch is 100
     - total_epochs - number of complete passes through the training data
     - n_layers_to_unfreeze - specify the number of model layers you would like to unfreeze during fine-tuning. By default all layers will be unfrozen.
-
+    - loss_fn - loss function used during training. Since this is a classification task, you can use any of the classification losses listed [here](https://docs.pytorch.org/cppdocs/api/nn/loss.html). Default is BCEWithLogitsLoss()
 7. Once you are ready you can select "Run" to begin training the model. You can monitor output in the "Output Log" section. If at any point you would like to stop training simply click the "Terminate" button.
 
 ## Using an SSVT Model for Inference in AdaptFM

@@ -152,3 +152,16 @@ The tool generates multi-view plane sets through the following sequential steps:
 4. **Save plane sets** - Automatically creates `XY_planes`, `XZ_planes`, and `YZ_planes` subdirectories inside the output folder and exports each transposed stack using its original filename.
 
 ---
+
+# Defining Training Validation Sets
+
+This utility allows users to separate the training data into training and validation cohorts. It safely copies the training and labeled images into separate 'train' and 'val' folders. You can then select these folders when running training/fine-tuning
+
+## How It Works
+
+The works by taking the input folder and randomly splitting the images and their associated labels into train and val folders. 'Input folder' is the folder containing both the original training images and the associated labels.
+
+The parameters are:
+
+1. **Split** - the ratio of training images to validation images you would like. Values should range from 0 to 1. Default is 0.8
+2. **Seed** - a random seed to ensure that the same splits can be replicated if needed

@@ -73,7 +73,8 @@ def launch_training(
     learning_rate: float = 0.0002,
     num_workers: int = 8,
     cache_dir: str = str(Path.cwd() / "cache_dir"),
-    layer_names_to_freeze: str = None
+    layer_names_to_freeze: str = None,
+    loss_fn: str = 'DiceCELoss'
 ):
 
     return

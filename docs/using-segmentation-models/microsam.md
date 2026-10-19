@@ -47,4 +47,69 @@ As with other AdaptFM models, you must prepare your data with the below steps be
     - checkpoint_path - the path to the checkpoint used for training
     - save_root - optional directory to save checkpoints and logs
     - freeze - a string containing the exact parts of the model you would like to keep frozen during fine-tuning
+    - loss_fn - micro_sam does not natively support different loss functions. ***Use the below steps to use a different loss function***
 
+
+#### Adjusting The Loss Function
+
+MicroSAM by default uses a DiceBasedDistanceLoss function described [here](https://constantinpape.github.io/torch-em/torch_em/loss/distance_based.html). MicroSAM's primary training function does not have an adjustable parameter for the loss function. To add a different loss function, you follow the below steps:
+
+1. Navigate to the "micro-sam_adapt" conda environment and open the micro_sam training code under micro-sam_adapt > lib > python3.10 > site-packages > micro_sam > training > training.py 
+2. Under the train_sam function, add a parameter called 'loss_fn'
+
+```python
+
+def train_sam(
+    name: str,
+    model_type: str,
+    train_loader: DataLoader,
+    val_loader: DataLoader,
+    n_epochs: int = 100,
+    early_stopping: Optional[int] = 10,
+    n_objects_per_batch: Optional[int] = 25,
+    checkpoint_path: Optional[Union[str, os.PathLike]] = None,
+    with_segmentation_decoder: bool = True,
+    freeze: Optional[List[str]] = None,
+    device: Optional[Union[str, torch.device]] = None,
+    lr: float = 1e-5,
+    n_sub_iteration: int = 8,
+    save_root: Optional[Union[str, os.PathLike]] = None,
+    mask_prob: float = 0.5,
+    n_iterations: Optional[int] = None,
+    scheduler_class: Optional[_LRScheduler] = torch.optim.lr_scheduler.ReduceLROnPlateau,
+    scheduler_kwargs: Optional[Dict[str, Any]] = None,
+    save_every_kth_epoch: Optional[int] = None,
+    pbar_signals: Optional[QObject] = None,
+    optimizer_class: Optional[Optimizer] = torch.optim.AdamW,
+    peft_kwargs: Optional[Dict] = None,
+    ignore_warnings: bool = True,
+    verify_n_labels_in_loader: Optional[int] = 50,
+    box_distortion_factor: Optional[float] = 0.025,
+    overwrite_training: bool = True,
+    strict_decoder_loading: bool = True,
+    loss_fn: str = "DiceBasedDistanceLoss" # <-- ADD THIS HERE
+    **model_kwargs,
+) -> None:
+
+```
+
+3. At [line 320](https://github.com/computational-cell-analytics/micro-sam/blob/main/micro_sam/training/training.py#L320) add the following:
+
+```python
+def get_loss(loss_name, **kwargs):
+    loss_cls = getattr(torch_em.loss, loss_name)
+    return loss_cls(**kwargs)
+
+instance_seg_loss = get_loss(
+    loss_fn,
+    mask_distances_in_bg=True
+)
+```
+
+and at line 322, remove:
+
+```python
+instance_seg_loss = torch_em.loss.DiceBasedDistanceLoss(mask_distances_in_bg=True)
+```
+
+4. You can now specify loss_fn to be any of the loss functions listed [here](https://constantinpape.github.io/torch-em/torch_em/loss.html)

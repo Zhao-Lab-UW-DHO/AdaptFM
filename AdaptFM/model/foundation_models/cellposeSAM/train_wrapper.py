@@ -3,6 +3,7 @@ import inspect
 import json
 import torch
 
+import torch.nn as nn
 from cellpose import core, io, models, train
 
 def unfreeze_last_n_modules(model: torch.nn.Module, n: int):
@@ -26,6 +27,17 @@ def main():
 
     params = json.loads(args.params)
     params.pop("gpu")
+
+    loss_name = params.pop("loss_fn", None)
+
+    if loss_name:
+        loss_class = getattr(nn, loss_name)
+
+        # Replace the segmentation loss used by train_seg.
+        train._loss_fn_seg = lambda lbl, y, device: loss_class()(
+            y[:, -1],
+            (lbl[:, -3] > 0.5).to(y.dtype),
+        )
 
     sig = inspect.signature(train.train_seg)
 

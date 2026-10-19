@@ -19,6 +19,7 @@ import torch.multiprocessing as mp
 import torch.nn.functional as F
 import torchio as tio
 from monai.losses import DiceCELoss
+import monai.losses
 from segment_anything.build_sam3D import sam_model_registry3D
 from torch.backends import cudnn
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -146,7 +147,7 @@ class BaseTrainer:
         self.losses = []
         self.dices = []
         self.ious = []
-        self.set_loss_fn()
+        self.set_loss_fn(args.loss_fn)
         self.set_optimizer()
         self.set_lr_scheduler()
         if args.resume:
@@ -162,15 +163,31 @@ class BaseTrainer:
 
         self.norm_transform = tio.ZNormalization(masking_method=lambda x: x > 0)
 
-    def set_loss_fn(self):
+    def set_loss_fn(self,loss_name='DiceCELoss'):
         # self.seg_loss = DiceCELoss(sigmoid=True, squared_pred=True, reduction='mean')
-        self.seg_loss = DiceCELoss(
-            sigmoid=False,
-            softmax=True,
-            to_onehot_y=True,  # converts integer gt to one-hot internally
-            squared_pred=True,
-            reduction="mean",
-        )
+        # self.seg_loss = DiceCELoss(
+        #     sigmoid=False,
+        #     softmax=True,
+        #     to_onehot_y=True,  # converts integer gt to one-hot internally
+        #     squared_pred=True,
+        #     reduction="mean",
+        # )
+
+        default_kwargs = {
+                "sigmoid": False,
+                "softmax": True,
+                "to_onehot_y": True,
+                "squared_pred": True,
+                "reduction": "mean",
+            }
+        
+        
+        
+        loss_cls = getattr(monai.losses,loss_name)
+
+        self.seg_loss = loss_cls(**default_kwargs)
+
+
 
     def set_optimizer(self):
         if self.args.multi_gpu:
@@ -417,6 +434,7 @@ class BaseTrainer:
                 # gt3D stays as long integer labels — do NOT one-hot encode here,
                 # DiceCELoss with to_onehot_y=True handles that internally
                 gt3D = gt3D.to(device).type(torch.long)
+    
                 with torch.amp.autocast(device_type="cuda", enabled=True):
                     image_embedding = sam_model.image_encoder(image3D)
 
@@ -639,7 +657,8 @@ def launch_training(
     lr: float = 8e-4,
     weight_decay: float = 0.1,
     port: int = 12361,
-    n_layers_to_unfreeze:int=0
+    n_layers_to_unfreeze:int=0,
+    loss_fn: str='DiceCELoss'
 ):
     return
 

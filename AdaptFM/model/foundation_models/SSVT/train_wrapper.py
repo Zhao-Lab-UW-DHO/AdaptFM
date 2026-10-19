@@ -68,6 +68,7 @@ def train_SSVT(
     unfreeze_epoch=100,
     total_epochs=500,
     n_layers_to_unfreeze=0,
+    loss_fn="BCEWithLogitsLoss"
 ):
     return
 
@@ -152,7 +153,9 @@ def main():
     # -----------------------------
     # Training Loop with conditional unfreeze
     # -----------------------------
-    bce = torch.nn.BCEWithLogitsLoss()
+    #bce = torch.nn.BCEWithLogitsLoss()
+    criterion = getattr(torch.nn, params.get("loss_fn","BCEWithLogitsLoss"))()
+
 
     if n_layers_to_unfreeze > 0:
 
@@ -170,7 +173,7 @@ def main():
             probs = torch.sigmoid(logits)
 
             loss_dice = dice_loss(probs, masks)
-            loss_bce = bce(logits, masks)
+            loss_bce = criterion(logits,masks)
             loss = 0.5 * loss_dice + 0.5 * loss_bce
 
             loss.backward()
@@ -215,7 +218,7 @@ def main():
             probs = torch.sigmoid(logits)
 
             loss_dice = dice_loss(probs, masks)
-            loss_bce = bce(logits, masks)
+            loss_bce = criterion(logits, masks)
             loss = 0.5 * loss_dice + 0.5 * loss_bce
 
             loss.backward()

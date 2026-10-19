@@ -91,4 +91,4 @@ As with other AdaptFM models, you must prepare your data with the below steps be
     - lr - Controls how strongly the model's weights are adjusted during each training update.
     - weight_decay - Regularization that discourages overly complex model weights and can help reduce overfitting.
     - n_layers_to_unfreeze - specify the number of model layers you would like to unfreeze during fine-tuning. By default all layers will be unfrozen.
-
+    - loss_fn - loss function used during training. Since this is a classification task, you can use any of the classification losses listed [here](https://monai.readthedocs.io/en/1.4.0/losses.html#). Default is DiceCELoss

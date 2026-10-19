@@ -104,6 +104,9 @@ class CTFMSpec(FoundationModelSpec):
         class_labels = params.get(
             "class_labels", [f"class_{i}" for i in range(1, out_channels)]
         )
+        loss_fn = params.get("loss_fn")
+        dataset_csv = run_dir / "dataset.csv"
+
 
         dataset_csv = run_dir / "dataset.csv"
         # Raw label values in the source masks, in the order they map to
@@ -350,7 +353,7 @@ class CTFMSpec(FoundationModelSpec):
                 },
                 # Loss: plain DiceCELoss — lighter_zoo SegResNet has no deep supervision
                 "criterion": {
-                    "_target_": "monai.losses.DiceCELoss",
+                    "_target_": f"monai.losses.{loss_fn}",
                     "softmax": True,
                     "to_onehot_y": True,
                     "include_background": True,
@@ -479,6 +482,9 @@ class CTFMSpec(FoundationModelSpec):
         )
 
         output_file = str(run_dir / "override.yaml")
+
+        print(f'Output File: {output_file}')
+
         with Path(output_file).open("w") as f:
             yaml.safe_dump(override, f, default_flow_style=False, sort_keys=False)
 
