@@ -59,7 +59,7 @@ def main():
             model,
             vol,
             patch_size=(4, 128, 128),
-            stride=(16, 32, 32),
+            stride=(2, 32, 32),
             device=device,
             threshold=0.5,
         )
