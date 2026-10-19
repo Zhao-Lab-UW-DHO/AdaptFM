@@ -54,7 +54,7 @@ Prior to fine-tuning your model, you must first install the environment using th
 
 7. Once you are ready you can select "Run" to begin training the model. You can monitor output in the "Output Log" section. If at any point you would like to stop training simply click the "Terminate" button.
 
-## Using an LoRA Fine-Tuned Model for Inference in AdaptFM
+## Using a LoRA Fine-Tuned Model for Inference in AdaptFM
 
 You can use LoRA fine-tuned models in AdaptFM to run inference on images in bulk using the following steps:
  
