@@ -29,6 +29,8 @@ from AdaptFM.gui.widgets.model_widget import (
 )
 from AdaptFM.model.nnUNetV2Spec import NNUNetV2ModelSpec
 from AdaptFM.model.registry import MODEL_REGISTRY
+from AdaptFM.model.fmSpec import LoRASpec
+from AdaptFM.model.registry import _read_prefix
 
 # ---------------------------------------------------------------------------
 # Background worker: prepare_dataset() can do heavy file I/O
@@ -106,11 +108,19 @@ class TrainingWidget(ModelWorkflowWidget):
         conda_env = (
             Path(self.model.conda_env) if self.model.conda_env is not None else None
         )
+
+        if isinstance(self.model,LoRASpec):
+            params = self.collect_params()
+            if params['model_env'].lower() != "adaptfm":
+
+                conda_env = Path(_read_prefix(params["model_env"]))
+
+
         if (
             conda_env is None or not conda_env.is_dir()
         ):  # none comes first else err on the dircheck
             raise RuntimeError(
-                f"{self.model.conda_env} not installed. "
+                f"{str(conda_env)} not installed. "
                 "You must first install the environment with the environment manager before using."
             )
 

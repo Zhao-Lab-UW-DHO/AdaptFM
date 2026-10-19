@@ -10,6 +10,7 @@ from AdaptFM.model.fmSpec import (
     MicroSAMSpec,
     Sammed3DSpec,
     SSVTSpec,
+    LoRASpec
 )
 from AdaptFM.model.foundation_models.ctfm.ctfm_spec import CTFMSpec
 from AdaptFM.model.nnUNetV2Spec import MerlinNNUNetV2ModelSpec, NNUNetV2ModelSpec
@@ -137,4 +138,17 @@ MODEL_REGISTRY = {
         ),
         supports_training=False,
     ),
+    
+    "LoRA": LoRASpec(
+        name="LoRA",
+        conda_env=str(Path(sys.prefix)),
+        module_path="AdaptFM.model.foundation_models.LoRA.train_wrapper",
+        training_wrapper_path=str(
+            ADAPTFM_MODEL_PATH / "foundation_models" / "LoRA" / "train_wrapper.py"
+        ),
+        inference_wrapper_path=str(
+            ADAPTFM_MODEL_PATH / "foundation_models" / "LoRA" / "inference_wrapper.py"
+        ),
+        training_function="train_LoRA",
+    )
 }
