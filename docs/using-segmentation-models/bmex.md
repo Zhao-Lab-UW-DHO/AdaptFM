@@ -57,9 +57,9 @@ As with other AdaptFM models, you must prepare your data with the below steps be
 1. **Create annotations** - As with training or fine-tuning any model in AdaptFM, the first step is to generate labeled data using our annotation functionality.
 2. **Place original and labeled images in one folder** - once all training images have been annotated, place the original images and labeled version in the same folder. ***The original images and labeled images must have identical names, differing only in their ending (labeled images ending with '_seg.ext')*** Note that if you save your image and its label with the save widget from within AdaptFM, they will the images will already be in this format.
 
-### WARNING: Spatial Resolution & Image Sizing
+### Spatial Resolution & Image Sizing
 
-During fine-tuning, BME-X applies aggressive spatial downsampling to all training data. Regardless of your original image resolution (such as high-resolution 2048x2048 slice arrays or large 3D matrices), the training pipeline forces every volume into a low-resolution 32x32x32 voxel matrix. Any fine anatomical features or sub-millimeter structures smaller than this coarse grid are lost during model training. Once fine-tuning is complete and inference is run, output prediction masks are projected back to your image's original dimensions, though fine structural details will not be recovered.
+During fine-tuning, BME-X applies spatial downsampling to all training data. Regardless of your original image resolution (such as high-resolution 2048x2048 slice arrays or large 3D matrices), the training pipeline forces every volume into a low-resolution 32x32x32 voxel matrix. Once fine-tuning is complete and inference is run, output prediction masks are projected back to your image's original dimensions.
 
 ### Fine-Tuning the Model
 
