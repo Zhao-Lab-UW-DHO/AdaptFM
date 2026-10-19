@@ -10,7 +10,7 @@ import tifffile
 import torch.nn.functional as F
 from torch.utils.data import Dataset
 import math
-
+import types
 
 
 def train_LoRA(
@@ -93,7 +93,6 @@ def load_model_with_architecture(model_env:str,ckpt_path:str,device):
         return model.net,is_3d
     
     elif 'micro-sam' in model_env.lower(): #tested
-        import types
 
 
         class MicroSamAdapter(nn.Module):
@@ -170,11 +169,106 @@ def load_model_with_architecture(model_env:str,ckpt_path:str,device):
         is_3d=True
         return model,is_3d
 
-    elif 'sammed3d' in model_env.lower(): #NEEDS TESTING
-        model = torch.load(ckpt_path,map_location=device,weights_only=False)
-        model= model.to(device)
-        is_3d=True
-        return model,is_3d
+    elif "sammed3d" in model_env.lower() or "sam_med_3d" in model_env.lower():
+
+        class SamMed3DAdapter(nn.Module):
+            """Modular adapter for SAM-Med3D.
+
+            Directly coordinates image_encoder, prompt_encoder, and mask_decoder to
+            accept standard 5D tensors [B, 1, D, H, W] and return unified logits [B, 1,
+            D, H, W].
+            """
+
+            def __init__(self, sam_model: nn.Module):
+                super().__init__()
+                self.model = sam_model
+
+                # Strip Meta's @torch.no_grad() decorator from all sub-modules if present
+                for module in [
+                    self.model,
+                    getattr(self.model, "image_encoder", None),
+                    getattr(self.model, "mask_decoder", None),
+                ]:
+                    if module and hasattr(module.forward, "__wrapped__"):
+                        module.forward = types.MethodType(
+                            module.forward.__wrapped__, module
+                        )
+
+            def forward(
+                self,
+                x: torch.Tensor,
+                points=None,
+                boxes=None,
+                masks=None,
+            ) -> torch.Tensor:
+                # 1. Standardize framework tensor input rank to 5D [B, 1, D, H, W]
+                if x.ndim == 3:
+                    x = x.unsqueeze(0).unsqueeze(0)
+                elif x.ndim == 4:
+                    if x.shape[0] in (1, 3) and x.shape[1] not in (1, 3):
+                        x = x.unsqueeze(0)
+                    else:
+                        x = x.unsqueeze(1)
+
+                # SAM-Med3D image encoder expects a 1-channel volume
+                if x.shape[1] > 1:
+                    x = x[:, :1, ...]
+
+                B, C, D, H, W = x.shape
+                device = x.device
+
+                # 2. Extract 3D image embeddings
+                image_embeddings = self.model.image_encoder(x)
+
+                # 3. Initialize low-res mask prompt (D//4, H//4, W//4) if not provided
+                if masks is None:
+                    low_res_sz = (D // 4, H // 4, W // 4)
+                    masks = torch.zeros(
+                        (B, 1, *low_res_sz), device=device, dtype=x.dtype
+                    )
+
+                # 4. Generate sparse and dense prompt embeddings
+                sparse_emb, dense_emb = self.model.prompt_encoder(
+                    points=points,
+                    boxes=boxes,
+                    masks=masks,
+                )
+
+                # 5. Decode low-res mask logits
+                low_res_logits, _ = self.model.mask_decoder(
+                    image_embeddings=image_embeddings,
+                    image_pe=self.model.prompt_encoder.get_dense_pe(),
+                    sparse_prompt_embeddings=sparse_emb,
+                    dense_prompt_embeddings=dense_emb,
+                    multimask_output=False,
+                )
+
+                # 6. Trilinear interpolate logits back to high-res input dimensions (D, H, W)
+                logits = F.interpolate(
+                    low_res_logits,
+                    size=(D, H, W),
+                    mode="trilinear",
+                    align_corners=False,
+                )
+
+                return logits
+            
+        import medim
+
+        # Load base model instance
+        raw_model = medim.create_model(
+            "SAM-Med3D", pretrained=True, checkpoint_path=ckpt_path
+        )
+
+        # Wrap in adapter
+        model = SamMed3DAdapter(raw_model)
+
+        # Freeze base model parameters for targeted LoRA injection
+        for param in model.parameters():
+            param.requires_grad = False
+
+        is_3d = True
+        return model, is_3d
     
     elif 'cellsam' in model_env.lower(): #tested
         from cellSAM import get_model

@@ -40,6 +40,7 @@ EXTRA_PACKAGES = [
     "numpy",
     "SimpleITK",
     "requests",
+    "tifffile"
 ]
 
 ACTIVATE_SCRIPT = """\
