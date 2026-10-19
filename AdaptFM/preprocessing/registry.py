@@ -6,7 +6,8 @@ from AdaptFM.preprocessing.converters import (
     batch_tiff_to_nii,
     batch_nii_to_tiff,
     copy_files_to_nnunet_inference,
-    create_multiview_planes
+    create_multiview_planes,
+    define_train_validation_sets
 )
 
 PREPROC_REGISTRY = {
@@ -18,4 +19,5 @@ PREPROC_REGISTRY = {
     "Place image labels into image data folder": combine_labels_into_image_dir,
     "Send image data to nnUNet dataset folder": copy_files_to_nnunet_inference,
     "Copy TIFF image data to 3 plane views": create_multiview_planes,
+    "Define Training and Validation Sets": define_train_validation_sets
 }
