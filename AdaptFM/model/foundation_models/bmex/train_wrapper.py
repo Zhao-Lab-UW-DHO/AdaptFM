@@ -202,13 +202,13 @@ class AverageMeter:
 
 
 def train_epoch(
-    model, loader, optimizer, scheduler, epoch, max_epochs, batch_size=8, logdir=""
+    model, loader, optimizer, scheduler, epoch, max_epochs, batch_size=8, logdir="",loss_fn="CrossEntropyLoss"
 ):
     model.train()
     start_time = time.time()
     run_loss = AverageMeter()
 
-    loss_func = nn.CrossEntropyLoss()
+    loss_func = getattr(torch.nn, loss_fn)()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -305,6 +305,7 @@ def main():
 
     checkpoint = args.chk_path
     max_epochs = args.max_epochs
+    loss_fn = args.loss_fn
 
     json_list = str(Path(args.output_dir) / "json_list.json")
 
@@ -391,6 +392,7 @@ def launch_training(
     num_workers: int = 1,
     learning_rate: float = 1e-4,
     weight_decay: float = 1e-5,
+    loss_fn: str = "CrossEntropyLoss"
 ):
 
     return

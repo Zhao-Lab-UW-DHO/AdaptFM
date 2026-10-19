@@ -69,5 +69,6 @@ As with other AdaptFM models, you must prepare your data with the below steps be
     - num_workers - Number of CPU workers used to load and prepare training data. The default is 16
     - learning_rate - Controls how strongly the model's weights are adjusted during each training update. Default is 1e-4
     - weight_decay - Regularization that discourages overly complex model weights and can help reduce overfitting. Default is 1e-4
+    - loss_fn - loss function used during training. Since this is a classification task, you can use any of the classification losses listed [here](https://docs.pytorch.org/cppdocs/api/nn/loss.html). Default is CrossEntropyLoss()
 7. Once you are ready you can select "Run" to begin training the model. You can monitor output in the "Output Log" section. If at any point you would like to stop training simply click the "Terminate" button.
 

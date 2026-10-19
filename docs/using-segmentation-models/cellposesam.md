@@ -50,4 +50,5 @@ As with other AdaptFM models, you must prepare your data with the below steps be
     - save_path: Where you would like to save the trained model
     - save_every: Integer value. After how many epochs would you like to save the model
     - save_each: True or False. Save the network with a different filename every time it is saved
+    - loss_fn: loss function used during training. Since this is a classification task, you can use any of the classification losses listed [here](https://docs.pytorch.org/cppdocs/api/nn/loss.html)
 7. Once you are ready you can select "Run" to begin training the model. You can monitor output in the "Output Log" section. If at any point you would like to stop training simply click the "Terminate" button.
