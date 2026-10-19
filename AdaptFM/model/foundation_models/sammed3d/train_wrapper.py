@@ -59,6 +59,17 @@ def initialize_globals(args):
     if device.type == "cuda":
         torch.cuda.manual_seed_all(2023)
 
+def unfreeze_last_n_modules(model: torch.nn.Module, n: int):
+    # Step 1: Freeze all parameters
+    for param in model.parameters():
+        param.requires_grad = False
+        
+    # Step 2: Unfreeze the last N child modules
+    children = list(model.children())
+    for child in children[-n:]:
+        for param in child.parameters():
+            param.requires_grad = True
+
 
 def main(args):
     initialize_globals(args)
@@ -490,6 +501,9 @@ class BaseTrainer:
         use_cuda = torch.cuda.is_available() and args.device.type == "cuda"
         self.scaler = torch.cuda.amp.GradScaler(enabled=use_cuda)
 
+        if int(self.args.n_layers_to_unfreeze) > 0:
+            unfreeze_last_n_modules(self.model,n=self.args.n_layers_to_unfreeze)
+
         for epoch in range(self.start_epoch, self.args.num_epochs):
             print(f"Epoch: {epoch}/{self.args.num_epochs - 1}")
 
@@ -643,6 +657,7 @@ def launch_training(
     lr: float = 8e-4,
     weight_decay: float = 0.1,
     port: int = 12361,
+    n_layers_to_unfreeze:int=0,
     loss_fn: str='DiceCELoss'
 ):
     return

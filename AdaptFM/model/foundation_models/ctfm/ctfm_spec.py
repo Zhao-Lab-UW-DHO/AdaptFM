@@ -108,6 +108,7 @@ class CTFMSpec(FoundationModelSpec):
         dataset_csv = run_dir / "dataset.csv"
 
 
+        dataset_csv = run_dir / "dataset.csv"
         # Raw label values in the source masks, in the order they map to
         # output channels 0..out_channels-1 (index 0 is background).
         # e.g. imageTBAD: background=0, true lumen=1, false lumen=2 -> [0, 1, 2]
@@ -273,6 +274,7 @@ class CTFMSpec(FoundationModelSpec):
         # ── Set top-level Lighter project root ──────────────────────────────────────
         self.nested_set(override, ["project"], adaptfm_dir)
 
+
         self.nested_set(
             override,
             ["vars"],
@@ -312,7 +314,7 @@ class CTFMSpec(FoundationModelSpec):
                 "callbacks": [
                     {
                         "_target_": "lighter.callbacks.Freezer",
-                        "name_starts_with": [],
+                        "name_starts_with": [params['layer_names_to_freeze']],
                     },
                     {
                         "_target_": "pytorch_lightning.callbacks.ModelCheckpoint",
@@ -493,6 +495,7 @@ class CTFMSpec(FoundationModelSpec):
 
         ctfm_root = (cwd.parent / "CT-FM").resolve()
 
+    
         self.build_override_yaml(
             params, run_dir, dataset_csv=None, dataset_dir=dataset_dir
         )

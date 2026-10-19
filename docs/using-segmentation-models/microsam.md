@@ -46,6 +46,7 @@ As with other AdaptFM models, you must prepare your data with the below steps be
     - n_objects_per_batch - the number of objects required to compute a batch. If your images are very sparse, try decreasing this value. The default value is 25
     - checkpoint_path - the path to the checkpoint used for training
     - save_root - optional directory to save checkpoints and logs
+    - freeze - a string containing the exact parts of the model you would like to keep frozen during fine-tuning
     - loss_fn - micro_sam does not natively support different loss functions. ***Use the below steps to use a different loss function***
 
 

@@ -13,6 +13,23 @@ from monai.data import load_decathlon_datalist
 from tensorboardX import SummaryWriter
 from torch import nn
 
+def unfreeze_last_n_modules(model: nn.Module, n: int):
+    # 1. Freeze all parameters first
+    for param in model.parameters():
+        param.requires_grad = False
+
+    if n <= 0:
+        return
+
+    # 2. Map active layers in reverse order of execution in forward()
+    active_layers = ["conv_classifier", "bn1", "conv1"]
+    layers_to_unfreeze = active_layers[:n]
+
+    # 3. Unfreeze only parameters belonging to the active layers
+    for name, param in model.named_parameters():
+        if any(name.startswith(layer) for layer in layers_to_unfreeze):
+            param.requires_grad = True
+
 
 class Sampler(torch.utils.data.Sampler):
     def __init__(
@@ -305,6 +322,7 @@ def main():
 
     checkpoint = args.chk_path
     max_epochs = args.max_epochs
+    n_layers_to_unfreeze = args.n_layers_to_unfreeze
     loss_fn = args.loss_fn
 
     json_list = str(Path(args.output_dir) / "json_list.json")
@@ -313,6 +331,9 @@ def main():
     model1_dict = torch.load(checkpoint, map_location=("cpu"))
     model1.load_state_dict(model1_dict["state_dict"])
     model1 = model1.to(device)
+
+    if n_layers_to_unfreeze > 0:
+        unfreeze_last_n_modules(model1,n_layers_to_unfreeze)
 
     writer = SummaryWriter(log_dir=args.output_dir)
 
@@ -392,6 +413,7 @@ def launch_training(
     num_workers: int = 1,
     learning_rate: float = 1e-4,
     weight_decay: float = 1e-5,
+    n_layers_to_unfreeze: int=0,
     loss_fn: str = "CrossEntropyLoss"
 ):
 

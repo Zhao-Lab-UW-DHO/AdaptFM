@@ -1,8 +1,21 @@
 import argparse
 import inspect
 import json
+import torch
+
 import torch.nn as nn
 from cellpose import core, io, models, train
+
+def unfreeze_last_n_modules(model: torch.nn.Module, n: int):
+    # Step 1: Freeze all parameters
+    for param in model.parameters():
+        param.requires_grad = False
+        
+    # Step 2: Unfreeze the last N child modules
+    children = list(model.children())
+    for child in children[-n:]:
+        for param in child.parameters():
+            param.requires_grad = True
 
 
 def main():
@@ -85,6 +98,10 @@ def main():
     kwargs.pop("test_labels", None)
     kwargs.pop("net", None)
     kwargs.pop("load_files", None)
+    kwargs.pop("n_layers_to_unfreeze", None)
+
+    if params["n_layers_to_unfreeze"] > 0:
+        unfreeze_last_n_modules(model.net,n=params["n_layers_to_unfreeze"])
 
     if "nimg_per_epoch" in params:
         kwargs["nimg_per_epoch"] = max(2, len(train_data))

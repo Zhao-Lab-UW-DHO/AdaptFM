@@ -29,6 +29,7 @@ To train an nnUNet model in AdaptFM, you must prepare your data with the below s
         - 3d_fullres - processed the image at higher resolution to preserve fine anatomical or cellular detail
         - 3d_lowres - processed a downsampled version of the image, allowing the model to see a larger portion of the 3D volume at once, but with less fine detail
     - fold - which training split should be used for training and validation. We recommend leaving this as 'all' when doing training, especially if you plan to benchmark results against other models. Valid values are 'all', or an integer between 0–4.
+    - trainer - the nnUNetTrainer you would like to use. You can use different trainers to change the network architecture, learning rate scheduler, number of epochs. A full list of standard trainers can be found [here](https://github.com/MIC-DKFZ/nnUNet/tree/master/nnunetv2/training/nnUNetTrainer/variants). To train only certain layers of your network, follow the instructions [below](#fine-tuning-specific-layers) 
     - trainer - the nnNUetTrainer class used during training. You can use different trainer classes to define different loss functions, lr schedulers, network architectures, and so on. A full list can be found [here](https://github.com/MIC-DKFZ/nnUNet/tree/master/nnunetv2/training/nnUNetTrainer/variants). AdaptFM will use the default nnUNetTrainer.
 
 A couple of important points about the below folder structure
@@ -83,3 +84,31 @@ Once you have completed training for nnUNet. You can use your train model to run
 5. Using "GPU Index" select the GPU you would like to use for running inference
 6. Under "Model Checkpoint" navigate to the checkpoint you would like to use. This ***must*** be in the ``` nnUNet_results/Dataset[Set ID]_[Set Name]/nnUNetTrainer_nnUNet_Plans__[Config] ```. Importantly the 'Set ID' and 'Set Name' must match the 'Set ID' and 'Set Name' of the data you are running inference on
 7. Once ready select 'Run' to start inference. You can monitor outputs in the Output Log and stop inference whenever using the "Terminate" button.
+
+
+#### Fine-Tuning Specific Layers
+
+By default nnUNet will update weights in all layers when fine-tuning a model. If you would like to update only specific layers you can follow the below instructions. The below instructions follow the solutiosn proposed from the [nnUNet repository](https://github.com/MIC-DKFZ/nnUNet/issues/2714)
+
+1. Navigate to the nnUNet_adapt conda environment and open the nnUNetv2 trainer variants under nnUNet_adapt > lib > python3.10 > site-packages > nnunetv2 > training > nnUNetTrainer > variants
+2. Create a new folder with an __init__.py file
+3. In your newly created folder create a new file and add the following code
+
+```python
+from nnunetv2.training.nnUNetTrainer.nnUNetTrainer import nnUNetTrainer
+
+class nnUNetTrainerFreezeEncoder(nnUNetTrainer):
+
+    def initialize(self):
+        super().initialize()
+
+        for name, param in self.network.named_parameters():
+            if name.startswith("encoder"):
+                param.requires_grad = False
+            else:
+                param.requires_grad = True
+
+```
+
+4. Importantly, the above code will freeze the encoder while training the decoder layers. If you would like to name only specific layers, simply update the ```if name.startswith``` condition to specify the desired layers
+5. Within the AdaptFM training widget, enter your newly created trainer in the 'trainer' field
