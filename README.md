@@ -47,16 +47,16 @@ Built on napari, AdaptFM is a toolkit for running public 3d segmentation models 
 
 AdaptFM supports a variety of external foundation models for medical imaging. These are optional; you only need to install the models you plan to use. The supported models are listed:
 
-| Name | Paper | Code | VRAM Recommendations | Original Modality | Pretrained Model Datatype |
-| --- | --- | --- | --- | --- | --- |
-| nnUNet | [Link](https://www.nature.com/articles/s41592-020-01008-z) | [Link](https://github.com/MIC-DKFZ/nnUNet) | [Link](https://github.com/MIC-DKFZ/nnUNet/blob/master/documentation/installation_instructions.md#hardware-requirements) - At least 10GB | General Biomedical Imaging | N/A |
-| Merlin nnUnet | [Link](https://arxiv.org/abs/2406.06512) | [Link](https://github.com/ashwinkumargb/Merlin-nnUNet) | [Link](https://github.com/MIC-DKFZ/nnUNet/blob/master/documentation/installation_instructions.md#hardware-requirements) - At least 10GB | CT | CT images with EHR diagnoses and radiology reports |
-| CellSAM | [Link](https://www.biorxiv.org/content/10.1101/2023.11.17.567630v3) | [Link](https://github.com/vanvalenlab/cellsam) | None listed | General Cell Imaging | tissue, cell culture, yeast, H&E and bacteria |
-| SAMMed3D | [Link](https://arxiv.org/abs/2310.15161) | [Link](https://github.com/uni-medical/sam-med3d) | None listed | CT and MRI | organs, tissues, tumors, and blood vessels |
-| CellposeSAM | [Link](https://www.biorxiv.org/content/10.1101/2025.04.28.651001v1) | [Link](https://github.com/MouseLand/cellpose) | [Link](https://cellpose.readthedocs.io/en/latest/benchmark.html) - Dependent on pixel size, minimum 10GB | General Cell Imaging | Microbes, cultured cells, human tissues, and cell nuclei |
-| microSAM | [Link](https://www.nature.com/articles/s41592-024-02580-4) | [Link](https://github.com/computational-cell-analytics/micro-sam) | [Link](https://computational-cell-analytics.github.io/micro-sam/micro_sam.html#installation-questions) - At least 8GB | Light, electron, and X-ray microscopy (in various models) | Microbes, cells, organoids, organelles, nuclei, and tissues |
-| BME-X | [Link](https://www.nature.com/articles/s41551-024-01283-7) | [Link](https://github.com/DBC-Lab/Brain_MRI_Enhancement) | None listed | MR Images | Brain |
-| CT-FM | [Link](https://arxiv.org/abs/2501.09001) | [Link](https://github.com/project-lighter/CT-FM) | None listed | CT | Human anatomical structures |
+| Name | Paper | Code | VRAM Recommendations | Original Modality | Pretrained Model Datatype | Operating System |
+| --- | --- | --- | --- | --- | --- | --- |
+| nnUNet | [Link](https://www.nature.com/articles/s41592-020-01008-z) | [Link](https://github.com/MIC-DKFZ/nnUNet) | [Link](https://github.com/MIC-DKFZ/nnUNet/blob/master/documentation/installation_instructions.md#hardware-requirements) - At least 10GB | General Biomedical Imaging | N/A | Linux, Windows |
+| Merlin nnUnet | [Link](https://arxiv.org/abs/2406.06512) | [Link](https://github.com/ashwinkumargb/Merlin-nnUNet) | [Link](https://github.com/MIC-DKFZ/nnUNet/blob/master/documentation/installation_instructions.md#hardware-requirements) - At least 10GB | CT | CT images with EHR diagnoses and radiology reports | Linux, Windows |
+| CellSAM | [Link](https://www.biorxiv.org/content/10.1101/2023.11.17.567630v3) | [Link](https://github.com/vanvalenlab/cellsam) | None listed | General Cell Imaging | tissue, cell culture, yeast, H&E and bacteria | Linux |
+| SAMMed3D | [Link](https://arxiv.org/abs/2310.15161) | [Link](https://github.com/uni-medical/sam-med3d) | None listed | CT and MRI | organs, tissues, tumors, and blood vessels | Linux |
+| CellposeSAM | [Link](https://www.biorxiv.org/content/10.1101/2025.04.28.651001v1) | [Link](https://github.com/MouseLand/cellpose) | [Link](https://cellpose.readthedocs.io/en/latest/benchmark.html) - Dependent on pixel size, minimum 10GB | General Cell Imaging | Microbes, cultured cells, human tissues, and cell nuclei | Linux, Windows |
+| microSAM | [Link](https://www.nature.com/articles/s41592-024-02580-4) | [Link](https://github.com/computational-cell-analytics/micro-sam) | [Link](https://computational-cell-analytics.github.io/micro-sam/micro_sam.html#installation-questions) - At least 8GB | Light, electron, and X-ray microscopy (in various models) | Microbes, cells, organoids, organelles, nuclei, and tissues | Linux, Windows |
+| BME-X | [Link](https://www.nature.com/articles/s41551-024-01283-7) | [Link](https://github.com/DBC-Lab/Brain_MRI_Enhancement) | None listed | MR Images | Brain | Linux | 
+| CT-FM | [Link](https://arxiv.org/abs/2501.09001) | [Link](https://github.com/project-lighter/CT-FM) | None listed | CT | Human anatomical structures | Linux |
 
 AdaptFM also provides our own foundation model implementing a self-supervised vision transformer: [SSVT Documentation](docs/using-segmentation-models/ssvt.md).
  
