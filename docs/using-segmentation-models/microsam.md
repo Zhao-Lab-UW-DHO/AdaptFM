@@ -8,6 +8,10 @@ In AdaptFM, MicroSAM can be used in two ways:
 
 ***Before using MicroSAM you must first install the environment and package with AdaptFM's environment manager***
 
+## Spatial Resolution & Image Sizing with MicroSAM
+
+MicroSAM handles large 2D frames and 3D volumes by extracting overlapping 1024x1024 pixel tiles during both fine-tuning and inference. This tiled embedding mechanism prevents GPU memory overflow without requiring global image downsampling. Individual tile predictions are merged into a final output mask matching your original image dimensions.
+
 ## Using AdaptFM to Run Inference with MicroSAM
 
 ***Importantly, MicroSAM natively handles all image normalization and preprocessing. This is done by default, and normalizes pixels using a mix-max normalization strategy on a per z-slice basis to values between 0 and 255. The exact implementation can be found [here](https://github.com/computational-cell-analytics/micro-sam/blob/main/micro_sam/util.py#L618). Consequently, there is no need to independently normalize your data before running inference***

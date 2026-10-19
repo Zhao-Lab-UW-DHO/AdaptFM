@@ -8,6 +8,10 @@
 
 Per the Merlin [manuscript](https://www.nature.com/articles/s41586-026-10181-8), Merlin-nnUNet is only trained to identify the following structures: stomach, liver, gallbladder, left kidney, right kidney, spleen, prostate, T12 vertebrae, L1 vertebrae, L2 vertebrae, L3 vertebrae, L4 vertebrae, L5 vertebrae, S1 vertebrae, sacrum, urinary bladder, colon, duodenum, small bowel, and pancreas.
 
+## Spatial Resolution & Image Sizing with Merlin nnU-Net
+
+Merlin nnU-Net leverages nnU-Net's underlying spatial processing engine and does not apply global spatial downsampling during fine-tuning or inference. For fine-tuning, the model crops localized 3D sub-volume patches directly from the full volume. For inference, the model evaluates large 3D volumes using an overlapping 3D sliding-window mechanism. All tile predictions are reassembled into a single segmentation volume that matches the matrix shape of your original input file.
+
 ## Using AdaptFM to run Inference with Merlin-nnUNet
 
 ***Importantly Merlin-nnUNet handles all data preprocessing and normalization. The preprocessing and normalizing involve:***

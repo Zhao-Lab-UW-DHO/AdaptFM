@@ -6,6 +6,10 @@
 
 ***Before using CellSAM you must first install the environment and package with AdaptFM's environment manager. To use it you will need to create a [DeepCell account](https://deepcell.readthedocs.io/en/master/API-key.html#api-key-usage). In AdaptFM you will be asked to provide you deep cell access token. Without it, you will not be able to use CellSAM.***
 
+## Spatial Resolution & Image Sizing with CellSAM
+
+CellSAM evaluates full 2D image slices without breaking them into tiles or sub-volume patches. During feature processing, CellSAM passes every 2D slice to its Vision Transformer (ViT) backbone, which internally rescales the longest edge of the slice to 1024 pixels while maintaining its aspect ratio. Detected cellular bounding boxes and mask logits are then interpolated back to native scale. For standard microscopy frames up to approximately 2048x2048 pixels, spatial detail is largely preserved. For extremely large fields (exceeding 4000 pixels on a side) containing tiny cells, features may span across ViT patch boundaries and experience slight blurring. Final output segmentation masks are saved matching the exact 2D or 3D matrix dimensions of your original input file.
+
 ## Using AdaptFM to Run Inference with CellSAM
 
 ***Importantly, CellSAM natively handles all image normalization and preprocessing. The exact code can be found [here](https://github.com/vanvalenlab/cellSAM/blob/master/cellSAM/utils.py#L205) This is done in a two step process:***

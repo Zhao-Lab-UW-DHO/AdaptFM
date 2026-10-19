@@ -31,6 +31,10 @@ Within AdaptFM you can use BME-X's **segmentation** model to do the following:
 
 You can find an example provided under test_BIDS in the [main repo](https://github.com/DBC-Lab/Brain_MRI_Enhancement)
 
+### Spatial Resolution & Image Sizing
+
+During inference, BME-X automatically resamples input image volumes to a fixed spacing of 1.6 mm isotropic voxels. If your input medical image (such as an MRI scan) uses standard 1.0 mm voxel spacing (this will be the default if the image is converted into the `.nii.gz` format), the image will be approx 0.6x the original size. After the model computes the brain segmentation, AdaptFM resamples the final prediction mask back to match your original image array shape. However, because feature extraction is performed at the lower 1.6 mm resolution, fine anatomical structures or subtle boundary details may appear smoothed or blurred in the final output.
+
 ### Run Inference
 
 Once your data is in the proper format, you can use AdaptFM to run inference using:
@@ -52,6 +56,10 @@ As with other AdaptFM models, you must prepare your data with the below steps be
 
 1. **Create annotations** - As with training or fine-tuning any model in AdaptFM, the first step is to generate labeled data using our annotation functionality.
 2. **Place original and labeled images in one folder** - once all training images have been annotated, place the original images and labeled version in the same folder. ***The original images and labeled images must have identical names, differing only in their ending (labeled images ending with '_seg.ext')*** Note that if you save your image and its label with the save widget from within AdaptFM, they will the images will already be in this format.
+
+### WARNING: Spatial Resolution & Image Sizing
+
+During fine-tuning, BME-X applies aggressive spatial downsampling to all training data. Regardless of your original image resolution (such as high-resolution 2048x2048 slice arrays or large 3D matrices), the training pipeline forces every volume into a low-resolution 32x32x32 voxel matrix. Any fine anatomical features or sub-millimeter structures smaller than this coarse grid are lost during model training. Once fine-tuning is complete and inference is run, output prediction masks are projected back to your image's original dimensions, though fine structural details will not be recovered.
 
 ### Fine-Tuning the Model
 

@@ -17,6 +17,12 @@ Within AdaptFM, CT-FM's models can be used in two ways
 1. Intensities outside of (-1024,2048) are clipped 
 2. The clipped values then undergo mix-max normalization to scale them between 0 and 1
 
+### Spatial Resolution & Image Sizing
+
+During inference, CT-FM evaluates full 3D volumes using a 3D sliding-window dimensions of 96x160x160 voxels. The input volume is not globally downsampled, and individual patch predictions are stitched into a final segmentation map matching the array dimensions of your input volume.
+
+### Running CT-FM Inference
+
 You can use CT-FM in AdaptFM to run inference on images in bulk using the following steps:
  
 1. Within AdaptFM navigate to the "Models" menu at the top and select "Inference". Select "MicroSAM" as the model
@@ -36,6 +42,10 @@ As with other AdaptFM models, you must prepare your data with the below steps be
 
 1. **Create annotations** - As with training or fine-tuning any model in AdaptFM, the first step is to generate labeled data using our annotation functionality.
 2. **Place original and labeled images in one folder** - once all training images have been annotated, place the original images and labeled version in the same folder. ***The original images and labeled images must have identical names, differing only in their ending (labeled images ending with '_seg.ext')*** Note that if you save your image and its label with the save widget from within AdaptFM, they will the images will already be in this format.
+
+### Spatial Resolution & Image Sizing
+
+During fine-tuning, CT-FM extracts 3D sub-volume patches (96x160x160 voxels) centered on target foreground label classes. Training occurs within each cropped patch rather than resizing the overall volume.
 
 ### Fine-Tuning the Model
 
