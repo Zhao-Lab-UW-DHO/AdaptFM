@@ -33,7 +33,7 @@ You can find an example provided under test_BIDS in the [main repo](https://gith
 
 ### Spatial Resolution & Image Sizing
 
-During inference, BME-X automatically resamples input image volumes to a fixed spacing of 1.6 mm isotropic voxels. If your input medical image (such as an MRI scan) uses standard 1.0 mm voxel spacing (this will be the default if the image is converted into the `.nii.gz` format), the image will be approx 0.6x the original size. After the model computes the brain segmentation, AdaptFM resamples the final prediction mask back to match your original image array shape. However, because feature extraction is performed at the lower 1.6 mm resolution, fine anatomical structures or subtle boundary details may appear smoothed or blurred in the final output.
+During inference, BME-X automatically resamples input image volumes to a fixed spacing of 1.6 mm isotropic voxels. If your input medical image (such as an MRI scan) uses standard 1.0 mm voxel spacing (this will be the default if the image is converted into the `.nii.gz` format), the image will be approx 0.6x the original size. After the model computes the brain segmentation, the final prediction mask is upscaled back to match your original image array shape.
 
 ### Run Inference
 

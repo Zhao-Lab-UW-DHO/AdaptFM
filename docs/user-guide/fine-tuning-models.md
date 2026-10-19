@@ -22,6 +22,8 @@ The following models allow for fine-tuning and are supported within AdaptFM:
 
 [CTFM](../using-segmentation-models/ctfm.md) - a 3D image-based pretrained foundation model for a number of radiological segmentation tasks
 
+[LoRA](../using-segmentation-models/LoRA.md) - a fine-tuning technique to adapt foundation models without retraining the entire model. Availble for all AdaptFM-supported models. 
+
 **Follow the instructions in the above links to launch training for each model.** All models follow the same general steps. Begin by selecting the "Segmentation Models" –> "Training" at the top of AdaptFM:
 
 1. Use the 'Model' dropdown to select the model you would like to train or fine-tune.
