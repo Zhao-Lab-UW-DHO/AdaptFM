@@ -71,7 +71,8 @@ def load_model_with_architecture(model_env:str,ckpt_path:str,device):
         model.net = freeze_parameters(model.net)
 
         is_3d = False
-        return model.net,is_3d
+        expected_channels = 3
+        return model.net,is_3d,expected_channels
     
     elif 'micro-sam' in model_env.lower(): #tested
         import types
@@ -138,7 +139,8 @@ def load_model_with_architecture(model_env:str,ckpt_path:str,device):
             param.requires_grad = False
 
         is_3d = False
-        return model, is_3d
+        expected_channels =3
+        return model, is_3d,expected_channels
             
     
     elif 'BME-X' in model_env: #tested
@@ -149,7 +151,8 @@ def load_model_with_architecture(model_env:str,ckpt_path:str,device):
         model = model.to(device)
         model = freeze_parameters(model)
         is_3d=True
-        return model,is_3d
+        expected_channels=1
+        return model,is_3d,expected_channels
 
     elif 'sammed3d' in model_env.lower(): #NEEDS TESTING
         model = torch.load(ckpt_path,map_location=device,weights_only=False)
@@ -163,7 +166,8 @@ def load_model_with_architecture(model_env:str,ckpt_path:str,device):
         model = model.to(device)
         model = freeze_parameters(model)
         is_3d=False
-        return model,is_3d
+        expected_channels=3
+        return model,is_3d,expected_channels
 
     elif 'ctfm' in model_env.lower(): #tested
         from lighter_zoo import SegResNet
@@ -179,7 +183,8 @@ def load_model_with_architecture(model_env:str,ckpt_path:str,device):
         model = model.to(device)
         model = freeze_parameters(model)
         is_3d=True
-        return model, is_3d
+        expected_channels=1
+        return model, is_3d,expected_channels
     
     elif 'adaptfm' in model_env.lower(): #TESTED- user must enter target size of 4,128,128
 
@@ -293,7 +298,8 @@ def load_model_with_architecture(model_env:str,ckpt_path:str,device):
         model, is_3d = load_merlin_model(
             model_training_output_dir=ckpt_path, fold='0', device=device
         )
-        return model, is_3d
+        expected_channels=1
+        return model, is_3d,expected_channels
 
 
     elif 'nnunet' in model_env.lower(): #tested
@@ -383,7 +389,8 @@ def load_model_with_architecture(model_env:str,ckpt_path:str,device):
         model, is_3d = load_nnunet_model(
             model_training_output_dir=ckpt_path, fold='all', device=device
         )
-        return model, is_3d
+        expected_channels=1
+        return model, is_3d,expected_channels
     
 
 import torch
@@ -405,8 +412,6 @@ def process_array(
     target_size = config['target_size']
     model_env = config['model_env']
     
-    if model_env =='nnUNet_adapt':
-        expected_channels=1
 
 
     if isinstance(arr, torch.Tensor):
@@ -713,7 +718,7 @@ def load_lora_for_inference(
 
     # 2. Load frozen base model using existing dispatcher
    
-    model, _ = load_model_with_architecture(
+    model, _,expected_channels = load_model_with_architecture(
         model_env=model_env, ckpt_path=ckpt_path, device=device
     )
 
@@ -736,7 +741,7 @@ def load_lora_for_inference(
     print(
         f"Successfully loaded '{model_env}' model with LoRA weights from {weights_file.parent}"
     )
-    return model,config
+    return model,config,expected_channels
 
 def main():
     parser = argparse.ArgumentParser()
@@ -751,7 +756,7 @@ def main():
     checkpoint = args.checkpoint
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    model,config= load_lora_for_inference(checkpoint_path=checkpoint,
+    model,config,expected_channels= load_lora_for_inference(checkpoint_path=checkpoint,
                                    device=device)
     
 
@@ -762,7 +767,7 @@ def main():
 
     for path in tqdm(test_paths, desc="Testing"):
         vol = read_tiff(path)
-        vol = process_array(arr=vol,config=config)
+        vol = process_array(arr=vol,config=config,expected_channels=expected_channels)
         vol = vol.to(dtype=model_dtype)
 
         with torch.no_grad():
